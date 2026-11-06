@@ -1,0 +1,13 @@
+{
+  "name": "video-pipeline",
+  "version": "1.0.0",
+  "description": "Pipeline local de video programático con IA",
+  "type": "module",
+  "scripts": {
+    "doctor": "hyperframes doctor",
+    "render": "hyperframes render"
+  },
+  "dependencies": {
+    "hyperframes": "^0.9.14"
+  }
+}
