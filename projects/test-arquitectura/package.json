@@ -1,0 +1,9 @@
+{
+  "name": "test-arquitectura",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "hyperframes preview",
+    "render": "hyperframes render"
+  }
+}

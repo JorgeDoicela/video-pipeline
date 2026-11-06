@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #050811;
+        --panel-bg: rgba(13, 20, 36, 0.75);
+        --panel-border: rgba(56, 189, 248, 0.2);
+        --cyan: #38bdf8;
+        --cyan-glow: rgba(56, 189, 248, 0.4);
+        --purple: #a855f7;
+        --green: #10b981;
+        --green-glow: rgba(16, 185, 129, 0.4);
+        --red: #f43f5e;
+        --gold: #f59e0b;
+        --gold-glow: rgba(245, 158, 11, 0.4);
+        --text-primary: #f8fafc;
+        --text-muted: #64748b;
+        --text-code: #94a3b8;
+      }
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background-color: var(--bg);
+        font-family: 'JetBrains Mono', monospace, -apple-system, BlinkMacSystemFont, sans-serif;
+        color: var(--text-primary);
+        position: relative;
+      }
+
+      /* Malla y Fondo Atmosférico */
+      .ambient-glow {
+        position: absolute;
+        width: 900px;
+        height: 600px;
+        border-radius: 50%;
+        filter: blur(140px);
+        opacity: 0.12;
+        pointer-events: none;
+      }
+      #glow-1 { top: 100px; left: 200px; background: var(--cyan); }
+      #glow-2 { bottom: 100px; right: 200px; background: var(--purple); }
+
+      .grid-layer {
+        position: absolute;
+        inset: 0;
+        background-size: 48px 48px;
+        background-image: 
+          linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+        mask-image: radial-gradient(circle at 50% 50%, black 40%, transparent 85%);
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        z-index: 1;
+      }
+
+      /* Encabezado Superior Cinemático */
+      header {
+        position: absolute;
+        top: 48px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+
+      .badge-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .sys-badge {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 4px;
+        background: rgba(56, 189, 248, 0.1);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        color: var(--cyan);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .sys-badge::before {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 8px var(--cyan);
+      }
+
+      .title {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .subtitle {
+        font-size: 15px;
+        color: var(--text-muted);
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        margin-top: 4px;
+      }
+
+      /* Widgets de Telemetría */
+      .telemetry-deck {
+        display: flex;
+        gap: 14px;
+      }
+
+      .metric-card {
+        background: var(--panel-bg);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(16px);
+        padding: 10px 18px;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      }
+
+      .metric-label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--text-muted);
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+      }
+      .metric-value small { font-size: 12px; color: var(--text-muted); font-weight: 500; }
+
+      /* Tarjetas de Nodos de Arquitectura */
+      .node-glass {
+        background: rgba(13, 20, 36, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(20px);
+        transition: border-color 0.3s;
+      }
+
+      /* Ventana de Código Flotante (Microservicio Go) */
+      #code-inspector {
+        position: absolute;
+        top: 240px;
+        right: 80px;
+        width: 440px;
+        background: rgba(10, 15, 28, 0.94);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      .code-header {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 10px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+
+      .dots {
+        display: flex;
+        gap: 6px;
+      }
+      .dot { width: 10px; height: 10px; border-radius: 50%; }
+      .dot-r { background: #ef4444; }
+      .dot-y { background: #f59e0b; }
+      .dot-g { background: #10b981; }
+
+      .code-body {
+        padding: 16px;
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--text-code);
+      }
+
+      .code-line {
+        padding: 2px 6px;
+        border-radius: 4px;
+        display: block;
+      }
+      .code-line.active {
+        background: rgba(16, 185, 129, 0.15);
+        border-left: 3px solid var(--green);
+        color: #ffffff;
+      }
+      .kw { color: #f43f5e; font-weight: 600; }
+      .fn { color: #38bdf8; }
+      .str { color: #34d399; }
+      .com { color: #475569; font-style: italic; }
+
+      /* Barra de Eventos Inferior */
+      #terminal-bar {
+        position: absolute;
+        bottom: 40px;
+        left: 80px;
+        right: 80px;
+        background: rgba(10, 15, 28, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      }
+
+      .term-badge {
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 4px;
+      }
+
+      .term-text {
+        font-size: 14px;
+        color: #e2e8f0;
+        flex: 1;
+        letter-spacing: -0.01em;
+      }
+
+      .term-meta {
+        font-size: 12px;
+        color: var(--text-muted);
+        display: flex;
+        gap: 16px;
+      }
+
+      /* Efectos de pulso y glow */
+      .pulse-circle {
+        transform-origin: center;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Capa de Iluminación Ambiental -->
+    <div id="glow-1" class="ambient-glow"></div>
+    <div id="glow-2" class="ambient-glow"></div>
+    <div class="grid-layer"></div>
+
+    <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+      
+      <!-- Encabezado Principal -->
+      <header id="header">
+        <div>
+          <div class="badge-wrap">
+            <span class="sys-badge">High Availability Core</span>
+            <span style="font-size:12px; color:var(--text-muted);">Cluster Region: us-east-1</span>
+          </div>
+          <h1 class="title">Ciclo Transaccional Distribuido</h1>
+          <p class="subtitle">Enrutamiento asíncrono, conmutación en caché in-memory y persistencia ACID</p>
+        </div>
+
+        <div class="telemetry-deck">
+          <div class="metric-card">
+            <span class="metric-label">Throughput</span>
+            <span class="metric-value"><span id="val-rps">2450</span> <small>req/s</small></span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Latencia p99</span>
+            <span class="metric-value" style="color:var(--cyan);"><span id="val-lat">0.0</span> <small>ms</small></span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Cache Hit Ratio</span>
+            <span class="metric-value" style="color:var(--purple);"><span id="val-cache">94.2</span> <small>%</small></span>
+          </div>
+          <div class="metric-card">
+            <span class="metric-label">Estado</span>
+            <span class="metric-value" style="color:var(--green); font-size:15px; margin-top:4px;">NOMINAL</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Lienzo SVG Vectorial Ultra Pulido -->
+      <svg id="diagram" width="1920" height="1080" viewBox="0 0 1920 1080" style="position:absolute; top:0; left:0; width:100%; height:100%;">
+        <defs>
+          <!-- Filtros de Brillo / Neon Bloom -->
+          <filter id="bloom-cyan" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <filter id="bloom-gold" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          <!-- Gradientes para Buses de Conexión -->
+          <linearGradient id="bus-cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.2"/>
+            <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.8"/>
+            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.2"/>
+          </linearGradient>
+
+          <linearGradient id="bus-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.2"/>
+            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.8"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Rutas de Fibra Óptica / Bus de Red (Curvas Bézier Fluidas) -->
+        <g id="circuit-lines" opacity="0.6">
+          <!-- Client -> Gateway -->
+          <path id="path-client-gw" d="M 280 540 L 520 540" fill="none" stroke="#1e293b" stroke-width="4" stroke-dasharray="6 6"/>
+          <!-- Gateway -> Redis (Curva hacia abajo) -->
+          <path id="path-gw-redis" d="M 720 565 C 800 565, 820 720, 920 720" fill="none" stroke="#1e293b" stroke-width="4" stroke-dasharray="6 6"/>
+          <!-- Gateway -> Microservice (Curva hacia arriba) -->
+          <path id="path-gw-svc" d="M 720 515 C 800 515, 820 400, 920 400" fill="none" stroke="#1e293b" stroke-width="4" stroke-dasharray="6 6"/>
+          <!-- Microservice -> Database -->
+          <path id="path-svc-db" d="M 1160 400 C 1240 400, 1260 515, 1340 515" fill="none" stroke="#1e293b" stroke-width="4" stroke-dasharray="6 6"/>
+          <!-- Retorno Database -> Client (Bus Inferior Directo) -->
+          <path id="path-db-return" d="M 1340 565 C 1000 660, 500 660, 280 565" fill="none" stroke="#1e293b" stroke-width="3" stroke-dasharray="8 8"/>
+        </g>
+
+        <!-- Paquetes de Alta Velocidad (Luz y Estela) -->
+        <g id="packet-stream">
+          <!-- Paquete 1: Client -> Gateway -->
+          <circle id="pkt-req" cx="280" cy="540" r="8" fill="#38bdf8" filter="url(#bloom-cyan)" opacity="0"/>
+          <!-- Paquete 2: Gateway -> Redis -->
+          <circle id="pkt-cache" cx="720" cy="565" r="7" fill="#f43f5e" opacity="0"/>
+          <!-- Paquete 3: Gateway -> Service -->
+          <circle id="pkt-svc" cx="720" cy="515" r="8" fill="#a855f7" opacity="0"/>
+          <!-- Paquete 4: Service -> Database -->
+          <circle id="pkt-db" cx="1160" cy="400" r="8" fill="#10b981" opacity="0"/>
+          <!-- Paquete 5: Retorno Final a Cliente -->
+          <circle id="pkt-return" cx="1340" cy="565" r="10" fill="#f59e0b" filter="url(#bloom-gold)" opacity="0"/>
+        </g>
+
+        <!-- 1. Nodo: Cliente Web (Interfaz Estilo macOS) -->
+        <g id="node-client" class="node-wrap" transform="translate(80, 460)">
+          <rect width="200" height="160" rx="12" fill="#0d1424" stroke="rgba(56,189,248,0.3)" stroke-width="2"/>
+          <rect width="200" height="34" rx="12" fill="#131c31"/>
+          <circle cx="20" cy="17" r="4.5" fill="#ef4444"/>
+          <circle cx="34" cy="17" r="4.5" fill="#f59e0b"/>
+          <circle cx="48" cy="17" r="4.5" fill="#10b981"/>
+          <text x="100" y="22" fill="#64748b" font-size="11" text-anchor="middle" font-weight="600">Client Agent</text>
+          
+          <rect x="20" y="52" width="160" height="30" rx="6" fill="#17223b"/>
+          <text x="32" y="72" fill="#38bdf8" font-size="12" font-weight="700">POST /orders</text>
+
+          <text x="20" y="112" fill="#f8fafc" font-size="16" font-weight="800">Edge Client</text>
+          <text x="20" y="132" fill="#64748b" font-size="12">Next.js 15 / TLS 1.3</text>
+          <!-- Onda de Pulso -->
+          <circle id="pulse-client" cx="100" cy="80" r="60" fill="none" stroke="#38bdf8" stroke-width="2" opacity="0"/>
+        </g>
+
+        <!-- 2. Nodo: Reverse Proxy Gateway -->
+        <g id="node-gateway" class="node-wrap" transform="translate(520, 460)">
+          <rect id="rect-gw" width="200" height="160" rx="12" fill="#0d1424" stroke="rgba(168,85,247,0.3)" stroke-width="2"/>
+          <rect width="200" height="34" rx="12" fill="#16182e"/>
+          <text x="100" y="22" fill="#a855f7" font-size="11" text-anchor="middle" font-weight="700">INGRESS GATEWAY</text>
+
+          <!-- Icono de Router/Balanceador -->
+          <g transform="translate(24, 52)">
+            <rect width="36" height="36" rx="8" fill="rgba(168,85,247,0.15)"/>
+            <path d="M 12 18 L 24 18 M 18 12 L 24 18 L 18 24" stroke="#a855f7" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </g>
+
+          <text x="20" y="116" fill="#f8fafc" font-size="17" font-weight="800">Nginx / Envoy</text>
+          <text x="20" y="136" fill="#64748b" font-size="12">SSL Offloading & LB</text>
+          <circle id="pulse-gw" cx="100" cy="80" r="60" fill="none" stroke="#a855f7" stroke-width="2" opacity="0"/>
+        </g>
+
+        <!-- 3. Nodo: Microservicio Go -->
+        <g id="node-svc" class="node-wrap" transform="translate(920, 320)">
+          <rect id="rect-svc" width="240" height="160" rx="12" fill="#0d1424" stroke="rgba(16,185,129,0.3)" stroke-width="2"/>
+          <rect width="240" height="34" rx="12" fill="#112224"/>
+          <text x="120" y="22" fill="#10b981" font-size="11" text-anchor="middle" font-weight="700">MICROSERVICES LAYER</text>
+
+          <g transform="translate(24, 52)">
+            <rect width="36" height="36" rx="8" fill="rgba(16,185,129,0.15)"/>
+            <text x="18" y="24" fill="#10b981" font-size="14" text-anchor="middle" font-weight="900">GO</text>
+          </g>
+
+          <text x="20" y="116" fill="#f8fafc" font-size="17" font-weight="800">Order Service</text>
+          <text x="20" y="136" fill="#64748b" font-size="12">Golang Tokio / gRPC</text>
+          <circle id="pulse-svc" cx="120" cy="80" r="70" fill="none" stroke="#10b981" stroke-width="2" opacity="0"/>
+        </g>
+
+        <!-- 4. Nodo: Redis In-Memory Cache -->
+        <g id="node-redis" class="node-wrap" transform="translate(920, 640)">
+          <rect id="rect-redis" width="240" height="160" rx="12" fill="#0d1424" stroke="rgba(244,63,94,0.3)" stroke-width="2"/>
+          <rect width="240" height="34" rx="12" fill="#24141d"/>
+          <text x="120" y="22" fill="#f43f5e" font-size="11" text-anchor="middle" font-weight="700">IN-MEMORY DATA STORE</text>
+
+          <g transform="translate(24, 52)">
+            <rect width="36" height="36" rx="8" fill="rgba(244,63,94,0.15)"/>
+            <text x="18" y="24" fill="#f43f5e" font-size="13" text-anchor="middle" font-weight="900">MEM</text>
+          </g>
+
+          <text x="20" y="116" fill="#f8fafc" font-size="17" font-weight="800">Redis Clúster</text>
+          <text x="20" y="136" fill="#64748b" font-size="12">Low-Latency Cache & Pub/Sub</text>
+          <circle id="pulse-redis" cx="120" cy="80" r="70" fill="none" stroke="#f43f5e" stroke-width="2" opacity="0"/>
+        </g>
+
+        <!-- 5. Nodo: PostgreSQL Clúster Primario -->
+        <g id="node-db" class="node-wrap" transform="translate(1340, 440)">
+          <rect id="rect-db" width="260" height="190" rx="14" fill="#0d1424" stroke="rgba(245,158,11,0.3)" stroke-width="2"/>
+          <rect width="260" height="34" rx="14" fill="#261c11"/>
+          <text x="130" y="22" fill="#f59e0b" font-size="11" text-anchor="middle" font-weight="700">TRANSACTIONAL STORAGE</text>
+
+          <!-- Disco Cilindros SVG -->
+          <g transform="translate(24, 54)">
+            <ellipse cx="20" cy="10" rx="18" ry="6" fill="#f59e0b" opacity="0.8"/>
+            <path d="M 2 10 L 2 24 C 2 28, 38 28, 38 24 L 38 10" fill="none" stroke="#f59e0b" stroke-width="2"/>
+            <path d="M 2 18 C 2 22, 38 22, 38 18" fill="none" stroke="#f59e0b" stroke-width="2"/>
+          </g>
+
+          <text x="24" y="120" fill="#f8fafc" font-size="19" font-weight="800">PostgreSQL Primary</text>
+          <text x="24" y="142" fill="#64748b" font-size="13">WAL Streaming & B-Tree Indexes</text>
+          <text x="24" y="166" fill="#10b981" font-size="12" font-weight="700">RPO: 0 | ACID Compliant</text>
+          <circle id="pulse-db" cx="130" cy="95" r="85" fill="none" stroke="#f59e0b" stroke-width="2" opacity="0"/>
+        </g>
+      </svg>
+
+      <!-- Ventana de Código Flotante (Inspector de Microservicio) -->
+      <div id="code-inspector">
+        <div class="code-header">
+          <div class="dots">
+            <span class="dot dot-r"></span>
+            <span class="dot dot-y"></span>
+            <span class="dot dot-g"></span>
+          </div>
+          <span>handler.go — OrderService</span>
+          <span>Go 1.23</span>
+        </div>
+        <div class="code-body">
+          <span class="code-line"><span class="kw">func</span> (s *<span class="fn">Server</span>) <span class="fn">CreateOrder</span>(ctx Context) {</span>
+          <span class="code-line" id="code-l1">&nbsp;&nbsp;<span class="com">// 1. Consulta en caché Redis</span></span>
+          <span class="code-line" id="code-l2">&nbsp;&nbsp;val := s.redis.<span class="fn">Get</span>(ctx, key)</span>
+          <span class="code-line" id="code-l3">&nbsp;&nbsp;<span class="kw">if</span> val == <span class="kw">nil</span> {</span>
+          <span class="code-line" id="code-l4">&nbsp;&nbsp;&nbsp;&nbsp;<span class="com">// 2. Persistencia relacional</span></span>
+          <span class="code-line" id="code-l5">&nbsp;&nbsp;&nbsp;&nbsp;tx := s.db.<span class="fn">BeginTx</span>(ctx)</span>
+          <span class="code-line" id="code-l6">&nbsp;&nbsp;&nbsp;&nbsp;tx.<span class="fn">Exec</span>(<span class="str">"INSERT INTO orders..."</span>)</span>
+          <span class="code-line" id="code-l7">&nbsp;&nbsp;&nbsp;&nbsp;tx.<span class="fn">Commit</span>()</span>
+          <span class="code-line">&nbsp;&nbsp;}</span>
+          <span class="code-line">&nbsp;&nbsp;<span class="kw">return</span> status.<span class="fn">OK</span></span>
+          <span class="code-line">}</span>
+        </div>
+      </div>
+
+      <!-- Barra de Estado / Telemetría Inferior -->
+      <div id="terminal-bar">
+        <span style="color:var(--cyan); font-weight:800; font-size:13px;">[TELEMETRY_ENGINE]</span>
+        <span class="term-badge" id="term-badge" style="background:rgba(56,189,248,0.15); color:var(--cyan); border:1px solid rgba(56,189,248,0.3);">SYS_READY</span>
+        <span class="term-text" id="term-text">Topología de malla distribuida sincronizada. Monitoreo de latencia activo.</span>
+        <div class="term-meta">
+          <span>Worker: #03</span>
+          <span>GPU: Radeon Graphics</span>
+          <span style="color:var(--green);">Synced</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Guion de Animación Cinemática GSAP -->
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // ==========================================
+      // FASE 0: ENTRADA CINEMÁTICA (0.0s - 1.8s)
+      // ==========================================
+      tl.from("#header", { opacity: 0, y: -24, duration: 1.0, ease: "power3.out" }, 0.2);
+      tl.from(".node-wrap", {
+        opacity: 0,
+        scale: 0.9,
+        y: 30,
+        stagger: 0.1,
+        duration: 0.9,
+        ease: "back.out(1.6)"
+      }, 0.4);
+      tl.from("#circuit-lines path", {
+        opacity: 0,
+        strokeDashoffset: 100,
+        duration: 1.2,
+        stagger: 0.08,
+        ease: "power2.out"
+      }, 0.7);
+      tl.from("#terminal-bar", { opacity: 0, y: 30, duration: 0.7, ease: "power2.out" }, 1.0);
+
+      // ==========================================
+      // FASE 1: CLIENTE EMITE HTTP REQUEST (1.8s - 3.4s)
+      // ==========================================
+      tl.call(() => {
+        document.getElementById("term-badge").innerText = "HTTP_DISPATCH";
+        document.getElementById("term-badge").style.color = "#38bdf8";
+        document.getElementById("term-badge").style.borderColor = "#38bdf8";
+        document.getElementById("term-text").innerText = "POST /api/v1/orders — Payload: 1.2 KB JSON [Client -> Gateway Ingress]";
+      }, null, 1.8);
+
+      // Onda de pulso en el cliente
+      tl.fromTo("#pulse-client", { r: 50, opacity: 0.8 }, { r: 110, opacity: 0, duration: 0.8, ease: "power2.out" }, 1.8);
+      // Paquete viajando Client -> Gateway
+      tl.set("#pkt-req", { opacity: 1 }, 1.8);
+      tl.fromTo("#pkt-req", { cx: 280 }, { cx: 520, duration: 1.2, ease: "power2.inOut" }, 1.8);
+      tl.to("#path-client-gw", { stroke: "#38bdf8", strokeWidth: 5, duration: 0.3 }, 1.8);
+      tl.to("#path-client-gw", { stroke: "#1e293b", strokeWidth: 4, duration: 0.5 }, 3.0);
+
+      // Impacto en Ingress Gateway
+      tl.fromTo("#pulse-gw", { r: 50, opacity: 0.9 }, { r: 120, opacity: 0, duration: 0.8, ease: "power2.out" }, 3.0);
+      tl.to("#rect-gw", { stroke: "#a855f7", strokeWidth: 3.5, filter: "drop-shadow(0 0 16px rgba(168,85,247,0.6))", duration: 0.2 }, 3.0);
+      tl.set("#pkt-req", { opacity: 0 }, 3.0);
+
+      // ==========================================
+      // FASE 2: GATEWAY ENRUTA A REDIS Y API (3.4s - 5.2s)
+      // ==========================================
+      tl.call(() => {
+        document.getElementById("term-badge").innerText = "CACHE_EVAL";
+        document.getElementById("term-badge").style.color = "#f43f5e";
+        document.getElementById("term-badge").style.borderColor = "#f43f5e";
+        document.getElementById("term-text").innerText = "Redis Clúster: Key 'order:session_482' -> CACHE MISS (0.3ms). Redirigiendo a Go Service...";
+        document.getElementById("val-lat").innerText = "1.4";
+      }, null, 3.4);
+
+      // Despliegue de paquetes hacia Redis y Service en paralelo
+      tl.set("#pkt-cache", { opacity: 1 }, 3.4);
+      tl.set("#pkt-svc", { opacity: 1 }, 3.4);
+
+      // Animación curva hacia Redis
+      tl.fromTo("#pkt-cache", { cx: 720, cy: 565 }, { cx: 920, cy: 720, duration: 1.1, ease: "power1.inOut" }, 3.4);
+      // Animación curva hacia Service
+      tl.fromTo("#pkt-svc", { cx: 720, cy: 515 }, { cx: 920, cy: 400, duration: 1.1, ease: "power1.inOut" }, 3.4);
+
+      tl.to("#path-gw-redis", { stroke: "#f43f5e", strokeWidth: 5, duration: 0.3 }, 3.4);
+      tl.to("#path-gw-svc", { stroke: "#a855f7", strokeWidth: 5, duration: 0.3 }, 3.4);
+      tl.to("#rect-gw", { stroke: "rgba(168,85,247,0.3)", strokeWidth: 2, filter: "none", duration: 0.4 }, 3.6);
+
+      // Impacto en Redis
+      tl.fromTo("#pulse-redis", { r: 50, opacity: 0.8 }, { r: 120, opacity: 0, duration: 0.7, ease: "power2.out" }, 4.5);
+      tl.to("#rect-redis", { stroke: "#f43f5e", strokeWidth: 3, filter: "drop-shadow(0 0 16px rgba(244,63,94,0.6))", duration: 0.2 }, 4.5);
+      tl.set("#pkt-cache", { opacity: 0 }, 4.5);
+      tl.to("#rect-redis", { stroke: "rgba(244,63,94,0.3)", strokeWidth: 2, filter: "none", duration: 0.4 }, 5.2);
+
+      // ==========================================
+      // FASE 3: MICROSERVICIO GO Y DESPLIEGUE DE CÓDIGO (5.2s - 7.5s)
+      // ==========================================
+      tl.set("#pkt-svc", { opacity: 0 }, 4.5);
+      tl.fromTo("#pulse-svc", { r: 50, opacity: 0.9 }, { r: 120, opacity: 0, duration: 0.8, ease: "power2.out" }, 4.5);
+      tl.to("#rect-svc", { stroke: "#10b981", strokeWidth: 3.5, filter: "drop-shadow(0 0 20px rgba(16,185,129,0.7))", duration: 0.2 }, 4.5);
+
+      // Despliegue de ventana flotante de código Go
+      tl.to("#code-inspector", { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" }, 5.0);
+      tl.to("#code-l2", { className: "code-line active", duration: 0.1 }, 5.2);
+      tl.to("#code-l2", { className: "code-line", duration: 0.1 }, 5.8);
+      tl.to("#code-l5", { className: "code-line active", duration: 0.1 }, 5.8);
+      tl.to("#code-l6", { className: "code-line active", duration: 0.1 }, 6.2);
+
+      tl.call(() => {
+        document.getElementById("term-badge").innerText = "DB_TX_DISPATCH";
+        document.getElementById("term-badge").style.color = "#10b981";
+        document.getElementById("term-badge").style.borderColor = "#10b981";
+        document.getElementById("term-text").innerText = "OrderService despacha transacción ACID hacia clúster primario PostgreSQL...";
+        document.getElementById("val-lat").innerText = "4.2";
+      }, null, 5.5);
+
+      // Paquete Service -> DB
+      tl.set("#pkt-db", { opacity: 1 }, 6.0);
+      tl.fromTo("#pkt-db", { cx: 1160, cy: 400 }, { cx: 1340, cy: 515, duration: 1.2, ease: "power2.inOut" }, 6.0);
+      tl.to("#path-svc-db", { stroke: "#10b981", strokeWidth: 5, duration: 0.3 }, 6.0);
+
+      // ==========================================
+      // FASE 4: POSTGRESQL PRIMARY COMMIT (7.5s - 9.5s)
+      // ==========================================
+      tl.set("#pkt-db", { opacity: 0 }, 7.2);
+      tl.fromTo("#pulse-db", { r: 60, opacity: 1 }, { r: 140, opacity: 0, duration: 1.0, ease: "power2.out" }, 7.2);
+      tl.to("#rect-db", { stroke: "#f59e0b", strokeWidth: 4, filter: "drop-shadow(0 0 24px rgba(245,158,11,0.8))", duration: 0.3 }, 7.2);
+      tl.to("#rect-svc", { stroke: "rgba(16,185,129,0.3)", strokeWidth: 2, filter: "none", duration: 0.4 }, 7.2);
+
+      tl.call(() => {
+        document.getElementById("term-badge").innerText = "ACID_COMMIT";
+        document.getElementById("term-badge").style.color = "#f59e0b";
+        document.getElementById("term-badge").style.borderColor = "#f59e0b";
+        document.getElementById("term-text").innerText = "PostgreSQL: INSERT INTO orders (id, user_id, total) VALUES (9821, ...) — COMMIT OK (2.8ms)";
+        document.getElementById("val-lat").innerText = "7.6";
+      }, null, 7.5);
+
+      // ==========================================
+      // FASE 5: RETORNO DE STREAM Y ESTADO FINAL (9.5s - 12.0s)
+      // ==========================================
+      tl.set("#pkt-return", { opacity: 1 }, 8.5);
+      // Animación de retorno rápida
+      tl.fromTo("#pkt-return", { cx: 1340, cy: 565 }, { cx: 280, cy: 565, duration: 1.8, ease: "power3.inOut" }, 8.5);
+      tl.to("#path-db-return", { stroke: "#f59e0b", strokeWidth: 5, opacity: 1, duration: 0.4 }, 8.5);
+
+      // Ocultar ventana de código limpiamente
+      tl.to("#code-inspector", { opacity: 0, y: 15, duration: 0.5, ease: "power2.in" }, 8.8);
+
+      // Impacto final en el cliente
+      tl.fromTo("#pulse-client", { r: 50, opacity: 1 }, { r: 130, opacity: 0, duration: 0.9, ease: "power2.out" }, 10.3);
+      tl.to("#node-client rect", { stroke: "#10b981", strokeWidth: 4, filter: "drop-shadow(0 0 20px rgba(16,185,129,0.8))", duration: 0.3 }, 10.3);
+
+      tl.call(() => {
+        document.getElementById("term-badge").innerText = "HTTP_200_OK";
+        document.getElementById("term-badge").style.background = "rgba(16,185,129,0.2)";
+        document.getElementById("term-badge").style.color = "#10b981";
+        document.getElementById("term-badge").style.borderColor = "#10b981";
+        document.getElementById("term-text").innerText = "200 OK — Transacción completada | Latencia Final: 8.4ms | Throughput Actualizado: 4,850 req/s";
+        document.getElementById("val-lat").innerText = "8.4";
+        document.getElementById("val-rps").innerText = "4850";
+      }, null, 10.3);
+
+      // Registro en HyperFrames
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
