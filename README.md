@@ -4,27 +4,37 @@ Entorno local automatizado de produccion y edicion de video programatico goberna
 
 El sistema resuelve el problema del costo y la friccion de la edicion audiovisual manual mediante una tuberia local que sincroniza modelos de transcripcion temporalizada con motores de composicion web (HTML5, SVG y GSAP) y aceleracion grafica por hardware, operando bajo una politica estricta de **cero costes adicionales**.
 
+```mermaid
+flowchart LR
+    A["Voz / Video Crudo"] --> B["faster-whisper (Timestamps JSON)"]
+    B --> C["Agente de IA (Planificacion)"]
+    C --> D["cut_silence.py (Corte con FFmpeg)"]
+    C --> E["index.html (Animacion Web GSAP/SVG)"]
+    D --> F["HyperFrames (Chromium Headless + GPU)"]
+    E --> F
+    F --> G["Video Final MP4 (1080p60)"]
+```
+
 ---
 
 ## 1. Requisitos Previos y Compatibilidad de Entorno
 
-* **Sistema Operativo:** Linux (Debian 13 Trixie / Nix Flakes).
-* **Controlador Grafico:** AMDGPU con aceleracion VA-API y Mesa nativo (`radeonsi_dri.so`).
-* **FFmpeg:** Version 7.1 o superior compilada con soporte DRM y VA-API (`/usr/bin/ffmpeg`).
-* **Node.js:** Version 22 LTS o superior y gestor `pnpm`.
-* **Python:** Version 3.10 o superior (ejecutado con `uv`).
+* **Sistema Operativo:** Distribuciones Linux (Debian, Ubuntu, Fedora, Arch Linux, NixOS) o entornos con soporte Chromium/FFmpeg (WSL2 / macOS).
+* **Controlador Grafico:** Compatible con aceleracion por hardware mediante AMDGPU (VA-API/Mesa), Intel QuickSync o NVIDIA (NVENC/CUDA). Opcionalmente corre en modo software sobre CPU si no hay GPU dedicada.
+* **FFmpeg:** Version 7.0 o superior instalada en el sistema.
+* **Node.js:** Version 20 o 22 LTS y gestor de paquetes `pnpm`.
+* **Python:** Version 3.10 o superior (gestionado con `uv`).
 
 ---
 
 ## 2. Inicio Rápido (Quickstart)
 
-### Paso 1: Configurar el Entorno Virtual de Python
+### Paso 1: Clonar el Repositorio e Inicializar el Entorno Python
 ```bash
-# Clonar el repositorio y acceder al directorio
-git clone https://github.com/<tu-usuario>/video-pipeline.git
+git clone https://github.com/JorgeDoicela/video-pipeline.git
 cd video-pipeline
 
-# Crear y activar entorno virtual
+# Crear entorno virtual aislado e instalar dependencias
 uv venv .venv
 uv pip install --python .venv/bin/python -r requirements.txt
 ```
@@ -46,7 +56,23 @@ pnpm exec hyperframes doctor
 
 ---
 
-## 3. Comandos Principales
+## 3. Modelos de Video Soportados
+
+El sistema esta diseñado para producir dos formatos de contenido:
+
+1. **Formato 1: Grabacion a Camara o Pantalla (Talking Head / Screencast):**
+   * Poda algoritmica automatica de silencios y pausas mayores a 400 ms con FFmpeg.
+   * Superposicion de subtitulos cineticos palabra por palabra sincronizados con el audio.
+   * Tarjetas flotantes (*lower-thirds*) para resaltar conceptos, rutas y comandos de terminal.
+
+2. **Formato 2: Explicador Tecnico Abstracto (Sin Rostro):**
+   * Generacion procedural de diagramas de arquitectura de sistemas (cajas de servidores, clientes, bases de datos).
+   * Animacion de flujo de datos y paquetes de red mediante lineas vectoriales SVG y GSAP.
+   * Bloques de codigo fuente con resaltado de sintaxis dinamico sincronizados con la explicacion de voz en off.
+
+---
+
+## 4. Comandos Principales
 
 | Tarea | Comando | Descripcion Tecnica |
 | :--- | :--- | :--- |
@@ -59,7 +85,7 @@ pnpm exec hyperframes doctor
 
 ---
 
-## 4. Estructura del Directorio
+## 5. Estructura del Directorio
 
 ```text
 video-pipeline/
@@ -89,7 +115,7 @@ video-pipeline/
 
 ---
 
-## 5. Documentación Técnica Detallada (Docs-as-Code)
+## 6. Documentación Técnica Detallada (Docs-as-Code)
 
 La documentacion completa del sistema se encuentra organizada bajo taxonomia jerarquica numerica dentro de la carpeta `docs/`.
 
@@ -105,7 +131,7 @@ Consulta el catalogo maestro:
 
 ---
 
-## 6. Seguridad y Licencia
+## 7. Seguridad y Licencia
 
 * **Gestion de Secretos:** Este entorno no almacena claves privadas ni tokens de pago. Toda la inferencia y procesamiento se ejecuta de manera local y desconectada.
-* **Licencia:** El entorno se compone de herramientas de codigo abierto bajo licencias permisivas (Apache 2.0 para HyperFrames, MIT para CTranslate2/Whisper y LGPL/GPL para FFmpeg).
+* **Licencia:** El entorno se compone de herramientas de codigo abierto bajo licencia [MIT](LICENSE).
