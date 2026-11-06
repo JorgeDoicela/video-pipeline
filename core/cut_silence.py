@@ -7,6 +7,7 @@ ensamblando un video continuo sin pausas muertas.
 
 import argparse
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -95,12 +96,16 @@ def cut_and_concat(input_file: str, output_file: str, keep_intervals: list):
     """
     Construye el filtro complejo de FFmpeg para extraer y concatenar los segmentos.
     """
-    if not keep_intervals:
-        print("[FFmpeg] No se detectaron segmentos de voz útiles.", file=sys.stderr)
-        return
-
     out_path = Path(output_file)
     out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if not keep_intervals:
+        print(
+            "[FFmpeg] No se detectaron pausas para recortar o el audio es continuo. Copiando archivo original.",
+            file=sys.stderr,
+        )
+        shutil.copy2(input_file, out_path)
+        return
 
     filter_parts = []
     concat_inputs = []

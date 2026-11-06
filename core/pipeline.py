@@ -6,10 +6,18 @@ auditoría de estándares y renderizado con un único comando unificado.
 """
 
 import argparse
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
+
+# Auto-ejecución con el entorno virtual local si no está activo
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_VENV_DIR = _REPO_ROOT / ".venv"
+_VENV_PY = _VENV_DIR / "bin" / "python"
+if _VENV_PY.exists() and sys.prefix != str(_VENV_DIR):
+    os.execv(str(_VENV_PY), [str(_VENV_PY), *sys.argv])
 
 try:
     from core.create_project import create_project
@@ -114,15 +122,16 @@ def produce_pipeline(
     print("\n--> [Paso 4/5] Generando e inyectando subtítulos cinéticos en HTML/GSAP...")
     transcript_data = load_transcript(transcript_path)
     words = extract_word_list(transcript_data)
-    groups = group_words(words, words_per_group=4, pause_threshold=0.4)
-
-    # Exportar formatos estándar de accesibilidad
-    export_srt(groups, project_dir / "subtitles.srt")
-    export_vtt(groups, project_dir / "subtitles.vtt")
-
-    # Inyectar en el index.html del proyecto
-    html_code, gsap_code = generate_html_and_gsap(groups)
-    inject_into_html(project_dir / "index.html", html_code, gsap_code)
+    if words:
+        groups = group_words(words, words_per_group=4, pause_threshold=0.4)
+        export_srt(groups, project_dir / "subtitles.srt")
+        export_vtt(groups, project_dir / "subtitles.vtt")
+        html_code, gsap_code = generate_html_and_gsap(groups)
+        inject_into_html(project_dir / "index.html", html_code, gsap_code)
+    else:
+        print(
+            "[Captions] No se detectó habla en la pista de audio; omitiendo subtítulos cinéticos."
+        )
 
     # 5. Auditoría de Estándares HyperFrames (WCAG AA, Motion, Layout)
     print("\n--> [Paso 5/5] Auditando estándares con hyperframes check...")

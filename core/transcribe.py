@@ -6,8 +6,16 @@ Utiliza faster-whisper (CTranslate2) para ejecución eficiente en CPU/GPU.
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
+
+# Auto-ejecución con el entorno virtual local si no está activo
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_VENV_DIR = _REPO_ROOT / ".venv"
+_VENV_PY = _VENV_DIR / "bin" / "python"
+if _VENV_PY.exists() and sys.prefix != str(_VENV_DIR):
+    os.execv(str(_VENV_PY), [str(_VENV_PY), *sys.argv])
 
 
 def transcribe(

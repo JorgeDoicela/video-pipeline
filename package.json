@@ -16,7 +16,7 @@
     "cut-silence": "python3 core/cut_silence.py",
     "sfx": "python3 core/generate_sfx.py",
     "icons": "python3 core/generate_icons.py",
-    "test:py": "pytest tests",
+    "test:py": ".venv/bin/pytest tests || pytest tests",
     "lint:py": "ruff check core tests",
     "format:py": "ruff format core tests"
   },
