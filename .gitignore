@@ -8,6 +8,7 @@ __pycache__/
 *$py.class
 *.so
 .pytest_cache/
+.ruff_cache/
 
 # Dependencias y artefactos de Node.js
 node_modules/
@@ -19,8 +20,12 @@ lerna-debug.log*
 
 # Caché y artefactos internos de HyperFrames
 .hyperframes/
+**/.hyperframes/
 .cache/
 frames/
+**/frames/
+renders/
+**/renders/
 
 # Archivos pesados de medios (Audio y Video crudo o renderizado)
 *.mp4
@@ -34,12 +39,18 @@ frames/
 *.aac
 *.flac
 
+# Excepciones de fixtures para plantillas
+!templates/talking_head/cut.mp4
+
 # Mantener la estructura de carpetas en Git
 !.gitkeep
 
 # Excluir transcripciones intermedias generadas en proyectos
 projects/*/transcript.json
-projects/*/.hyperframes/
+
+# Archivos temporales
+tmp/
+*.tmp
 
 # Variables de entorno y secretos locales
 .env

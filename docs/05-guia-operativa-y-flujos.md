@@ -10,21 +10,33 @@ El flujo estandar consta de cinco etapas consecutivas:
 
 ```mermaid
 flowchart TD
-    S1["1. Grabar y Alojar en projects/&lt;slug&gt;/raw.mp4"] --> S2["2. Transcribir con core/transcribe.py"]
+    S0["0. Scaffold con core/create_project.py"] --> S1["1. Grabar y Alojar en projects/<slug>/raw.mp4"]
+    S1 --> S2["2. Transcribir con core/transcribe.py"]
     S2 --> S3["3. Cortar silencios con core/cut_silence.py"]
-    S3 --> S4["4. Generar index.html con el Agente"]
-    S4 --> S5["5. Previsualizar (pnpm exec hyperframes preview)"]
-    S5 --> S6["6. Renderizar MP4 (pnpm exec hyperframes render)"]
+    S3 --> S4["4. Generar/Ajustar index.html con el Agente"]
+    S4 --> S5["5. Validar estándares (pnpm exec hyperframes check)"]
+    S5 --> S6["6. Previsualizar (pnpm exec hyperframes preview)"]
+    S6 --> S7["7. Renderizar MP4 (pnpm exec hyperframes render)"]
 ```
 
 ---
 
-### Paso 1: Inicializar el Proyecto Local
-Crea la carpeta de tu nuevo proyecto dentro del directorio `projects/` y copia tu grabacion:
+### Paso 1: Inicializar el Proyecto mediante Scaffolding
+Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las 5 plantillas optimizadas:
 
 ```bash
 cd video-pipeline
-mkdir -p projects/mi-video
+
+# Crear proyecto vertical 9:16 para redes sociales (Shorts/Reels/TikTok)
+python3 core/create_project.py mi-video --template portrait_9_16 --title "Título de Alto Impacto"
+
+# Si es un video con presentador o explicador de código:
+# python3 core/create_project.py mi-video --template talking_head
+# python3 core/create_project.py mi-video --template tech_explainer
+```
+
+Si cuentas con una grabacion de audio o camara en crudo, copiala al directorio del proyecto:
+```bash
 cp /ruta/a/mi_grabacion.mp4 projects/mi-video/raw.mp4
 ```
 
@@ -65,23 +77,30 @@ Con el archivo `transcript.json` generado, solicita al agente la creacion de la 
 
 ---
 
-### Paso 5: Previsualizacion Interactiva (Opcional)
-Si deseas inspeccionar la linea de tiempo en el navegador antes de compilar:
+### Paso 5: Validar Estándares de Accesibilidad y Render
+Antes de compilar, verifica que la escena cumpla con las reglas WCAG AA, layout y tiempos deterministas:
 
 ```bash
-cd projects/mi-video
-pnpm --dir ../.. exec hyperframes preview
+pnpm exec hyperframes check projects/mi-video
 ```
-Esto abrira el estudio visual interactivo en `http://localhost:3000`.
 
 ---
 
-### Paso 6: Compilacion Final a MP4
-Ejecuta el renderizador con aceleracion de hardware:
+### Paso 6: Previsualizacion Interactiva (Opcional)
+Si deseas inspeccionar la linea de tiempo en el navegador:
 
 ```bash
-cd projects/mi-video
-pnpm --dir ../.. exec hyperframes render -o final.mp4
+pnpm exec hyperframes preview projects/mi-video
+```
+Esto abrira el estudio visual interactivo en `http://localhost:3002`.
+
+---
+
+### Paso 7: Compilacion Final a MP4
+Ejecuta el renderizador con aceleracion de hardware (GPU AMD/Mesa):
+
+```bash
+pnpm exec hyperframes render projects/mi-video -o projects/mi-video/final.mp4
 ```
 
 El video final quedara disponible en `projects/mi-video/final.mp4`.

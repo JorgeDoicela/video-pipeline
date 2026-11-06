@@ -73,7 +73,6 @@
       }
       .word {
         opacity: 0.25;
-        transition: opacity 0.1s, color 0.1s;
       }
       .word.active {
         opacity: 1;
@@ -92,7 +91,7 @@
       data-height="1080"
     >
       <!-- Reemplazar 'cut.mp4' con el video del presentador -->
-      <video id="bg-video" src="cut.mp4" muted></video>
+      <video id="bg-video" src="cut.mp4" data-start="0" data-duration="15" muted></video>
 
       <!-- Tarjeta Lower-Third -->
       <div id="card" class="lower-third">

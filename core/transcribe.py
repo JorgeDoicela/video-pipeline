@@ -10,13 +10,21 @@ import sys
 from pathlib import Path
 
 
-def transcribe(audio_path: str, output_path: str, model_size: str = "base", language: str = "es", device: str = "cpu"):
+def transcribe(
+    audio_path: str,
+    output_path: str,
+    model_size: str = "base",
+    language: str = "es",
+    device: str = "cpu",
+):
     input_file = Path(audio_path)
     if not input_file.exists():
         print(f"Error: El archivo de entrada '{audio_path}' no existe.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"[Whisper] Cargando modelo '{model_size}' en dispositivo '{device}' (compute_type=int8)...")
+    print(
+        f"[Whisper] Cargando modelo '{model_size}' en dispositivo '{device}' (compute_type=int8)..."
+    )
     from faster_whisper import WhisperModel
 
     model = WhisperModel(model_size, device=device, compute_type="int8")
@@ -26,7 +34,7 @@ def transcribe(audio_path: str, output_path: str, model_size: str = "base", lang
         str(input_file),
         language=language if language != "auto" else None,
         word_timestamps=True,
-        vad_filter=True, # Filtro de detección de actividad vocal
+        vad_filter=True,  # Filtro de detección de actividad vocal
     )
 
     data = {
@@ -34,7 +42,7 @@ def transcribe(audio_path: str, output_path: str, model_size: str = "base", lang
         "language": info.language,
         "language_probability": round(info.language_probability, 4),
         "duration": round(info.duration, 3),
-        "segments": []
+        "segments": [],
     }
 
     word_count = 0
@@ -44,16 +52,18 @@ def transcribe(audio_path: str, output_path: str, model_size: str = "base", lang
             "start": round(segment.start, 3),
             "end": round(segment.end, 3),
             "text": segment.text.strip(),
-            "words": []
+            "words": [],
         }
         if segment.words:
             for word in segment.words:
-                seg_data["words"].append({
-                    "word": word.word.strip(),
-                    "start": round(word.start, 3),
-                    "end": round(word.end, 3),
-                    "probability": round(word.probability, 4)
-                })
+                seg_data["words"].append(
+                    {
+                        "word": word.word.strip(),
+                        "start": round(word.start, 3),
+                        "end": round(word.end, 3),
+                        "probability": round(word.probability, 4),
+                    }
+                )
                 word_count += 1
         data["segments"].append(seg_data)
 
@@ -70,9 +80,17 @@ def main():
     parser = argparse.ArgumentParser(description="Transcripción local con word-level timestamps")
     parser.add_argument("-i", "--input", required=True, help="Ruta al archivo de audio o video")
     parser.add_argument("-o", "--output", required=True, help="Ruta al archivo JSON de salida")
-    parser.add_argument("-m", "--model", default="base", choices=["tiny", "base", "small", "medium", "large-v3"], help="Tamaño del modelo Whisper")
+    parser.add_argument(
+        "-m",
+        "--model",
+        default="base",
+        choices=["tiny", "base", "small", "medium", "large-v3"],
+        help="Tamaño del modelo Whisper",
+    )
     parser.add_argument("-l", "--language", default="es", help="Código de idioma (es, en, auto)")
-    parser.add_argument("-d", "--device", default="cpu", choices=["cpu", "cuda"], help="Dispositivo de cómputo")
+    parser.add_argument(
+        "-d", "--device", default="cpu", choices=["cpu", "cuda"], help="Dispositivo de cómputo"
+    )
     args = parser.parse_args()
 
     transcribe(args.input, args.output, args.model, args.language, args.device)

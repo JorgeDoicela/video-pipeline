@@ -94,11 +94,14 @@ El motor renderiza en cualquier relacion de aspecto sin alterar los tiempos de a
 
 | Tarea | Comando | Descripcion Tecnica |
 | :--- | :--- | :--- |
-| **Diagnostico** | `pnpm exec hyperframes doctor` | Verifica dependencias del sistema, GPU, FFmpeg y Chrome cache. |
+| **Diagnostico** | `pnpm run doctor` | Verifica dependencias del sistema, GPU, FFmpeg y Chrome cache. |
+| **Nuevo Proyecto** | `python3 core/create_project.py <slug> -t <plantilla>` | Inicializa un nuevo proyecto listo para previsualizar/renderizar. |
+| **Validacion** | `pnpm exec hyperframes check projects/<slug>` | Audita contraste WCAG AA, duracion, tiempos deterministas y layout. |
 | **Transcripcion** | `.venv/bin/python core/transcribe.py -i <in> -o <out.json>` | Genera marcas de tiempo palabra por palabra con `faster-whisper`. |
 | **Corte de Silencios** | `core/cut_silence.py -i <in> -o <out.mp4>` | Elimina pausas muertas mayores a 0.45s mediante filtros de FFmpeg. |
-| **Previsualizacion** | `pnpm exec hyperframes preview` | Inicia el estudio visual interactivo en `localhost:3000`. |
-| **Renderizado MP4** | `pnpm exec hyperframes render -o <out.mp4>` | Compila la escena web a video MP4 utilizando aceleracion GPU. |
+| **Previsualizacion** | `pnpm exec hyperframes preview projects/<slug>` | Inicia el estudio visual interactivo en `localhost:3002`. |
+| **Renderizado MP4** | `pnpm exec hyperframes render projects/<slug> -o <out.mp4>` | Compila la escena web a video MP4 utilizando aceleracion GPU. |
+| **Auditoria Python** | `ruff check core` | Lintea con Ruff asegurando estandares estrictos de tipado y estilo. |
 | **Limpieza de Cache** | `pnpm exec hyperframes clean` | Purga fotogramas temporales acumulados en `/tmp`. |
 
 ---
@@ -107,13 +110,16 @@ El motor renderiza en cualquier relacion de aspecto sin alterar los tiempos de a
 
 ```text
 video-pipeline/
-├── assets/                 # Recursos locales reutilizables
+├── assets/                 # Recursos locales reutilizables (audio SFX, fuentes, iconos SVG)
 │   ├── audio/             # Efectos de sonido libres (WAV/MP3)
 │   ├── fonts/             # Tipografías del sistema
-│   └── icons/             # Iconos vectoriales en formato SVG
+│   ├── icons/             # Iconos vectoriales en formato SVG
+│   └── README.md          # Especificación y guía de uso de recursos
 ├── core/                   # Herramientas del motor compartido
-│   ├── transcribe.py      # Transcripción local con timestamps (faster-whisper)
-│   └── cut_silence.py     # Algoritmo de poda de silencios (FFmpeg)
+│   ├── __init__.py        # Módulo Python del núcleo
+│   ├── create_project.py  # Scaffold automatizado a partir de plantillas
+│   ├── cut_silence.py     # Algoritmo de poda de silencios (FFmpeg)
+│   └── transcribe.py      # Transcripción local con timestamps (faster-whisper)
 ├── docs/                   # Biblioteca documental técnica Docs-as-Code
 │   ├── 00-indice-general.md
 │   ├── 01-arquitectura-sistema.md
@@ -128,8 +134,11 @@ video-pipeline/
 │   ├── talking_head/      # Overlays, subtítulos cinéticos y lower-thirds
 │   └── tech_explainer/    # Diagramas de infraestructura SVG y bloques de código
 ├── projects/               # Espacio de trabajo para producciones individuales
-│   └── demo/              # Proyecto piloto validado funcionalmente
+│   ├── demo/              # Proyecto piloto validado funcionalmente
+│   └── test-arquitectura/ # Caso real de explicador técnico renderizado
+├── AGENTS.md              # Directrices de ingeniería para agentes de IA
 ├── package.json           # Dependencias de HyperFrames y scripts de ejecución
+├── pyproject.toml         # Configuración declarativa de Python y Ruff
 ├── requirements.txt       # Dependencias fijadas del runtime de Python
 └── README.md              # Guía de entrada y especificación del repositorio
 ```

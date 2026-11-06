@@ -1,9 +1,10 @@
 {
-  "name": "template",
+  "name": "template-square-1-1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "hyperframes preview",
-    "render": "hyperframes render"
+    "render": "hyperframes render",
+    "check": "hyperframes check"
   }
 }

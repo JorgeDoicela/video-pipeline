@@ -5,9 +5,16 @@
   "type": "module",
   "scripts": {
     "doctor": "hyperframes doctor",
-    "render": "hyperframes render"
+    "preview": "hyperframes preview",
+    "render": "hyperframes render",
+    "check": "hyperframes check",
+    "create": "python3 core/create_project.py",
+    "transcribe": "python3 core/transcribe.py",
+    "cut-silence": "python3 core/cut_silence.py",
+    "lint:py": "ruff check core",
+    "format:py": "ruff format core"
   },
   "dependencies": {
-    "hyperframes": "^0.9.14"
+    "hyperframes": "0.9.18"
   }
 }

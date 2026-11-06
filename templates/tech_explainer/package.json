@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "hyperframes preview",
-    "render": "hyperframes render"
+    "render": "hyperframes render",
+    "check": "hyperframes check"
   }
 }

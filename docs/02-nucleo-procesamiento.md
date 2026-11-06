@@ -6,7 +6,7 @@ Este documento especifica la implementacion tecnica de los componentes del nucle
 
 ## 1. Modulo de Transcripcion (`core/transcribe.py`)
 
-El script [transcribe.py](../../core/transcribe.py) se encarga de procesar la pista de audio del archivo crudo y emitir una representacion estructurada en JSON.
+El script [transcribe.py](../core/transcribe.py) se encarga de procesar la pista de audio del archivo crudo y emitir una representacion estructurada en JSON.
 
 ### 1.1. Motor de Inferencia
 * **Libreria:** `faster-whisper 1.2.1` sobre `ctranslate2 4.8.5`.
@@ -61,7 +61,7 @@ El archivo JSON generado contiene las coordenadas temporales en segundos redonde
 
 ## 2. Modulo de Recorte de Silencios (`core/cut_silence.py`)
 
-El script [cut_silence.py](../../core/cut_silence.py) automatiza la eliminacion de pausas muertas y muletillas prolongadas sin requerir edicion manual en linea de tiempo.
+El script [cut_silence.py](../core/cut_silence.py) automatiza la eliminacion de pausas muertas y muletillas prolongadas sin requerir edicion manual en linea de tiempo.
 
 ### 2.1. Algoritmo de Deteccion y Concatenacion
 1. **Sondeo con `silencedetect`:**
@@ -85,7 +85,28 @@ El script [cut_silence.py](../../core/cut_silence.py) automatiza la eliminacion 
 
 ---
 
-## 3. Enlaces Relacionados
+## 3. Modulo de Scaffolding de Proyectos (`core/create_project.py`)
+
+El script [create_project.py](../core/create_project.py) genera de manera limpia y automatizada nuevas estructuras de proyectos a partir de plantillas optimizadas, ajustando los metadatos y asegurando el cumplimiento del contrato de HyperFrames.
+
+### 3.1. Funcionalidades Principales
+* **Clonacion Segura:** Copia recursivamente la plantilla excluyendo caches temporales (`.hyperframes`, `frames`, `node_modules`).
+* **Sincronizacion de Metadatos:** Actualiza el nombre del paquete en `package.json` (`project-<slug>`) y configura `hyperframes.json`.
+* **Inyeccion de Parametros:** Permite fijar el titulo principal (`<h1>`) y la duracion total del video (`data-duration`) directamente por linea de comandos.
+
+### 3.2. Argumentos de Linea de Comandos
+
+| Parametro | Tipo | Defecto | Descripcion |
+| :--- | :--- | :--- | :--- |
+| `name` | `string` | *(Requerido)* | Nombre o slug del nuevo proyecto a crear en `projects/`. |
+| `-t, --template` | `string` | `portrait_9_16` | Plantilla base (`portrait_9_16`, `landscape_16_9`, `square_1_1`, `talking_head`, `tech_explainer`). |
+| `--title` | `string` | `None` | Titulo principal para inyectar en la etiqueta `<h1>` de `index.html`. |
+| `--duration` | `float` | `None` | Duracion total en segundos para el atributo `data-duration`. |
+| `-f, --force` | `flag` | `False` | Sobrescribe el directorio destino si ya existia previamente. |
+
+---
+
+## 4. Enlaces Relacionados
 
 * Consultar la arquitectura del motor de render en [03-motor-renderizado-hyperframes.md](./03-motor-renderizado-hyperframes.md).
 * Ver la guia operativa para ejecucion de estos scripts en [05-guia-operativa-y-flujos.md](./05-guia-operativa-y-flujos.md).

@@ -17,42 +17,51 @@ def detect_silence(input_file: str, noise_db: float = -30.0, min_duration: float
     Ejecuta ffmpeg con el filtro silencedetect y extrae los intervalos de silencio.
     """
     cmd = [
-        "ffmpeg", "-hide_banner",
-        "-i", input_file,
-        "-af", f"silencedetect=noise={noise_db}dB:d={min_duration}",
-        "-f", "null", "-"
+        "ffmpeg",
+        "-hide_banner",
+        "-i",
+        input_file,
+        "-af",
+        f"silencedetect=noise={noise_db}dB:d={min_duration}",
+        "-f",
+        "null",
+        "-",
     ]
-    
+
     print(f"[FFmpeg] Detectando silencios (ruido < {noise_db}dB, duracion > {min_duration}s)...")
     res = subprocess.run(cmd, check=True, stderr=subprocess.PIPE, text=True)
-    
+
     silence_starts = []
     silence_ends = []
-    
+
     for line in res.stderr.splitlines():
         start_match = re.search(r"silence_start:\s*([0-9.]+)", line)
         if start_match:
             silence_starts.append(float(start_match.group(1)))
-            
+
         end_match = re.search(r"silence_end:\s*([0-9.]+)", line)
         if end_match:
             silence_ends.append(float(end_match.group(1)))
-            
+
     # Emparejar silencios
     intervals = []
-    for s, e in zip(silence_starts, silence_ends):
+    for s, e in zip(silence_starts, silence_ends, strict=False):
         if e > s:
             intervals.append((s, e))
-            
+
     return intervals
 
 
 def get_media_duration(input_file: str) -> float:
     cmd = [
-        "ffprobe", "-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
-        input_file
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        input_file,
     ]
     res = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, check=True)
     return float(res.stdout.strip())
@@ -65,19 +74,19 @@ def compute_keep_intervals(total_duration: float, silence_intervals: list, paddi
     """
     keep = []
     current_pos = 0.0
-    
+
     for s_start, s_end in silence_intervals:
         # Añadir padding para transiciones naturales
         cut_start = min(s_start + padding, s_end)
         cut_end = max(s_end - padding, cut_start)
-        
+
         if cut_start > current_pos:
             keep.append((current_pos, cut_start))
         current_pos = cut_end
-        
+
     if current_pos < total_duration:
         keep.append((current_pos, total_duration))
-        
+
     # Filtrar intervalos demasiado cortos (< 0.1s)
     return [k for k in keep if (k[1] - k[0]) > 0.1]
 
@@ -105,16 +114,35 @@ def cut_and_concat(input_file: str, output_file: str, keep_intervals: list):
         )
         concat_inputs.append(f"[{v_tag}][{a_tag}]")
 
-    concat_filter = "".join(filter_parts) + "".join(concat_inputs) + f"concat=n={len(keep_intervals)}:v=1:a=1[outv][outa]"
+    concat_filter = (
+        "".join(filter_parts)
+        + "".join(concat_inputs)
+        + f"concat=n={len(keep_intervals)}:v=1:a=1[outv][outa]"
+    )
 
     cmd = [
-        "ffmpeg", "-hide_banner", "-y",
-        "-i", input_file,
-        "-filter_complex", concat_filter,
-        "-map", "[outv]", "-map", "[outa]",
-        "-c:v", "libx264", "-preset", "fast", "-crf", "18",
-        "-c:a", "aac", "-b:a", "192k",
-        str(out_path)
+        "ffmpeg",
+        "-hide_banner",
+        "-y",
+        "-i",
+        input_file,
+        "-filter_complex",
+        concat_filter,
+        "-map",
+        "[outv]",
+        "-map",
+        "[outa]",
+        "-c:v",
+        "libx264",
+        "-preset",
+        "fast",
+        "-crf",
+        "18",
+        "-c:a",
+        "aac",
+        "-b:a",
+        "192k",
+        str(out_path),
     ]
 
     print(f"[FFmpeg] Ensamblando video sin silencios ({len(keep_intervals)} tomas útiles)...")
@@ -123,20 +151,31 @@ def cut_and_concat(input_file: str, output_file: str, keep_intervals: list):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Recorte de pausas y silencios en video/audio con FFmpeg")
+    parser = argparse.ArgumentParser(
+        description="Recorte de pausas y silencios en video/audio con FFmpeg"
+    )
     parser.add_argument("-i", "--input", required=True, help="Ruta al video/audio crudo")
     parser.add_argument("-o", "--output", required=True, help="Ruta al video recortado de salida")
-    parser.add_argument("--noise-db", type=float, default=-30.0, help="Umbral de ruido en dB (por defecto -30.0)")
-    parser.add_argument("--min-silence", type=float, default=0.45, help="Duración mínima de pausa a recortar en segundos (por defecto 0.45)")
+    parser.add_argument(
+        "--noise-db", type=float, default=-30.0, help="Umbral de ruido en dB (por defecto -30.0)"
+    )
+    parser.add_argument(
+        "--min-silence",
+        type=float,
+        default=0.45,
+        help="Duración mínima de pausa a recortar en segundos (por defecto 0.45)",
+    )
     args = parser.parse_args()
 
     total_dur = get_media_duration(args.input)
     silences = detect_silence(args.input, args.noise_db, args.min_silence)
     keep = compute_keep_intervals(total_dur, silences)
-    
+
     saved_time = total_dur - sum(e - s for s, e in keep)
-    print(f"[FFmpeg] Duración original: {total_dur:.2f}s | Tiempo recortado: {saved_time:.2f}s | Duración final: {total_dur - saved_time:.2f}s")
-    
+    print(
+        f"[FFmpeg] Duración original: {total_dur:.2f}s | Tiempo recortado: {saved_time:.2f}s | Duración final: {total_dur - saved_time:.2f}s"
+    )
+
     cut_and_concat(args.input, args.output, keep)
 
 

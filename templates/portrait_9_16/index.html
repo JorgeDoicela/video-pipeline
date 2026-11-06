@@ -156,7 +156,6 @@
 
       .word {
         opacity: 0.25;
-        transition: opacity 0.1s, color 0.1s;
       }
       .word.active {
         opacity: 1;
@@ -179,8 +178,6 @@
     </style>
   </head>
   <body>
-    <div class="ambient-radial"></div>
-
     <div
       id="root"
       data-composition-id="main"
@@ -189,6 +186,7 @@
       data-width="1080"
       data-height="1920"
     >
+      <div class="ambient-radial"></div>
       <!-- Cabecera -->
       <header id="header">
         <div class="hook-badge">Arquitectura en 60 Segundos</div>
