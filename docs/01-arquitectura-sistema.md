@@ -47,7 +47,33 @@ Para garantizar la estabilidad grafica y la inmutabilidad de la estacion de trab
 
 ---
 
-## 3. Filosofia de Coste Cero
+## 3. Inventario Exhaustivo de Herramientas del Pipeline
+
+A continuacion se detalla la totalidad de herramientas, runtimes, motores y bibliotecas que componen la arquitectura:
+
+| Herramienta / Paquete | Version Referencia | Categoria / Rol Tecnico | Licencia | Funcion Exacta en el Pipeline |
+| :--- | :--- | :--- | :--- | :--- |
+| **FFmpeg** | `7.1.5` | Motor de Medios y Codecs | LGPL / GPL | Deteccion de silencios (`silencedetect`), corte algoritmico (`trim/atrim`), ensamblaje (`concat`) y multiplexado final. |
+| **FFprobe** | `7.1.5` | Inspeccion de Streams | LGPL / GPL | Extraccion de metadatos de duracion, canales y formato de video/audio sin decodificacion completa. |
+| **faster-whisper** | `1.2.1` | Transcripcion Speech-to-Text | MIT | Extraccion de coordenadas temporales exactas palabra por palabra (*word-level timestamps*) en formato JSON. |
+| **CTranslate2** | `4.8.5` | Motor de Inferencia Neuronal | MIT | Aceleracion de modelos Whisper en CPU mediante cuantizacion `int8` y multi-threading. |
+| **Silero VAD** | Integrado en Whisper | Deteccion de Actividad Vocal | MIT | Filtro de voz que descarta segmentos sin fonacion para evitar alucinaciones del modelo de lenguaje. |
+| **PyAV (`av`)** | `13.1.0` | Bindings Python de FFmpeg | BSD | Decodificacion y manipulacion de streams de audio directamente en memoria para alimentar a Whisper. |
+| **Node.js** | `22.x LTS` | Runtime JavaScript del Servidor | MIT | Entorno de ejecucion para la CLI de HyperFrames y los workers paralelos de renderizado. |
+| **pnpm** | `12.x` | Gestor de Paquetes Node | MIT | Gestion eficiente de dependencias mediante enlaces duros en Content-Addressable Store. |
+| **Python** | `3.13 / 3.10+` | Runtime de Scripts de Procesamiento | PSF | Ejecucion de los scripts de ingesta y orquestacion de FFmpeg (`transcribe.py` y `cut_silence.py`). |
+| **uv** | `0.13.4` | Gestor de Entornos Python | Apache 2.0 / MIT | Creacion ultra-rapida y determinista del entorno virtual `.venv` y resolucion de paquetes sin privilegios `sudo`. |
+| **HyperFrames** | `0.9.14+` | Motor de Renderizado Programatico | Apache 2.0 | Compilador de escenas web a video MP4, orquestador de workers y servidor de previsualizacion en vivo. |
+| **Chrome Headless Shell** | `v152.0+` | Navegador Headless de Captura | BSD / Chromium | Renderizado cuadro a cuadro determinista via `BeginFrame` API sin perdida de fotogramas por sobrecarga. |
+| **GSAP** | `3.15.0` | Motor de Animacion y Timelines | Estandar Web (CDN) | Interpolacion de movimientos, fisicas de aceleracion (*easing*), sincronizacion temporal y transformaciones vectoriales. |
+| **SVG** | W3C Standard | Graficos Vectoriales Dinamicos | Abierto | Representacion procedural de nodos, redes, conexiones Bezier, paquetes de datos y filtros de resplandor (*bloom*). |
+| **Prism.js** | CDN / Modular | Resaltado de Sintaxis | MIT | Formateo visual y coloreado sintactico de bloques de codigo en Formato 2. |
+| **Git** | `2.x` | Control de Versiones | GPLv2 | Trazabilidad del codigo, configuraciones de proyectos y gestion de cambios. |
+| **GitHub CLI (`gh`)** | `2.x` | Automatizacion de Repositorio Remoto | MIT | Publicacion remota, sincronizacion y autenticacion sin interaccion grafica. |
+
+---
+
+## 4. Filosofia de Coste Cero
 
 El pipeline se adhiere a una politica estricta de **cero costes adicionales**:
 
@@ -58,7 +84,7 @@ El pipeline se adhiere a una politica estricta de **cero costes adicionales**:
 
 ---
 
-## 4. Enlaces Relacionados
+## 5. Enlaces Relacionados
 
 * Consultar la especificacion del nucleo de audio en [02-nucleo-procesamiento.md](./02-nucleo-procesamiento.md).
 * Consultar la arquitectura de HyperFrames en [03-motor-renderizado-hyperframes.md](./03-motor-renderizado-hyperframes.md).

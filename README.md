@@ -25,6 +25,16 @@ flowchart LR
 * **Node.js:** Version 20 o 22 LTS y gestor de paquetes `pnpm`.
 * **Python:** Version 3.10 o superior (gestionado con `uv`).
 
+### Resumen del Stack Tecnológico
+
+| Capa Técnica | Herramientas Utilizadas | Rol en el Sistema |
+| :--- | :--- | :--- |
+| **Ingesta y Voz** | `faster-whisper`, `CTranslate2`, `Silero VAD`, `PyAV` | Transcripción de audio a texto con marcas temporales al milisegundo por palabra. |
+| **Corte y Ensamblaje** | `FFmpeg 7.x`, `FFprobe` | Poda algorítmica de pausas (`silencedetect`) y multiplexado acelerado por hardware GPU. |
+| **Composición Web** | `HyperFrames`, `GSAP 3.15`, `SVG`, `HTML5/CSS3` | Animaciones vectoriales fluidas, tipografía cinética y control temporal en segundos. |
+| **Motor de Render** | `Chrome Headless Shell` (`BeginFrame` API) | Renderizado determinista cuadro a cuadro sin pérdida de fotogramas por sobrecarga. |
+| **Entornos y Runtimes** | `uv`, `pnpm`, `Node.js 22 LTS`, `Python 3.13` | Gestión hermética y reproducible de dependencias sin privilegios de superusuario. |
+
 ---
 
 ## 2. Inicio Rápido (Quickstart)
