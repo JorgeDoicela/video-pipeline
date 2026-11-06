@@ -61,8 +61,25 @@ pnpm exec hyperframes browser ensure
 
 ### Paso 4: Validar la Salud del Sistema
 ```bash
-pnpm exec hyperframes doctor
+pnpm run doctor
 ```
+
+### Paso 5: Ejecutar la Suite de Pruebas Unitarias
+```bash
+pnpm run test:py
+```
+
+### Paso 6: Ejecutar tu Primer Video de Prueba (End-to-End)
+```bash
+python3 core/pipeline.py produce \
+  -i templates/talking_head/cut.mp4 \
+  -p mi-primer-video \
+  -t talking_head \
+  --title "Hola Mundo Programático" \
+  --auto-render
+```
+
+El video final quedará disponible en `projects/mi-primer-video/video_mi-primer-video.mp4`.
 
 ---
 
