@@ -1,0 +1,9 @@
+{
+  "name": "template-talking-head",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "hyperframes preview",
+    "render": "hyperframes render"
+  }
+}

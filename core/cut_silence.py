@@ -6,7 +6,6 @@ ensamblando un video continuo sin pausas muertas.
 """
 
 import argparse
-import os
 import re
 import subprocess
 import sys
@@ -25,7 +24,7 @@ def detect_silence(input_file: str, noise_db: float = -30.0, min_duration: float
     ]
     
     print(f"[FFmpeg] Detectando silencios (ruido < {noise_db}dB, duracion > {min_duration}s)...")
-    res = subprocess.run(cmd, stderr=subprocess.PIPE, text=True)
+    res = subprocess.run(cmd, check=True, stderr=subprocess.PIPE, text=True)
     
     silence_starts = []
     silence_ends = []

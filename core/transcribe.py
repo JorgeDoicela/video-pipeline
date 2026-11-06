@@ -6,7 +6,6 @@ Utiliza faster-whisper (CTranslate2) para ejecución eficiente en CPU/GPU.
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
 
