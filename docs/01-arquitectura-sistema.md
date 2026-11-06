@@ -68,6 +68,8 @@ A continuacion se detalla la totalidad de herramientas, runtimes, motores y bibl
 | **GSAP** | `3.15.0` | Motor de Animacion y Timelines | Estandar Web (CDN) | Interpolacion de movimientos, fisicas de aceleracion (*easing*), sincronizacion temporal y transformaciones vectoriales. |
 | **SVG** | W3C Standard | Graficos Vectoriales Dinamicos | Abierto | Representacion procedural de nodos, redes, conexiones Bezier, paquetes de datos y filtros de resplandor (*bloom*). |
 | **Prism.js** | CDN / Modular | Resaltado de Sintaxis | MIT | Formateo visual y coloreado sintactico de bloques de codigo en Formato 2. |
+| **Ruff** | `0.9.x` | Linter y Formateador Python | MIT | Verificación estática de código, tipado, optimización de imports y estilo PEP8. |
+| **pytest** | `9.x` | Framework de Pruebas Unitarias | MIT | Ejecución de tests automatizados de algoritmos de audio, recorte y scaffolding. |
 | **Git** | `2.x` | Control de Versiones | GPLv2 | Trazabilidad del codigo, configuraciones de proyectos y gestion de cambios. |
 | **GitHub CLI (`gh`)** | `2.x` | Automatizacion de Repositorio Remoto | MIT | Publicacion remota, sincronizacion y autenticacion sin interaccion grafica. |
 
