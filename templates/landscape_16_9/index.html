@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #070b14;
+        --card: rgba(16, 23, 42, 0.85);
+        --border: rgba(56, 189, 248, 0.25);
+        --cyan: #38bdf8;
+        --green: #10b981;
+        --text: #f8fafc;
+        --text-sub: #94a3b8;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+        font-family: 'JetBrains Mono', -apple-system, sans-serif;
+        color: var(--text);
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        padding: 80px 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .badge {
+        display: inline-block;
+        padding: 6px 14px;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid var(--border);
+        color: var(--cyan);
+        font-size: 13px;
+        font-weight: 800;
+        border-radius: 6px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      h1 {
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+      .split-stage {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        height: 600px;
+        margin: 30px 0;
+      }
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      }
+      footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--text-sub);
+        border-top: 1px solid rgba(255,255,255,0.08);
+        padding-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="10"
+      data-width="1920"
+      data-height="1080"
+    >
+      <header id="header">
+        <div>
+          <div class="badge">YouTube 16:9 Standard</div>
+          <h1>Patrón de Microfrontends y Módulos Desacoplados</h1>
+        </div>
+        <div style="font-size:14px; color:var(--text-sub); text-align:right;">
+          <span>Resolución: 1920x1080</span><br>
+          <span style="color:var(--green); font-weight:700;">Full HD Widescreen</span>
+        </div>
+      </header>
+
+      <div class="split-stage">
+        <div class="panel" id="panel-1">
+          <h2 style="font-size:26px; color:var(--cyan); margin-bottom:16px;">1. Shell Orquestador</h2>
+          <p style="font-size:18px; line-height:1.7; color:#cbd5e1;">Carga módulos independientes vía Module Federation o import maps en tiempo de ejecución.</p>
+        </div>
+        <div class="panel" id="panel-2">
+          <h2 style="font-size:26px; color:var(--green); margin-bottom:16px;">2. Despliegue Autónomo</h2>
+          <p style="font-size:18px; line-height:1.7; color:#cbd5e1;">Cada equipo despliega su microfrontend sin coordinar releases ni romper el bundle global.</p>
+        </div>
+      </div>
+
+      <footer id="footer">
+        <span>github.com/JorgeDoicela/video-pipeline</span>
+        <span>Plantilla Widescreen Horizontal</span>
+      </footer>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.from("#header", { opacity: 0, y: -20, duration: 0.8, ease: "power2.out" }, 0.2);
+      tl.from(".panel", { opacity: 0, y: 30, stagger: 0.2, duration: 0.8, ease: "back.out(1.5)" }, 0.4);
+      tl.from("#footer", { opacity: 0, duration: 0.6 }, 0.8);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

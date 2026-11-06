@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg: #070b14;
+        --card-bg: rgba(16, 23, 42, 0.9);
+        --border: rgba(56, 189, 248, 0.25);
+        --cyan: #38bdf8;
+        --green: #10b981;
+        --text: #f8fafc;
+        --text-sub: #94a3b8;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg);
+        font-family: 'JetBrains Mono', -apple-system, sans-serif;
+        color: var(--text);
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1080px;
+        padding: 60px 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      header {
+        text-align: left;
+      }
+      .badge {
+        display: inline-block;
+        padding: 6px 14px;
+        background: rgba(56, 189, 248, 0.12);
+        border: 1px solid var(--border);
+        color: var(--cyan);
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        border-radius: 6px;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+      }
+      #main-window {
+        width: 100%;
+        height: 580px;
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      }
+      .win-bar {
+        background: rgba(255, 255, 255, 0.03);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dot { width: 12px; height: 12px; border-radius: 50%; }
+      .win-content {
+        padding: 30px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-size: 20px;
+        line-height: 1.8;
+      }
+      footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        font-size: 14px;
+        color: var(--text-sub);
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="10"
+      data-width="1080"
+      data-height="1080"
+    >
+      <header id="header">
+        <div class="badge">Microlearning Feed</div>
+        <h1>Diseño de Sistemas en Producción</h1>
+      </header>
+
+      <div id="main-window">
+        <div class="win-bar">
+          <span class="dot" style="background:#ef4444;"></span>
+          <span class="dot" style="background:#f59e0b;"></span>
+          <span class="dot" style="background:#10b981;"></span>
+          <span style="margin-left: 12px; font-size:14px; color:var(--text-sub);">architecture-overview.md</span>
+        </div>
+        <div class="win-content">
+          <p><span style="color:var(--cyan); font-weight:700;">[CONCEPTO]</span> Idempotencia en APIs REST.</p>
+          <p><span style="color:var(--green); font-weight:700;">[PATRÓN]</span> Clave Idempotency-Key en Header.</p>
+          <p><span style="color:#fbbf24; font-weight:700;">[RESULTADO]</span> Cero cobros duplicados en transacciones.</p>
+        </div>
+      </div>
+
+      <footer id="footer">
+        <span>github.com/JorgeDoicela/video-pipeline</span>
+        <span style="color:var(--green); font-weight:700;">1080x1080 Square Post</span>
+      </footer>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.from("#header", { opacity: 0, y: -20, duration: 0.8, ease: "power2.out" }, 0.2);
+      tl.from("#main-window", { opacity: 0, scale: 0.94, duration: 0.8, ease: "back.out(1.5)" }, 0.4);
+      tl.from("#footer", { opacity: 0, duration: 0.6 }, 0.8);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

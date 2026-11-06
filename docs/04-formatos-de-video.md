@@ -147,7 +147,28 @@ El agente genera codigo SVG donde los elementos de infraestructura se representa
 
 ---
 
-## 4. Enlaces Relacionados
+## 4. Relaciones de Aspecto y Optimizacion para Redes Sociales
+
+El pipeline permite renderizar en cualquier relacion de aspecto ajustando los atributos `data-width` y `data-height` en la composicion HTML:
+
+| Formato | Resolucion | Aspect Ratio | Plataformas Destino | Consideraciones de Zona Segura (Safe Zones) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Portrait (Vertical)** | `1080x1920` | 9:16 | TikTok, Instagram Reels, YouTube Shorts | Reservar 220px arriba (interfaz de usuario), 350px abajo (descripcion y perfil) y 140px a la derecha (botones de interaccion social). |
+| **Landscape (Horizontal)** | `1920x1080` | 16:9 | YouTube, LinkedIn Video, X (Twitter), Web | Widescreen completo. Ideal para terminales anchas, arquitectura de sistemas y presentaciones de diapositivas. |
+| **Square (Cuadrado)** | `1080x1080` | 1:1 | Instagram Feed, LinkedIn Feed | Lectura equilibrada en timelines de escritorio y movil. Maxima atencion en publicaciones estaticas con video integrado. |
+| **Feed Portrait** | `1080x1350` | 4:5 | Instagram Post Feed | Maxima cobertura vertical dentro del feed estandar de Instagram sin entrar al visor de Reels. |
+
+### 4.1. Catalogo de Plantillas Disponibles en el Repositorio
+
+Para acelerar la creacion de contenido sin diseñar desde cero, el directorio `templates/` incluye estructuras preconfiguradas:
+
+* `templates/portrait_9_16/`: Plantilla vertical con zonas seguras preconfiguradas, tarjeta central para codigo y zona de subtitulos cineticos a `y: 1420px`.
+* `templates/landscape_16_9/`: Plantilla horizontal widescreen con diseno en columnas divididas (*split stage*) para comparaciones o arquitecturas.
+* `templates/square_1_1/`: Plantilla cuadrada para posts informativos en feeds de LinkedIn e Instagram.
+
+---
+
+## 5. Enlaces Relacionados
 
 * Consultar los runbooks paso a paso en [05-guia-operativa-y-flujos.md](./05-guia-operativa-y-flujos.md).
 * Volver al indice general en [00-indice-general.md](./00-indice-general.md).

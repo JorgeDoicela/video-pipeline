@@ -80,6 +80,14 @@ El sistema esta diseñado para producir dos formatos de contenido:
    * Animacion de flujo de datos y paquetes de red mediante lineas vectoriales SVG y GSAP.
    * Bloques de codigo fuente con resaltado de sintaxis dinamico sincronizados con la explicacion de voz en off.
 
+### Relaciones de Aspecto y Redes Sociales
+
+El motor renderiza en cualquier relacion de aspecto sin alterar los tiempos de animacion:
+* **9:16 Vertical (`1080x1920`):** TikTok, Instagram Reels y YouTube Shorts (con zonas seguras de interfaz ya calibradas).
+* **16:9 Horizontal (`1920x1080`):** YouTube estandar, LinkedIn Video y presentaciones widescreen.
+* **1:1 Cuadrado (`1080x1080`):** Publicaciones de alto impacto para timelines de LinkedIn e Instagram.
+* **4:5 Feed Vertical (`1080x1350`):** Formato optimizado para el feed movil de Instagram.
+
 ---
 
 ## 4. Comandos Principales
@@ -114,6 +122,9 @@ video-pipeline/
 │   ├── 04-formatos-de-video.md
 │   └── 05-guia-operativa-y-flujos.md
 ├── templates/              # Plantillas base para generación por IA
+│   ├── portrait_9_16/     # TikTok, Reels, Shorts (1080x1920 con Safe Zones)
+│   ├── landscape_16_9/    # YouTube y Desktop (1920x1080 Widescreen)
+│   ├── square_1_1/        # Feeds de Instagram y LinkedIn (1080x1080)
 │   ├── talking_head/      # Overlays, subtítulos cinéticos y lower-thirds
 │   └── tech_explainer/    # Diagramas de infraestructura SVG y bloques de código
 ├── projects/               # Espacio de trabajo para producciones individuales
