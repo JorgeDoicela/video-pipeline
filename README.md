@@ -94,14 +94,17 @@ El motor renderiza en cualquier relacion de aspecto sin alterar los tiempos de a
 
 | Tarea | Comando | Descripcion Tecnica |
 | :--- | :--- | :--- |
+| **Pipeline Completo** | `python3 core/pipeline.py produce -i <raw> -p <slug> --auto-render` | Ejecuta corte, transcripción, subtitulado, auditoría y renderizado en un paso. |
 | **Diagnostico** | `pnpm run doctor` | Verifica dependencias del sistema, GPU, FFmpeg y Chrome cache. |
 | **Nuevo Proyecto** | `python3 core/create_project.py <slug> -t <plantilla>` | Inicializa un nuevo proyecto listo para previsualizar/renderizar. |
+| **Subtítulos Cinéticos**| `python3 core/sync_captions.py -i <json> --inject <html_path>` | Convierte timestamps de Whisper a HTML/GSAP y exporta SRT/VTT. |
 | **Validacion** | `pnpm exec hyperframes check projects/<slug>` | Audita contraste WCAG AA, duracion, tiempos deterministas y layout. |
 | **Transcripcion** | `.venv/bin/python core/transcribe.py -i <in> -o <out.json>` | Genera marcas de tiempo palabra por palabra con `faster-whisper`. |
 | **Corte de Silencios** | `core/cut_silence.py -i <in> -o <out.mp4>` | Elimina pausas muertas mayores a 0.45s mediante filtros de FFmpeg. |
 | **Previsualizacion** | `pnpm exec hyperframes preview projects/<slug>` | Inicia el estudio visual interactivo en `localhost:3002`. |
 | **Renderizado MP4** | `pnpm exec hyperframes render projects/<slug> -o <out.mp4>` | Compila la escena web a video MP4 utilizando aceleracion GPU. |
-| **Auditoria Python** | `ruff check core` | Lintea con Ruff asegurando estandares estrictos de tipado y estilo. |
+| **Suite de Tests** | `pytest tests` | Ejecuta las pruebas automatizadas de algoritmos y scaffolding. |
+| **Auditoria Python** | `ruff check core tests` | Lintea con Ruff asegurando estandares estrictos de tipado y estilo. |
 | **Limpieza de Cache** | `pnpm exec hyperframes clean` | Purga fotogramas temporales acumulados en `/tmp`. |
 
 ---
@@ -111,15 +114,24 @@ El motor renderiza en cualquier relacion de aspecto sin alterar los tiempos de a
 ```text
 video-pipeline/
 ├── assets/                 # Recursos locales reutilizables (audio SFX, fuentes, iconos SVG)
-│   ├── audio/             # Efectos de sonido libres (WAV/MP3)
+│   ├── audio/             # Efectos de sonido libres (whoosh, pop, click, chime, beep WAV)
 │   ├── fonts/             # Tipografías del sistema
-│   ├── icons/             # Iconos vectoriales en formato SVG
+│   ├── icons/             # Iconografía técnica vectorial (Docker, K8s, Kafka, Redis SVG)
 │   └── README.md          # Especificación y guía de uso de recursos
 ├── core/                   # Herramientas del motor compartido
 │   ├── __init__.py        # Módulo Python del núcleo
+│   ├── pipeline.py        # Orquestador maestro de producción end-to-end
+│   ├── sync_captions.py   # Motor de subtítulos cinéticos y exportador SRT/VTT
 │   ├── create_project.py  # Scaffold automatizado a partir de plantillas
 │   ├── cut_silence.py     # Algoritmo de poda de silencios (FFmpeg)
-│   └── transcribe.py      # Transcripción local con timestamps (faster-whisper)
+│   ├── transcribe.py      # Transcripción local con timestamps (faster-whisper)
+│   ├── generate_sfx.py    # Síntesis matemática de efectos de sonido
+│   └── generate_icons.py  # Generador de iconos SVG vectoriales
+├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)
+│   ├── test_pipeline.py   # Verificación de interfaces CLI del pipeline
+│   ├── test_scaffold.py   # Pruebas de sanitización y scaffolding
+│   ├── test_silence.py    # Pruebas de cálculo de intervalos de silencios
+│   └── test_sync_captions.py # Pruebas de segmentación de palabras y GSAP
 ├── docs/                   # Biblioteca documental técnica Docs-as-Code
 │   ├── 00-indice-general.md
 │   ├── 01-arquitectura-sistema.md
@@ -135,10 +147,12 @@ video-pipeline/
 │   └── tech_explainer/    # Diagramas de infraestructura SVG y bloques de código
 ├── projects/               # Espacio de trabajo para producciones individuales
 │   ├── demo/              # Proyecto piloto validado funcionalmente
-│   └── test-arquitectura/ # Caso real de explicador técnico renderizado
+│   ├── test-arquitectura/ # Caso real de explicador técnico 9:16 vertical
+│   └── test-16-9-cqrs/    # Caso real de arquitectura CQRS 16:9 widescreen
+├── ci/                     # Especificación de integración continua (GitHub Actions)
 ├── AGENTS.md              # Directrices de ingeniería para agentes de IA
 ├── package.json           # Dependencias de HyperFrames y scripts de ejecución
-├── pyproject.toml         # Configuración declarativa de Python y Ruff
+├── pyproject.toml         # Configuración declarativa de Python, Ruff y pytest
 ├── requirements.txt       # Dependencias fijadas del runtime de Python
 └── README.md              # Guía de entrada y especificación del repositorio
 ```

@@ -4,16 +4,41 @@ Este documento describe los procedimientos operativos paso a paso para ejecutar 
 
 ---
 
-## 1. Runbook: Produccion Completa de un Video
+## 1. Flujo Automatizado de Producción (Golden Path)
 
-El flujo estandar consta de cinco etapas consecutivas:
+El orquestador unificado permite convertir un archivo crudo en un video final listo para publicación con un solo comando:
+
+```bash
+cd video-pipeline
+
+python3 core/pipeline.py produce \
+  -i /ruta/a/grabacion_cruda.mp4 \
+  -p tutorial-kubernetes \
+  -t talking_head \
+  --title "Arquitectura Kubernetes en 60s" \
+  --auto-render
+```
+
+Este comando ejecuta automáticamente:
+1. Scaffolding del proyecto desde la plantilla especificada.
+2. Recorte algorítmico de pausas muertas con FFmpeg (`cut.mp4`).
+3. Transcripción y marcas de tiempo palabra por palabra con Whisper (`transcript.json`).
+4. Generación e inyección de subtítulos cinéticos en HTML/GSAP y exportación de archivos `.srt` y `.vtt`.
+5. Auditoría de accesibilidad WCAG AA con `hyperframes check`.
+6. Renderizado final acelerado por GPU (`video_tutorial-kubernetes.mp4`).
+
+---
+
+## 2. Flujo Modular Paso a Paso
+
+Si se requiere intervenir en etapas intermedias o afinar animaciones de manera personalizada:
 
 ```mermaid
 flowchart TD
     S0["0. Scaffold con core/create_project.py"] --> S1["1. Grabar y Alojar en projects/<slug>/raw.mp4"]
     S1 --> S2["2. Transcribir con core/transcribe.py"]
     S2 --> S3["3. Cortar silencios con core/cut_silence.py"]
-    S3 --> S4["4. Generar/Ajustar index.html con el Agente"]
+    S3 --> S4["4. Sincronizar subtítulos con core/sync_captions.py"]
     S4 --> S5["5. Validar estándares (pnpm exec hyperframes check)"]
     S5 --> S6["6. Previsualizar (pnpm exec hyperframes preview)"]
     S6 --> S7["7. Renderizar MP4 (pnpm exec hyperframes render)"]

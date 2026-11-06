@@ -57,21 +57,27 @@ Toda composición HTML dentro de `templates/` o `projects/` debe cumplir estrict
 
 ```text
 video-pipeline/
-├── core/              # Scripts CLI de procesamiento (transcripción, recorte, scaffolding)
-│   ├── cut_silence.py
-│   ├── transcribe.py
-│   └── create_project.py
+├── core/              # Scripts CLI de procesamiento y orquestación
+│   ├── pipeline.py       # Orquestador maestro end-to-end
+│   ├── sync_captions.py  # Generador de subtítulos cinéticos (HTML, GSAP, SRT, VTT)
+│   ├── cut_silence.py    # Recorte algorítmico de pausas (FFmpeg)
+│   ├── transcribe.py     # Transcripción con word timestamps (faster-whisper)
+│   ├── create_project.py # Scaffolding automatizado de proyectos
+│   ├── generate_sfx.py   # Síntesis matemática de efectos de sonido WAV
+│   └── generate_icons.py # Generador de iconografía técnica vectorial SVG
 ├── templates/         # Plantillas reutilizables por formato y caso de uso
-│   ├── landscape_16_9/  # YouTube widescreen (1920x1080)
-│   ├── portrait_9_16/   # Shorts/Reels/TikTok (1080x1920)
-│   ├── square_1_1/      # Feeds LinkedIn/Instagram (1080x1080)
-│   ├── talking_head/    # Video de presentador con lower-third y subtítulos
-│   └── tech_explainer/  # Diagramas de arquitectura SVG interactivos
+│   ├── landscape_16_9/   # YouTube widescreen (1920x1080)
+│   ├── portrait_9_16/    # Shorts/Reels/TikTok (1080x1920)
+│   ├── square_1_1/       # Feeds LinkedIn/Instagram (1080x1080)
+│   ├── talking_head/     # Video de presentador con lower-third y subtítulos
+│   └── tech_explainer/   # Diagramas de arquitectura SVG interactivos
 ├── projects/          # Proyectos de video concretos generados a partir de templates
 ├── assets/            # Recursos estáticos globales (audio SFX, fuentes, iconos SVG)
+├── tests/             # Suite automatizada de pruebas unitarias (pytest)
 ├── docs/              # Documentación modular Docs-as-Code (00- a 05-)
+├── ci/                # Pipeline de integración continua (CI) listo para GitHub Actions
 ├── package.json       # Dependencias de HyperFrames y scripts de ejecución
-├── pyproject.toml     # Configuración declarativa de Python y Ruff
+├── pyproject.toml     # Configuración declarativa de Python, Ruff y pytest
 └── requirements.txt   # Dependencias de Python fijadas
 ```
 
@@ -81,18 +87,20 @@ video-pipeline/
 
 Antes de dar por concluida cualquier modificación o creación de proyecto:
 
-1. **Creación de Proyecto:**
+1. **Flujo de Producción Rápido Unificado:**
    ```bash
-   python3 core/create_project.py <nombre_proyecto> --template <nombre_plantilla>
+   python3 core/pipeline.py produce -i ruta/grabacion.mp4 -p nombre-proyecto -t talking_head --auto-render
    ```
 2. **Validación de Estándares HyperFrames:**
    ```bash
    pnpm exec hyperframes check projects/<nombre_proyecto>
    ```
    No se permiten errores de contraste, layout o media faltante.
-3. **Auditoría de Código Python:**
+3. **Auditoría de Código y Suite de Pruebas:**
    ```bash
-   ruff check core
+   ruff check core tests
+   ruff format --check core tests
+   pytest tests
    ```
 4. **Renderizado de Producción:**
    ```bash

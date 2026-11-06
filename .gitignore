@@ -39,8 +39,9 @@ renders/
 *.aac
 *.flac
 
-# Excepciones de fixtures para plantillas
+# Excepciones de fixtures para plantillas y activos locales
 !templates/talking_head/cut.mp4
+!assets/audio/*.wav
 
 # Mantener la estructura de carpetas en Git
 !.gitkeep
