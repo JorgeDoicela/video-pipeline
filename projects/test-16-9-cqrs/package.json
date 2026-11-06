@@ -1,0 +1,10 @@
+{
+  "name": "project-test-16-9-cqrs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "hyperframes preview",
+    "render": "hyperframes render",
+    "check": "hyperframes check"
+  }
+}
