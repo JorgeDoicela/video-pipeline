@@ -5,22 +5,72 @@
     <meta name="viewport" content="width=1920, height=1080" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
+      /* @theme:start */
+      /* Design: cyber_glass | Theme: cyber_dark | Layout: standard */
       :root {
-        --bg: #050811;
-        --panel-bg: rgba(13, 20, 36, 0.75);
-        --panel-border: rgba(56, 189, 248, 0.2);
-        --cyan: #38bdf8;
-        --cyan-glow: rgba(56, 189, 248, 0.4);
-        --purple: #a855f7;
-        --green: #10b981;
-        --green-glow: rgba(16, 185, 129, 0.4);
-        --red: #f43f5e;
-        --gold: #f59e0b;
-        --gold-glow: rgba(245, 158, 11, 0.4);
+        --design-slug: "cyber_glass";
+        --theme-slug: "cyber_dark";
+        --layout-slug: "standard";
+        --bg: #070b14;
+        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+        --surface: rgba(16, 23, 42, 0.88);
+        --surface-elevated: rgba(255, 255, 255, 0.03);
+        --border: rgba(56, 189, 248, 0.25);
+        --border-strong: rgba(56, 189, 248, 0.65);
+        --divider: rgba(255, 255, 255, 0.08);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
         --text-primary: #f8fafc;
-        --text-muted: #64748b;
-        --text-code: #94a3b8;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --title-gradient: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+        --font-sans: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --accent-primary: #38bdf8;
+        --accent-primary-soft: rgba(56, 189, 248, 0.12);
+        --accent-primary-glow: rgba(56, 189, 248, 0.35);
+        --accent-secondary: #10b981;
+        --accent-secondary-soft: rgba(16, 185, 129, 0.12);
+        --accent-tertiary: #c084fc;
+        --accent-warning: #fbbf24;
+        --accent-danger: #f43f5e;
+        --node-fill: #10172a;
+        --cable-idle: #1e293b;
+        --caption-bg: transparent;
+        --caption-text: #f8fafc;
+        --caption-active: #38bdf8;
+        --caption-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+        --caption-glow: 0 0 16px #38bdf8;
+        /* Tokens estructurales de Diseño Macro y Layout */
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-sm: 6px;
+        --border-width: 1px;
+        --panel-backdrop: blur(20px);
+        --badge-radius: 6px;
+        --stage-padding: 80px 100px;
+        --stage-gap: 40px;
+        --split-columns: 1fr 1fr;
+        --header-align: left;
+        --caption-bottom: 220px;
+        --caption-size: 52px;
+        /* Alias de compatibilidad con plantillas existentes */
+        --card: var(--surface);
+        --card-bg: var(--surface);
+        --panel-bg: var(--surface);
+        --border-color: var(--border);
+        --card-border: var(--border);
+        --panel-border: var(--border);
+        --text: var(--text-primary);
+        --text-sub: var(--text-muted);
+        --text-code: var(--text-secondary);
+        --cyan: var(--accent-primary);
+        --cyan-glow: var(--accent-primary-glow);
+        --green: var(--accent-secondary);
+        --purple: var(--accent-tertiary);
+        --gold: var(--accent-warning);
+        --red: var(--accent-danger);
       }
+      /* @theme:end */
 
       * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -165,7 +215,6 @@
         border-radius: 14px;
         box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
         backdrop-filter: blur(20px);
-        transition: border-color 0.3s;
       }
 
       /* Ventana de Código Flotante (Microservicio Go) */
@@ -268,15 +317,63 @@
       .pulse-circle {
         transform-origin: center;
       }
+          /* @design-system:start */
+      /* Macro Design: cyber_glass | Layout: standard | Chrome: macos_dots */
+      .panel, #main-card, #main-window, .node-glass {
+        border-radius: var(--radius-lg);
+        border: var(--border-width) solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: var(--panel-backdrop);
+      }
+      .badge, .hook-badge, .sys-badge, .term-badge {
+        border-radius: var(--badge-radius);
+      }
+      .split-stage {
+        grid-template-columns: var(--split-columns);
+        gap: var(--stage-gap);
+      }
+      .caption-bar {
+        bottom: var(--caption-bottom);
+        font-size: var(--caption-size);
+      }
+      .lower-third {
+        left: 80px;
+        right: auto;
+        border-radius: var(--radius-md);
+      }
+      /* @design-system:end */
+          /* @caption-style:start */
+      /* Caption Style: karaoke_glow */
+      .caption-phrase {
+        display: inline-block;
+        background: var(--caption-bg);
+        padding: 6px 18px;
+        border-radius: var(--radius-md, 12px);
+      }
+      .word {
+        display: inline-block;
+        opacity: 0.25;
+        color: var(--caption-text);
+        margin: 0 4px;
+      }
+      .word.active {
+        opacity: 1;
+        color: var(--caption-active);
+        text-shadow: var(--caption-glow);
+      }
+      /* @caption-style:end */
     </style>
   </head>
   <body>
-    <!-- Capa de Iluminación Ambiental -->
-    <div id="glow-1" class="ambient-glow"></div>
-    <div id="glow-2" class="ambient-glow"></div>
-    <div class="grid-layer"></div>
-
-    <div id="root" data-composition-id="main" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main"
+      data-caption-style="karaoke_glow"
+      data-motion="dynamic"
+      data-layout="standard"
+      data-design="cyber_glass" data-style="cyber_dark" data-start="0" data-duration="12" data-width="1920" data-height="1080">
+      <!-- Capa de Iluminación Ambiental -->
+      <div id="glow-1" class="ambient-glow"></div>
+      <div id="glow-2" class="ambient-glow"></div>
+      <div class="grid-layer"></div>
       
       <!-- Encabezado Principal -->
       <header id="header">
@@ -504,7 +601,7 @@
       // ==========================================
       // FASE 0: ENTRADA CINEMÁTICA (0.0s - 1.8s)
       // ==========================================
-      tl.from("#header", { opacity: 0, y: -24, duration: 1.0, ease: "power3.out" }, 0.2);
+      tl.from("#header", { opacity: 0, y: -24, duration: 0.8, ease: "power3.out" }, 0.2);
       tl.from(".node-wrap", {
         opacity: 0,
         scale: 0.9,

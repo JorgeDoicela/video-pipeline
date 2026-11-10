@@ -5,16 +5,72 @@
     <meta name="viewport" content="width=1080, height=1920" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
+      /* @theme:start */
+      /* Design: cyber_glass | Theme: cyber_dark | Layout: standard */
       :root {
+        --design-slug: "cyber_glass";
+        --theme-slug: "cyber_dark";
+        --layout-slug: "standard";
         --bg: #070b14;
-        --card-bg: rgba(16, 23, 42, 0.88);
-        --border-color: rgba(56, 189, 248, 0.25);
-        --cyan: #38bdf8;
-        --green: #10b981;
-        --purple: #a855f7;
+        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+        --surface: rgba(16, 23, 42, 0.88);
+        --surface-elevated: rgba(255, 255, 255, 0.03);
+        --border: rgba(56, 189, 248, 0.25);
+        --border-strong: rgba(56, 189, 248, 0.65);
+        --divider: rgba(255, 255, 255, 0.08);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
         --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
         --text-muted: #94a3b8;
+        --title-gradient: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+        --font-sans: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --accent-primary: #38bdf8;
+        --accent-primary-soft: rgba(56, 189, 248, 0.12);
+        --accent-primary-glow: rgba(56, 189, 248, 0.35);
+        --accent-secondary: #10b981;
+        --accent-secondary-soft: rgba(16, 185, 129, 0.12);
+        --accent-tertiary: #c084fc;
+        --accent-warning: #fbbf24;
+        --accent-danger: #f43f5e;
+        --node-fill: #10172a;
+        --cable-idle: #1e293b;
+        --caption-bg: transparent;
+        --caption-text: #f8fafc;
+        --caption-active: #38bdf8;
+        --caption-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+        --caption-glow: 0 0 16px #38bdf8;
+        /* Tokens estructurales de Diseño Macro y Layout */
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --radius-sm: 6px;
+        --border-width: 1px;
+        --panel-backdrop: blur(20px);
+        --badge-radius: 6px;
+        --stage-padding: 80px 100px;
+        --stage-gap: 40px;
+        --split-columns: 1fr 1fr;
+        --header-align: left;
+        --caption-bottom: 220px;
+        --caption-size: 52px;
+        /* Alias de compatibilidad con plantillas existentes */
+        --card: var(--surface);
+        --card-bg: var(--surface);
+        --panel-bg: var(--surface);
+        --border-color: var(--border);
+        --card-border: var(--border);
+        --panel-border: var(--border);
+        --text: var(--text-primary);
+        --text-sub: var(--text-muted);
+        --text-code: var(--text-secondary);
+        --cyan: var(--accent-primary);
+        --cyan-glow: var(--accent-primary-glow);
+        --green: var(--accent-secondary);
+        --purple: var(--accent-tertiary);
+        --gold: var(--accent-warning);
+        --red: var(--accent-danger);
       }
+      /* @theme:end */
 
       * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -24,7 +80,7 @@
         height: 1920px;
         overflow: hidden;
         background-color: var(--bg);
-        font-family: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: var(--font-sans);
         color: var(--text-primary);
         position: relative;
       }
@@ -38,7 +94,7 @@
         width: 800px;
         height: 800px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+        background: radial-gradient(circle, var(--accent-primary-soft) 0%, transparent 70%);
         pointer-events: none;
       }
 
@@ -46,6 +102,7 @@
         position: relative;
         width: 1080px;
         height: 1920px;
+        background: var(--bg);
       }
 
       /* 1. Zona Superior: Gancho / Título (Top Safe Zone: > 220px) */
@@ -61,9 +118,9 @@
         display: inline-block;
         padding: 8px 18px;
         border-radius: 8px;
-        background: rgba(56, 189, 248, 0.12);
-        border: 1px solid var(--border-color);
-        color: var(--cyan);
+        background: var(--accent-primary-soft);
+        border: 1px solid var(--border);
+        color: var(--accent-primary);
         font-size: 15px;
         font-weight: 800;
         letter-spacing: 0.15em;
@@ -76,9 +133,7 @@
         font-weight: 900;
         line-height: 1.15;
         letter-spacing: -0.03em;
-        background: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: var(--text-primary);
       }
 
       /* 2. Zona Central: Contenedor Gráfico Principal (Código / Diagrama) */
@@ -88,10 +143,10 @@
         left: 80px;
         width: 920px;
         height: 720px;
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        background: var(--surface);
+        border: 1px solid var(--border);
         border-radius: 20px;
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+        box-shadow: var(--shadow);
         backdrop-filter: blur(24px);
         overflow: hidden;
         display: flex;
@@ -100,8 +155,8 @@
 
       .window-header {
         padding: 18px 24px;
-        background: rgba(255, 255, 255, 0.03);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--surface-elevated);
+        border-bottom: 1px solid var(--divider);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -122,13 +177,13 @@
         display: flex;
         flex-direction: column;
         justify-content: center;
-        font-size: 22px;
-        line-height: 1.7;
-        color: #cbd5e1;
+        font-size: 28px;
+        line-height: 1.65;
+        color: var(--text-secondary);
       }
 
       .code-highlight {
-        color: var(--cyan);
+        color: var(--accent-primary);
         font-weight: 700;
       }
 
@@ -146,21 +201,13 @@
         justify-content: center;
       }
 
-      .caption-text {
+      .caption-text,
+      .caption-bar {
         font-size: 40px;
         font-weight: 900;
         line-height: 1.3;
-        color: #f8fafc;
-        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
-      }
-
-      .word {
-        opacity: 0.25;
-      }
-      .word.active {
-        opacity: 1;
-        color: var(--cyan);
-        text-shadow: 0 0 16px var(--cyan);
+        color: var(--caption-text);
+        text-shadow: var(--caption-shadow);
       }
 
       /* Indicador de Deslizamiento Inferior */
@@ -175,12 +222,63 @@
         letter-spacing: 0.1em;
         text-transform: uppercase;
       }
+      /* @caption-style:start */
+      /* Caption Style: karaoke_glow */
+      .caption-phrase {
+        display: inline-block;
+        background: var(--caption-bg);
+        padding: 6px 18px;
+        border-radius: var(--radius-md, 12px);
+      }
+      .word {
+        display: inline-block;
+        opacity: 0.25;
+        color: var(--caption-text);
+        margin: 0 4px;
+      }
+      .word.active {
+        opacity: 1;
+        color: var(--caption-active);
+        text-shadow: var(--caption-glow);
+      }
+      /* @caption-style:end */
+      /* @design-system:start */
+      /* Macro Design: cyber_glass | Layout: standard | Chrome: macos_dots */
+      .panel, #main-card, #main-window, .node-glass {
+        border-radius: var(--radius-lg);
+        border: var(--border-width) solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: var(--panel-backdrop);
+      }
+      .badge, .hook-badge, .sys-badge, .term-badge {
+        border-radius: var(--badge-radius);
+      }
+      .split-stage {
+        grid-template-columns: var(--split-columns);
+        gap: var(--stage-gap);
+      }
+      .caption-bar {
+        bottom: var(--caption-bottom);
+        font-size: var(--caption-size);
+      }
+      .lower-third {
+        left: 80px;
+        right: auto;
+        border-radius: var(--radius-md);
+      }
+      /* @design-system:end */
     </style>
   </head>
   <body>
     <div
       id="root"
       data-composition-id="main"
+      data-hold
+      data-motion="dynamic"
+      data-layout="standard"
+      data-design="cyber_glass"
+      data-style="cyber_dark"
+      data-caption-style="karaoke_glow"
       data-start="0"
       data-duration="10"
       data-width="1080"
@@ -189,20 +287,20 @@
       <div class="ambient-radial"></div>
       <!-- Cabecera -->
       <header id="header">
-        <div class="hook-badge">Arquitectura en 60 Segundos</div>
+        <div class="hook-badge" data-layout-ignore>Arquitectura en 60 Segundos</div>
         <h1 class="main-title">Cómo escala un Clúster en Alta Concurrencia</h1>
       </header>
 
       <!-- Tarjeta Central de Contenido -->
       <div id="main-card">
-        <div class="window-header">
+        <div class="window-header" data-layout-ignore>
           <div class="window-dots">
             <span class="dot dot-r"></span>
             <span class="dot dot-y"></span>
             <span class="dot dot-g"></span>
           </div>
           <span style="font-size:16px; color:var(--text-muted);">cluster-engine.sh</span>
-          <span style="font-size:15px; color:var(--green); font-weight:700;">ACTIVE</span>
+          <span style="font-size:15px; color:var(--accent-secondary); font-weight:700;">ACTIVE</span>
         </div>
 
         <div class="card-content">
@@ -215,17 +313,21 @@
 
       <!-- Subtítulos Cinéticos Palabra por Palabra -->
       <div id="caption-zone">
-        <p class="caption-text">
-          <span id="w1" class="word">Aprende</span>
-          <span id="w2" class="word">a</span>
-          <span id="w3" class="word">escalar</span>
-          <span id="w4" class="word">tu</span>
-          <span id="w5" class="word">sistema</span>
-          <span id="w6" class="word">hoy</span>
-        </p>
+        <!-- @captions:start -->
+        <div id="captions-container" class="caption-bar">
+          <div id="cg_0" class="caption-phrase">
+            <span id="w1" class="word">Aprende</span>
+            <span id="w2" class="word">a</span>
+            <span id="w3" class="word">escalar</span>
+            <span id="w4" class="word">tu</span>
+            <span id="w5" class="word">sistema</span>
+            <span id="w6" class="word">hoy</span>
+          </div>
+        </div>
+        <!-- @captions:end -->
       </div>
 
-      <div class="safe-footer">
+      <div class="safe-footer" data-layout-ignore>
         Swipe para más contenido técnico
       </div>
     </div>
@@ -234,9 +336,10 @@
       const tl = gsap.timeline({ paused: true });
 
       // Entrada Cinemática Vertical
-      tl.from("#header", { opacity: 0, y: -40, duration: 0.8, ease: "power3.out" }, 0.2);
-      tl.from("#main-card", { opacity: 0, scale: 0.92, y: 50, duration: 0.8, ease: "back.out(1.5)" }, 0.5);
+      tl.from("#header", { y: -24, duration: 0.8, ease: "power3.out" }, 0.0);
+      tl.from("#main-card", { opacity: 0, scale: 0.92, y: 50, duration: 0.8, ease: "back.out(1.5)" }, 0.3);
 
+      // @captions-gsap:start
       // Sincronización palabra por palabra de ejemplo
       tl.to("#w1", { className: "word active", duration: 0.05 }, 1.0);
       tl.to("#w2", { className: "word active", duration: 0.05 }, 1.3);
@@ -244,10 +347,11 @@
       tl.to("#w4", { className: "word active", duration: 0.05 }, 1.9);
       tl.to("#w5", { className: "word active", duration: 0.05 }, 2.2);
       tl.to("#w6", { className: "word active", duration: 0.05 }, 2.6);
+      // @captions-gsap:end
 
       // Pulso sutil de la tarjeta central
-      tl.to("#main-card", { borderColor: "rgba(56,189,248,0.6)", duration: 0.4 }, 3.5);
-      tl.to("#main-card", { borderColor: "rgba(56,189,248,0.25)", duration: 0.4 }, 4.5);
+      tl.to("#main-card", { scale: 1.01, duration: 0.4, ease: "power1.out" }, 3.5);
+      tl.to("#main-card", { scale: 1.0, duration: 0.4, ease: "power1.in" }, 4.5);
 
       window.__timelines = window.__timelines || {};
       window.__timelines["main"] = tl;

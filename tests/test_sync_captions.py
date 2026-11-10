@@ -10,6 +10,7 @@ from core.sync_captions import (
     format_timestamp_vtt,
     generate_html_and_gsap,
     group_words,
+    inject_into_html,
 )
 
 
@@ -82,19 +83,63 @@ def test_export_srt_and_vtt(tmp_path):
     assert "00:00:01.000 --> 00:00:02.000" in vtt_text
 
 
-def test_generate_html_and_gsap():
+def test_generate_html_and_gsap_styles():
     groups = [
         [
             {"word": "Docker", "start": 0.5, "end": 0.9},
             {"word": "Containers", "start": 0.95, "end": 1.4},
         ]
     ]
-    html_code, gsap_code = generate_html_and_gsap(groups)
+    html_code, gsap_code = generate_html_and_gsap(groups, caption_style="karaoke_glow")
 
     assert '<div id="captions-container" class="caption-bar">' in html_code
     assert '<span id="cw_0_0" class="word">Docker</span>' in html_code
     assert '<span id="cw_0_1" class="word">Containers</span>' in html_code
 
-    assert 'tl.set("#cg_0", { display: "block", opacity: 1 }, 0.500);' in gsap_code
+    assert 'tl.set("#cg_0", { display: "inline-block", opacity: 1 }, 0.500);' in gsap_code
     assert 'tl.to("#cw_0_0", { className: "word active", duration: 0.04 }, 0.500);' in gsap_code
     assert 'tl.set("#cg_0", { opacity: 0, display: "none" }, 1.550);' in gsap_code
+
+    # Probar variante pop_scale que agrega animación de escala
+    _, gsap_pop = generate_html_and_gsap(groups, caption_style="pop_scale")
+    assert "scale: 1.14" in gsap_pop
+
+
+def test_idempotent_inject_into_html(tmp_path):
+    html_file = tmp_path / "index.html"
+    html_file.write_text(
+        """<!doctype html>
+<html>
+  <head><style>:root { --bg: #000; }</style></head>
+  <body>
+    <div id="root" data-composition-id="main">
+      <!-- Subtítulos Cinéticos -->
+      <div class="caption-bar">
+        <span id="w1" class="word">Demo</span>
+      </div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.to("#w1", { className: "word active", duration: 0.05 }, 1.0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>""",
+        encoding="utf-8",
+    )
+
+    groups_1 = [[{"word": "Primera", "start": 0.2, "end": 0.6}]]
+    h1, g1 = generate_html_and_gsap(groups_1, caption_style="karaoke_glow")
+    inject_into_html(html_file, h1, g1, caption_style="karaoke_glow")
+
+    groups_2 = [[{"word": "Segunda", "start": 0.4, "end": 0.9}]]
+    h2, g2 = generate_html_and_gsap(groups_2, caption_style="highlight_pill")
+    inject_into_html(html_file, h2, g2, caption_style="highlight_pill")
+
+    result = html_file.read_text(encoding="utf-8")
+    assert "Segunda" in result
+    assert "Primera" not in result
+    assert "#w1" not in result
+    assert result.count('id="captions-container"') == 1
+    assert result.count("// @captions-gsap:start") == 1

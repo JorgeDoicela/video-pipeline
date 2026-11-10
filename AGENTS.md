@@ -59,22 +59,27 @@ Toda composición HTML dentro de `templates/` o `projects/` debe cumplir estrict
 video-pipeline/
 ├── core/              # Scripts CLI de procesamiento y orquestación
 │   ├── pipeline.py       # Orquestador maestro end-to-end
+│   ├── styles.py         # Motor de temas visuales (Design Tokens) y estilos de subtítulos
 │   ├── sync_captions.py  # Generador de subtítulos cinéticos (HTML, GSAP, SRT, VTT)
 │   ├── cut_silence.py    # Recorte algorítmico de pausas (FFmpeg)
 │   ├── transcribe.py     # Transcripción con word timestamps (faster-whisper)
 │   ├── create_project.py # Scaffolding automatizado de proyectos
 │   ├── generate_sfx.py   # Síntesis matemática de efectos de sonido WAV
 │   └── generate_icons.py # Generador de iconografía técnica vectorial SVG
-├── templates/         # Plantillas reutilizables por formato y caso de uso
-│   ├── landscape_16_9/   # YouTube widescreen (1920x1080)
-│   ├── portrait_9_16/    # Shorts/Reels/TikTok (1080x1920)
+├── templates/         # Catálogo de 9 plantillas reutilizables por formato y caso de uso
+│   ├── landscape_16_9/   # YouTube widescreen split-stage (1920x1080)
+│   ├── portrait_9_16/    # Shorts/Reels/TikTok código y subtítulos (1080x1920)
 │   ├── square_1_1/       # Feeds LinkedIn/Instagram (1080x1080)
-│   ├── talking_head/     # Video de presentador con lower-third y subtítulos
-│   └── tech_explainer/   # Diagramas de arquitectura SVG interactivos
+│   ├── feed_4_5/         # Feed móvil vertical LinkedIn/Instagram (1080x1350)
+│   ├── talking_head/     # Presentador widescreen 16:9 con lower-third y subtítulos
+│   ├── talking_head_9_16/# Presentador vertical 9:16 para Shorts/Reels/TikTok
+│   ├── tech_explainer/   # Diagramas de arquitectura SVG interactivos (1920x1080)
+│   ├── code_walkthrough/ # Editor IDE con resaltado de líneas paso a paso (1920x1080)
+│   └── benchmark_chart/  # Barras de rendimiento animadas y telemetría KPI (1920x1080)
 ├── projects/          # Proyectos de video concretos generados a partir de templates
 ├── assets/            # Recursos estáticos globales (audio SFX, fuentes, iconos SVG)
 ├── tests/             # Suite automatizada de pruebas unitarias (pytest)
-├── docs/              # Documentación modular Docs-as-Code (00- a 05-)
+├── docs/              # Documentación modular Docs-as-Code (00- a 06-)
 ├── ci/                # Pipeline de integración continua (CI) listo para GitHub Actions
 ├── package.json       # Dependencias de HyperFrames y scripts de ejecución
 ├── pyproject.toml     # Configuración declarativa de Python, Ruff y pytest

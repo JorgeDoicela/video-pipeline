@@ -6,5 +6,16 @@
     "dev": "hyperframes preview",
     "render": "hyperframes render",
     "check": "hyperframes check"
+  },
+  "videoStyle": "cyber_dark",
+  "captionStyle": "karaoke_glow",
+  "videoDesign": {
+    "design": "cyber_glass",
+    "style": "cyber_dark",
+    "layout": "standard",
+    "chrome": "macos_dots",
+    "motion": "dynamic",
+    "captionStyle": "karaoke_glow",
+    "overrides": {}
   }
 }

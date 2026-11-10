@@ -15,9 +15,17 @@ python3 core/pipeline.py produce \
   -i /ruta/a/grabacion_cruda.mp4 \
   -p tutorial-kubernetes \
   -t talking_head \
+  -d cyber_glass \
+  -s cyber_dark \
+  --layout standard \
+  --caption-style karaoke_glow \
   --title "Arquitectura Kubernetes en 60s" \
   --auto-render
 ```
+
+> [!TIP]
+> Puedes elegir cualquiera de los **6 Diseños Macro** (`-d cyber_glass`, `-d swiss_editorial`, `-d brutalist_terminal`, `-d cinematic_studio`, `-d bento_grid`, `-d academic_paper`), cualquiera de las **8 paletas cromáticas** (`-s`) y cualquiera de las **9 plantillas** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
+> `python3 core/pipeline.py style tutorial-kubernetes -d swiss_editorial --layout asymmetric_focus --caption-style box_invert`
 
 Este comando ejecuta automáticamente:
 1. Scaffolding del proyecto desde la plantilla especificada.
@@ -47,17 +55,22 @@ flowchart TD
 ---
 
 ### Paso 1: Inicializar el Proyecto mediante Scaffolding
-Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las 5 plantillas optimizadas:
+Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **9 plantillas especializadas** y los **6 Diseños Macro**:
 
 ```bash
 cd video-pipeline
 
-# Crear proyecto vertical 9:16 para redes sociales (Shorts/Reels/TikTok)
-python3 core/create_project.py mi-video --template portrait_9_16 --title "Título de Alto Impacto"
+# 1. Video vertical 9:16 para Shorts/Reels/TikTok con diseño Cyber Glass
+python3 core/create_project.py mi-video -t portrait_9_16 -d cyber_glass --title "Título de Alto Impacto"
 
-# Si es un video con presentador o explicador de código:
-# python3 core/create_project.py mi-video --template talking_head
-# python3 core/create_project.py mi-video --template tech_explainer
+# 2. Presentador vertical 9:16 o horizontal 16:9 con subtítulos cinéticos
+python3 core/create_project.py reel-presentador -t talking_head_9_16 -d cinematic_studio
+python3 core/create_project.py youtube-presentador -t talking_head -d swiss_editorial
+
+# 3. Walkthrough de código IDE, Benchmark de rendimiento o Diagrama SVG
+python3 core/create_project.py revision-codigo -t code_walkthrough -d brutalist_terminal
+python3 core/create_project.py comparativa-db -t benchmark_chart -d bento_grid
+python3 core/create_project.py flujo-eventos -t tech_explainer -d academic_paper
 ```
 
 Si cuentas con una grabacion de audio o camara en crudo, copiala al directorio del proyecto:

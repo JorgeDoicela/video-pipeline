@@ -1,0 +1,9 @@
+{
+  "name": "template-code-walkthrough",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "hyperframes": "0.9.18"
+  }
+}
+

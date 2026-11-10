@@ -11,6 +11,21 @@ import re
 import sys
 from pathlib import Path
 
+try:
+    from core.styles import (
+        CAPTION_STYLES,
+        DEFAULT_CAPTION_STYLE,
+        generate_caption_css,
+        get_caption_style,
+    )
+except ModuleNotFoundError:
+    from styles import (  # type: ignore
+        CAPTION_STYLES,
+        DEFAULT_CAPTION_STYLE,
+        generate_caption_css,
+        get_caption_style,
+    )
+
 
 def load_transcript(json_path: Path) -> dict:
     if not json_path.exists():
@@ -115,12 +130,24 @@ def export_vtt(groups: list[list[dict]], output_path: Path):
     print(f"[Captions] Subtítulos WebVTT exportados a: {output_path.resolve()}")
 
 
-def generate_html_and_gsap(groups: list[list[dict]]) -> tuple[str, str]:
+def generate_html_and_gsap(
+    groups: list[list[dict]],
+    caption_style: str = DEFAULT_CAPTION_STYLE,
+) -> tuple[str, str]:
     """
     Genera el bloque HTML de subtítulos agrupados y el código JavaScript para la línea de tiempo GSAP.
+    Soporta variantes de estilo de subtítulos cinéticos registradas en core.styles.
     """
-    html_parts = ['<div id="captions-container" class="caption-bar">']
-    gsap_lines = ["\n// --- Subtítulos Cinéticos Sincronizados ---"]
+    style_cfg = get_caption_style(caption_style)
+
+    html_parts = [
+        "<!-- @captions:start -->",
+        '<div id="captions-container" class="caption-bar">',
+    ]
+    gsap_lines = [
+        "// @captions-gsap:start",
+        "// --- Subtítulos Cinéticos Sincronizados ---",
+    ]
 
     for g_idx, group in enumerate(groups):
         g_start = group[0]["start"]
@@ -141,16 +168,22 @@ def generate_html_and_gsap(groups: list[list[dict]]) -> tuple[str, str]:
 
         # GSAP Timeline: Aparece el contenedor de frase
         gsap_lines.append(
-            f'tl.set("#{group_id}", {{ display: "block", opacity: 1 }}, {g_start:.3f});'
+            f'tl.set("#{group_id}", {{ display: "inline-block", opacity: 1 }}, {g_start:.3f});'
         )
 
         # GSAP Timeline: Se iluminan las palabras individualmente
         for w_idx, w in enumerate(group):
             word_id = f"cw_{g_idx}_{w_idx}"
             w_start = w["start"]
+            w_end = w["end"]
             gsap_lines.append(
                 f'tl.to("#{word_id}", {{ className: "word active", duration: 0.04 }}, {w_start:.3f});'
             )
+            if style_cfg.use_scale_pop:
+                pop_dur = min(0.12, max(0.04, (w_end - w_start) * 0.5))
+                gsap_lines.append(
+                    f'tl.fromTo("#{word_id}", {{ scale: 1.14 }}, {{ scale: 1.0, duration: {pop_dur:.3f}, ease: "back.out(2)" }}, {w_start:.3f});'
+                )
 
         # GSAP Timeline: Desaparece la frase al terminar el bloque
         gsap_lines.append(
@@ -158,13 +191,20 @@ def generate_html_and_gsap(groups: list[list[dict]]) -> tuple[str, str]:
         )
 
     html_parts.append("</div>")
+    html_parts.append("<!-- @captions:end -->")
+    gsap_lines.append("// @captions-gsap:end")
 
     return "\n".join(html_parts), "\n".join(gsap_lines)
 
 
-def inject_into_html(html_path: Path, html_snippet: str, gsap_snippet: str):
+def inject_into_html(
+    html_path: Path,
+    html_snippet: str,
+    gsap_snippet: str,
+    caption_style: str | None = None,
+):
     """
-    Inyecta automáticamente el contenedor HTML y las llamadas GSAP dentro del index.html de un proyecto.
+    Inyecta de forma idempotente el contenedor HTML y las llamadas GSAP dentro del index.html.
     """
     if not html_path.exists():
         print(f"Error: No se encontró el archivo HTML destino '{html_path}'.", file=sys.stderr)
@@ -172,26 +212,71 @@ def inject_into_html(html_path: Path, html_snippet: str, gsap_snippet: str):
 
     content = html_path.read_text(encoding="utf-8")
 
-    # 1. Reemplazar contenedor de subtítulos si existe
-    if '<div class="caption-bar">' in content or '<div id="captions-container"' in content:
+    # 0. Si se especificó un estilo de subtítulos, inyectar sus reglas CSS deterministas
+    if caption_style is not None:
+        style_cfg = get_caption_style(caption_style)
+        cap_css = generate_caption_css(style_cfg)
+        if "/* @caption-style:start */" in content and "/* @caption-style:end */" in content:
+            content = re.sub(
+                r"\s*/\* @caption-style:start \*/.*?/\* @caption-style:end \*/",
+                "\n" + cap_css,
+                content,
+                count=1,
+                flags=re.DOTALL,
+            )
+        elif "</style>" in content:
+            content = content.replace("</style>", f"{cap_css}\n    </style>", 1)
+
+    # 1. Reemplazar contenedor de subtítulos existente de manera determinista
+    if "<!-- @captions:start -->" in content and "<!-- @captions:end -->" in content:
         content = re.sub(
-            r'(<!-- Subtítulos Cinéticos -->\s*)?<div (id="captions-container"|class="caption-bar").*?</div>\s*</div>',
-            rf"<!-- Subtítulos Cinéticos -->\n{html_snippet}\n    </div>",
+            r"<!-- @captions:start -->.*?<!-- @captions:end -->",
+            html_snippet,
+            content,
+            flags=re.DOTALL,
+            count=1,
+        )
+    elif '<div id="caption-zone">' in content:
+        content = re.sub(
+            r'(<div id="caption-zone">\s*).*?(\s*</div>)',
+            rf"\g<1>{html_snippet}\g<2>",
+            content,
+            flags=re.DOTALL,
+            count=1,
+        )
+    elif '<div class="caption-bar">' in content or '<div id="captions-container"' in content:
+        content = re.sub(
+            r'(<!-- Subtítulos Cinéticos -->\s*)?<div (?:id="captions-container"|class="caption-bar")[^>]*>.*?</div>',
+            f"<!-- Subtítulos Cinéticos -->\n      {html_snippet}",
             content,
             flags=re.DOTALL,
             count=1,
         )
     else:
-        # Insertar justo antes del cierre del root
+        # Insertar justo antes del cierre del contenedor #root
         content = re.sub(
             r"(</div>\s*<script>)",
-            rf"{html_snippet}\n    </div>\n    <script>",
+            rf"      {html_snippet}\n    \g<1>",
             content,
             count=1,
         )
 
-    # 2. Inyectar timeline de GSAP antes del registro en window.__timelines
-    if "window.__timelines" in content:
+    # 2. Inyectar o reemplazar el bloque de timeline GSAP
+    if "// @captions-gsap:start" in content and "// @captions-gsap:end" in content:
+        content = re.sub(
+            r"// @captions-gsap:start.*?// @captions-gsap:end",
+            gsap_snippet,
+            content,
+            flags=re.DOTALL,
+            count=1,
+        )
+    elif "window.__timelines" in content:
+        # Limpiar líneas de demostración estáticas (#w1..#w6) si existían en la plantilla
+        content = re.sub(
+            r'\s*tl\.to\("#w[0-9]+",\s*\{[^}]*\},\s*[0-9.]+\);',
+            "",
+            content,
+        )
         content = re.sub(
             r"(window\.__timelines\s*=\s*window\.__timelines\s*\|\|\s*\{\};)",
             rf"{gsap_snippet}\n\n      \g<1>",
@@ -213,6 +298,12 @@ def main():
     parser.add_argument("--inject", help="Ruta al index.html donde inyectar el código HTML y GSAP")
     parser.add_argument("--export-srt", help="Ruta donde exportar archivo de subtítulos .srt")
     parser.add_argument("--export-vtt", help="Ruta donde exportar archivo de subtítulos .vtt")
+    parser.add_argument(
+        "--caption-style",
+        default=DEFAULT_CAPTION_STYLE,
+        choices=list(CAPTION_STYLES.keys()),
+        help=f"Estilo visual y de animación para subtítulos (defecto: {DEFAULT_CAPTION_STYLE})",
+    )
     parser.add_argument(
         "--words-per-group",
         type=int,
@@ -247,10 +338,15 @@ def main():
     if args.export_vtt:
         export_vtt(groups, Path(args.export_vtt))
 
-    html_code, gsap_code = generate_html_and_gsap(groups)
+    html_code, gsap_code = generate_html_and_gsap(groups, caption_style=args.caption_style)
 
     if args.inject:
-        inject_into_html(Path(args.inject), html_code, gsap_code)
+        inject_into_html(
+            Path(args.inject),
+            html_code,
+            gsap_code,
+            caption_style=args.caption_style,
+        )
     elif not args.export_srt and not args.export_vtt:
         print("\n--- Código HTML Generado ---")
         print(html_code)

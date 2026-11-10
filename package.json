@@ -11,6 +11,7 @@
     "pipeline": "python3 core/pipeline.py",
     "produce": "python3 core/pipeline.py produce",
     "create": "python3 core/create_project.py",
+    "styles": "python3 core/styles.py",
     "captions": "python3 core/sync_captions.py",
     "transcribe": "python3 core/transcribe.py",
     "cut-silence": "python3 core/cut_silence.py",
