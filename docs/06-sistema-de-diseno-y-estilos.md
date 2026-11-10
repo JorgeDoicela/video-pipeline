@@ -11,12 +11,13 @@ El sistema desacopla la presentación visual del contenido semántico mediante t
 ```mermaid
 flowchart TD
     subgraph N1 ["Nivel 1: Diseños Macro (--design)"]
-        D1["cyber_glass"]
-        D2["swiss_editorial"]
-        D3["brutalist_terminal"]
-        D4["cinematic_studio"]
-        D5["bento_grid"]
-        D6["academic_paper"]
+        D1["cyber_glass (Frosted Glass Physics)"]
+        D2["clean_studio (Apple Keynote / Stripe Light)"]
+        D3["swiss_editorial (Swiss Grid & Poster)"]
+        D4["brutalist_terminal (TUI Neo-Brutalism)"]
+        D5["cinematic_studio (Executive Frame)"]
+        D6["bento_grid (Apple Modular Bento)"]
+        D7["academic_paper (LaTeX / IEEE Paper)"]
     end
 
     subgraph N2 ["Nivel 2: Opciones Internas del Diseño"]
@@ -51,7 +52,8 @@ Un **Diseño Macro** ([`DesignSystem`](../core/styles.py)) transforma la estruct
 
 | Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Layout / Chrome / Motion Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `cyber_glass` *(Defecto)* | Cyber Glass UI | Esquinas redondeadas (`18px`), desenfoque `blur(20px)`, sombras profundas y resplandor de acento. | `cyber_dark` | `standard` / `macos_dots` / `dynamic` | Tutoriales de desarrollo, ingeniería cloud, demos de producto y código. |
+| `cyber_glass` *(Defecto)* | Cyber Glass & Frosted Glass | Paneles translúcidos con bisel superior/izquierdo especular, desenfoque profundo saturado (`blur(32px) saturate(190%)`), controles macOS y orbes ambientales. | `cyber_dark` | `standard` / `macos_dots` / `dynamic` | Tutoriales de desarrollo, ingeniería cloud, demos de producto de impacto visual. |
+| `clean_studio` | Clean Studio (Apple / Stripe) | Canvas blanco puro con orbes cálidos difusos, tarjetas blancas puras con bisel translúcido, sombras multicapa suaves y chips de métricas KPI. | `minimal_light` | `standard` / `hidden` / `smooth` | Lanzamientos de producto, keynotes corporativas, presentaciones de arquitectura de alto nivel. |
 | `swiss_editorial` | Swiss Editorial Grid | Retícula editorial suiza con esquinas casi rectas (`2px`), filete superior grueso (`4px solid`) y cero desenfoque. | `minimal_light` | `standard` / `minimal_line` / `smooth` | Presentaciones ejecutivas, arquitectura empresarial y divulgación técnica limpia. |
 | `brutalist_terminal` | Brutalist Terminal HUD | Esquinas a 90 grados (`0px`), bordes sólidos de `2px` en color de acento y sombra dura desplazada (`8px 8px 0px`). | `terminal_hacker` | `standard` / `terminal_bar` / `snappy` | Ciberseguridad, administración de sistemas Linux, DevOps, redes y CLI. |
 | `cinematic_studio` | Cinematic Studio Frame | Curvas amplias (`28px`), sombra ambiental cinematográfica, franja lateral de acento (`6px solid`) sin barra superior. | `linear_violet` | `standard` / `hidden` / `smooth` | Keynotes, lanzamientos de software, videos de presentador y narrativa técnica. |

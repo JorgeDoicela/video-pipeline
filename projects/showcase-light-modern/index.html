@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      :root {
+        --bg-base: #f8fafc;
+        --text-headline: #0f172a;
+        --text-body: #334155;
+        --text-muted: #64748b;
+        --accent-indigo: #4f46e5;
+        --accent-coral: #e11d48;
+        --accent-emerald: #059669;
+        --accent-sky: #0284c7;
+        --card-bg: rgba(255, 255, 255, 0.85);
+        --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: var(--bg-base);
+        font-family: var(--font-primary);
+        color: var(--text-headline);
+        position: relative;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        padding: 80px 110px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: radial-gradient(circle at 50% 0%, #ffffff 0%, #f1f5f9 100%);
+        overflow: hidden;
+      }
+
+      /* Malla de luces de fondo cálidas y dinámicas (estilo Apple / Stripe) */
+      .ambient-lights {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+      }
+      .light-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(100px);
+        opacity: 0.60;
+      }
+      .orb-coral {
+        width: 750px;
+        height: 750px;
+        background: radial-gradient(circle, rgba(254, 205, 211, 0.9) 0%, rgba(253, 164, 175, 0.2) 65%, transparent 100%);
+        top: -120px;
+        right: 150px;
+      }
+      .orb-indigo {
+        width: 800px;
+        height: 800px;
+        background: radial-gradient(circle, rgba(224, 231, 255, 0.95) 0%, rgba(199, 210, 254, 0.3) 65%, transparent 100%);
+        top: 100px;
+        left: -100px;
+      }
+      .orb-sky {
+        width: 650px;
+        height: 650px;
+        background: radial-gradient(circle, rgba(224, 242, 254, 0.9) 0%, rgba(186, 230, 253, 0.25) 70%, transparent 100%);
+        bottom: -150px;
+        left: 450px;
+      }
+
+      /* Capas de contenido */
+      header, .stage-grid, footer {
+        position: relative;
+        z-index: 10;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 18px;
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.9);
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+        color: var(--accent-indigo);
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 999px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .eyebrow-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-indigo);
+      }
+      h1 {
+        font-size: 52px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        color: var(--text-headline);
+        line-height: 1.15;
+      }
+      .header-meta {
+        font-size: 15px;
+        color: var(--text-muted);
+        text-align: right;
+        font-weight: 500;
+      }
+      .header-meta strong {
+        color: var(--accent-coral);
+        font-weight: 700;
+      }
+
+      /* Grilla de tarjetas estilo Studio */
+      .stage-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        height: 560px;
+        margin: 28px 0;
+      }
+
+      .clean-card {
+        background: var(--card-bg);
+        backdrop-filter: blur(28px);
+        -webkit-backdrop-filter: blur(28px);
+        border: 1px solid rgba(255, 255, 255, 0.95);
+        border-radius: 28px;
+        padding: 44px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow:
+          0 20px 45px -12px rgba(15, 23, 42, 0.08),
+          0 1px 3px 0 rgba(15, 23, 42, 0.04),
+          inset 0 1px 0 rgba(255, 255, 255, 1);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      .card-tag {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 6px 14px;
+        border-radius: 999px;
+      }
+      .tag-indigo {
+        background: rgba(99, 102, 241, 0.10);
+        color: var(--accent-indigo);
+      }
+      .tag-coral {
+        background: rgba(225, 29, 72, 0.10);
+        color: var(--accent-coral);
+      }
+      .card-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 800;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      }
+
+      .card-body h2 {
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 16px;
+        color: var(--text-headline);
+      }
+      .card-body p {
+        font-size: 28px;
+        line-height: 1.5;
+        color: var(--text-body);
+        font-weight: 400;
+      }
+
+      .metrics-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 22px;
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        align-self: flex-start;
+      }
+      .metric-item {
+        display: flex;
+        flex-direction: column;
+      }
+      .metric-val {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.01em;
+      }
+      .metric-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-muted);
+        border-top: 1px solid rgba(226, 232, 240, 0.8);
+        padding-top: 22px;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-hold
+      data-start="0"
+      data-duration="8"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- Luces ambientales de fondo cálidas y orgánicas -->
+      <div class="ambient-lights" data-layout-ignore>
+        <div class="light-orb orb-coral" id="light-coral"></div>
+        <div class="light-orb orb-indigo" id="light-indigo"></div>
+        <div class="light-orb orb-sky" id="light-sky"></div>
+      </div>
+
+      <header id="header">
+        <div>
+          <div class="eyebrow" data-layout-ignore>
+            <span class="eyebrow-dot"></span>
+            <span>Diseño Audiovisual de Alta Gama</span>
+          </div>
+          <h1>Plataforma Global de Microfrontends</h1>
+        </div>
+        <div class="header-meta" data-layout-ignore>
+          <span>Resolución: 1920x1080</span><br>
+          <strong>Clean Light Aesthetic</strong>
+        </div>
+      </header>
+
+      <div class="stage-grid">
+        <!-- Tarjeta 1: Índigo -->
+        <div class="clean-card" id="card-1">
+          <div>
+            <div class="card-header" data-layout-ignore>
+              <span class="card-tag tag-indigo">Arquitectura Modular</span>
+              <div class="card-icon" style="color:var(--accent-indigo);">01</div>
+            </div>
+            <div class="card-body">
+              <h2>Orquestación Desacoplada</h2>
+              <p>Módulos independientes consumidos en tiempo de ejecución sin duplicar paquetes ni comprometer la velocidad de carga.</p>
+            </div>
+          </div>
+          <div class="metrics-pill" data-layout-ignore>
+            <div class="metric-item">
+              <span class="metric-val" style="color:var(--accent-indigo);">-68%</span>
+              <span class="metric-label">Tiempo de Carga</span>
+            </div>
+            <div style="width:1px; height:30px; background:#e2e8f0;"></div>
+            <div class="metric-item">
+              <span class="metric-val" style="color:var(--text-headline);">Zero Bloat</span>
+              <span class="metric-label">Bundle Compartido</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta 2: Coral -->
+        <div class="clean-card" id="card-2">
+          <div>
+            <div class="card-header" data-layout-ignore>
+              <span class="card-tag tag-coral">Despliegue Continuo</span>
+              <div class="card-icon" style="color:var(--accent-coral);">02</div>
+            </div>
+            <div class="card-body">
+              <h2>Releases Autónomos</h2>
+              <p>Cada equipo despliega su microfrontend en producción de manera aislada, sin bloqueos cruzados ni dependencias globales.</p>
+            </div>
+          </div>
+          <div class="metrics-pill" data-layout-ignore>
+            <div class="metric-item">
+              <span class="metric-val" style="color:var(--accent-coral);">99.99%</span>
+              <span class="metric-label">Disponibilidad SLA</span>
+            </div>
+            <div style="width:1px; height:30px; background:#e2e8f0;"></div>
+            <div class="metric-item">
+              <span class="metric-val" style="color:var(--text-headline);">Continuous</span>
+              <span class="metric-label">Pipeline CI/CD</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer id="footer" data-layout-ignore>
+        <span>github.com/JorgeDoicela/video-pipeline</span>
+        <span>HyperFrames + Clean Light Studio Engine</span>
+      </footer>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // Dinámica suave de las luces cálidas de fondo
+      tl.to("#light-coral", { x: -80, y: 50, scale: 1.15, duration: 8, ease: "sine.inOut" }, 0.0);
+      tl.to("#light-indigo", { x: 70, y: -40, scale: 1.12, duration: 8, ease: "sine.inOut" }, 0.0);
+      tl.to("#light-sky", { x: -60, y: 30, scale: 1.1, duration: 8, ease: "sine.inOut" }, 0.0);
+
+      // Entrada refinada de encabezado y tarjetas
+      tl.from("#header", { y: -16, duration: 0.8, ease: "power2.out" }, 0.0);
+      tl.from(".clean-card", {
+        opacity: 0,
+        y: 35,
+        scale: 0.96,
+        stagger: 0.18,
+        duration: 0.9,
+        ease: "back.out(1.3)"
+      }, 0.2);
+      tl.from("#footer", { opacity: 0, duration: 0.6 }, 0.7);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

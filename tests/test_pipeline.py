@@ -43,6 +43,7 @@ def test_pipeline_subcommand_style_list():
         check=True,
     )
     assert "cyber_glass" in res.stdout
+    assert "clean_studio" in res.stdout
     assert "bento_grid" in res.stdout
     assert "academic_paper" in res.stdout
     assert "cyber_dark" in res.stdout

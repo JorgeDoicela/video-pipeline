@@ -1,0 +1,13 @@
+{
+  "name": "project-showcase-light-modern",
+  "version": "1.0.0",
+  "description": "Showcase visual en estilo Clean Light y diseño corporativo moderno",
+  "scripts": {
+    "preview": "hyperframes preview .",
+    "render": "hyperframes render . -o video.mp4",
+    "check": "hyperframes check ."
+  },
+  "dependencies": {
+    "hyperframes": "^0.9.18"
+  }
+}

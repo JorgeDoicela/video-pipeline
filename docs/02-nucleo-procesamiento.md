@@ -119,7 +119,8 @@ El módulo [styles.py](../core/styles.py) implementa una arquitectura componible
 
 1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
-   * `cyber_glass` *(Defecto)*: Glassmorphism técnico con desenfoque, controles estilo macOS (`macos_dots`), esquinas `18px` y animación `dynamic`.
+   * `cyber_glass` *(Defecto)*: Glassmorphism y física de cristal esmerilado (`blur(32px) saturate(190%)`), controles estilo macOS (`macos_dots`), esquinas `24px` y orbes de luz en segundo plano.
+   * `clean_studio`: Estilo Apple Keynote / Stripe corporativo en fondo blanco con orbes cálidos, tarjetas blancas puras con bisel sutil, sombras multicapa y chips KPI.
    * `swiss_editorial`: Retícula editorial suiza con bordes rectos (`2px`), filetes superiores gruesos (`4px solid`), sin botones de ventana (`minimal_line`), tema nativo `minimal_light` y animación `smooth`.
    * `brutalist_terminal`: Estética neo-brutalista con esquinas a 90 grados (`0px`), bordes gruesos (`2px`) y sombra dura desplazada (`8px 8px 0px`), barra TUI (`terminal_bar`), tema nativo `terminal_hacker` y animación `snappy`.
    * `cinematic_studio`: Encuadre de estudio con curvas amplias (`28px`), franja lateral de acento (`6px solid`), tarjetas limpias sin cabecera (`hidden`), tema nativo `linear_violet` y subtítulos `pop_scale`.

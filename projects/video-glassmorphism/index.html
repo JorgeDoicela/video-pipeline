@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      /* @theme:start */
+      /* Design: cyber_glass | Theme: cyber_dark | Layout: standard */
+      :root {
+        --design-slug: "cyber_glass";
+        --theme-slug: "cyber_dark";
+        --layout-slug: "standard";
+        --bg: #070b14;
+        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
+        --surface: rgba(16, 23, 42, 0.88);
+        --surface-elevated: rgba(255, 255, 255, 0.03);
+        --border: rgba(56, 189, 248, 0.25);
+        --border-strong: rgba(56, 189, 248, 0.65);
+        --divider: rgba(255, 255, 255, 0.08);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --title-gradient: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+        --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --accent-primary: #38bdf8;
+        --accent-primary-soft: rgba(56, 189, 248, 0.12);
+        --accent-primary-glow: rgba(56, 189, 248, 0.35);
+        --accent-secondary: #10b981;
+        --accent-secondary-soft: rgba(16, 185, 129, 0.12);
+        --accent-tertiary: #c084fc;
+        --accent-warning: #fbbf24;
+        --accent-danger: #f43f5e;
+        --node-fill: #10172a;
+        --cable-idle: #1e293b;
+        --caption-bg: transparent;
+        --caption-text: #f8fafc;
+        --caption-active: #38bdf8;
+        --caption-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+        --caption-glow: 0 0 16px #38bdf8;
+        /* Tokens estructurales de Diseño Macro y Layout */
+        --radius-lg: 24px;
+        --radius-md: 14px;
+        --radius-sm: 8px;
+        --border-width: 1px;
+        --panel-backdrop: blur(32px) saturate(190%);
+        --badge-radius: 999px;
+        --stage-padding: 80px 100px;
+        --stage-gap: 40px;
+        --split-columns: 1fr 1fr;
+        --header-align: left;
+        --caption-bottom: 220px;
+        --caption-size: 52px;
+        /* Alias de compatibilidad con plantillas existentes */
+        --card: var(--surface);
+        --card-bg: var(--surface);
+        --panel-bg: var(--surface);
+        --border-color: var(--border);
+        --card-border: var(--border);
+        --panel-border: var(--border);
+        --text: var(--text-primary);
+        --text-sub: var(--text-muted);
+        --text-code: var(--text-secondary);
+        --cyan: var(--accent-primary);
+        --cyan-glow: var(--accent-primary-glow);
+        --green: var(--accent-secondary);
+        --purple: var(--accent-tertiary);
+        --gold: var(--accent-warning);
+        --red: var(--accent-danger);
+      }
+      /* @theme:end */
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background: #050811;
+        font-family: var(--font-sans);
+        color: var(--text-primary);
+        position: relative;
+      }
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        padding: 80px 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background: radial-gradient(circle at 50% 0%, rgba(15, 23, 42, 0.8) 0%, rgba(5, 8, 17, 1) 100%);
+        overflow: hidden;
+      }
+
+      /* Orbes de luz de fondo para dar refracción y contraste al cristal */
+      .backdrop-lights {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+      }
+      .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.65;
+        mix-blend-mode: screen;
+      }
+      .orb-1 {
+        width: 650px;
+        height: 650px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.55) 0%, rgba(14, 165, 233, 0.1) 70%, transparent 100%);
+        top: 180px;
+        left: 200px;
+      }
+      .orb-2 {
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, rgba(168, 85, 247, 0.50) 0%, rgba(192, 132, 252, 0.1) 70%, transparent 100%);
+        top: 240px;
+        right: 180px;
+      }
+      .orb-3 {
+        width: 500px;
+        height: 500px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.40) 0%, rgba(52, 211, 153, 0.1) 70%, transparent 100%);
+        bottom: 40px;
+        left: 700px;
+      }
+
+      /* Contenedores de contenido sobre el plano de cristal */
+      header, .split-stage, footer {
+        position: relative;
+        z-index: 10;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .badge {
+        display: inline-block;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: var(--accent-primary);
+        font-size: 14px;
+        font-weight: 800;
+        border-radius: 999px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+      h1 {
+        font-size: 46px;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+        color: #ffffff;
+        text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+      }
+      .split-stage {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 48px;
+        height: 580px;
+        margin: 20px 0;
+      }
+
+      /* Panel de Glassmorphism Real de Producción */
+      .glass-panel {
+        position: relative;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(32px) saturate(190%);
+        -webkit-backdrop-filter: blur(32px) saturate(190%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+        border-left: 1.5px solid rgba(255, 255, 255, 0.35);
+        padding: 44px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow:
+          0 30px 60px -12px rgba(0, 0, 0, 0.70),
+          inset 0 1px 1px 0 rgba(255, 255, 255, 0.4),
+          inset 0 -1px 1px 0 rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+      }
+
+      /* Reflejo de luz especular diagonal del cristal */
+      .glass-panel::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 45%;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.02) 60%, transparent 100%);
+        pointer-events: none;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      }
+
+      .window-bar {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 8px;
+      }
+      .dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+      .dot-red { background: #ff5f56; }
+      .dot-yellow { background: #ffbd2e; }
+      .dot-green { background: #27c93f; }
+      .file-tag {
+        margin-left: 12px;
+        font-size: 14px;
+        color: var(--text-muted);
+        letter-spacing: 0.04em;
+      }
+
+      .panel-content h2 {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 18px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+      }
+      .panel-content p {
+        font-size: 28px;
+        line-height: 1.5;
+        color: var(--text-secondary);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+      }
+
+      .kpi-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        align-self: flex-start;
+        margin-top: 24px;
+      }
+
+      footer {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        color: var(--text-muted);
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        padding-top: 20px;
+      }
+      /* @design-system:start */
+      /* Macro Design: cyber_glass | Layout: standard | Chrome: macos_dots */
+      .panel, #main-card, #main-window, .node-glass {
+        border-radius: var(--radius-lg);
+        border: var(--border-width) solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: var(--panel-backdrop);
+      }
+      .badge, .hook-badge, .sys-badge, .term-badge {
+        border-radius: var(--badge-radius);
+      }
+      .split-stage {
+        grid-template-columns: var(--split-columns);
+        gap: var(--stage-gap);
+      }
+      .caption-bar {
+        bottom: var(--caption-bottom);
+        font-size: var(--caption-size);
+      }
+      .panel, #main-card, #main-window, .clean-card, .node-glass {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+        border-left: 1.5px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1px 0 rgba(255, 255, 255, 0.40);
+        backdrop-filter: blur(32px) saturate(190%);
+        -webkit-backdrop-filter: blur(32px) saturate(190%);
+      }
+      .lower-third {
+        left: 80px;
+        right: auto;
+        border-radius: var(--radius-md);
+      }
+      /* @design-system:end */
+      /* @caption-style:start */
+      /* Caption Style: karaoke_glow */
+      .caption-phrase {
+        display: inline-block;
+        background: var(--caption-bg);
+        padding: 6px 18px;
+        border-radius: var(--radius-md, 12px);
+      }
+      .word {
+        display: inline-block;
+        opacity: 0.25;
+        color: var(--caption-text);
+        margin: 0 4px;
+      }
+      .word.active {
+        opacity: 1;
+        color: var(--caption-active);
+        text-shadow: var(--caption-glow);
+      }
+      /* @caption-style:end */
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-caption-style="karaoke_glow"
+      data-motion="dynamic"
+      data-layout="standard"
+      data-style="cyber_dark"
+      data-design="cyber_glass"
+      data-hold
+      data-start="0"
+      data-duration="8"
+      data-width="1920"
+      data-height="1080"
+    >
+      <!-- Luces ambientales de fondo que se refractan dentro del cristal -->
+      <div class="backdrop-lights" data-layout-ignore>
+        <div class="orb orb-1" id="orb-1"></div>
+        <div class="orb orb-2" id="orb-2"></div>
+        <div class="orb orb-3" id="orb-3"></div>
+      </div>
+
+      <header id="header">
+        <div>
+          <div class="badge" data-layout-ignore>Glassmorphism Architecture</div>
+          <h1>Arquitectura Cloud & Microservicios</h1>
+        </div>
+        <div style="font-size:14px; color:var(--text-muted); text-align:right;" data-layout-ignore>
+          <span>Resolución: 1920x1080</span><br>
+          <span style="color:var(--accent-secondary); font-weight:700;">Frosted Glass UI</span>
+        </div>
+      </header>
+
+      <div class="split-stage">
+        <!-- Panel de Cristal 1 -->
+        <div class="glass-panel" id="panel-1">
+          <div>
+            <div class="window-bar" data-layout-ignore>
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+              <span class="file-tag">orchestrator.ts</span>
+            </div>
+            <div class="panel-content">
+              <h2 style="color:var(--accent-primary);">1. Shell Orquestador</h2>
+              <p>Carga módulos independientes vía Module Federation e import maps en tiempo de ejecución sin recargar la sesión.</p>
+            </div>
+          </div>
+          <div class="kpi-chip" style="color:var(--accent-primary);" data-layout-ignore>
+            <span>⚡ Latencia: &lt; 12ms</span>
+            <span style="color:rgba(255,255,255,0.4);">|</span>
+            <span>Zero Bundle Bloat</span>
+          </div>
+        </div>
+
+        <!-- Panel de Cristal 2 -->
+        <div class="glass-panel" id="panel-2">
+          <div>
+            <div class="window-bar" data-layout-ignore>
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+              <span class="file-tag">deployment.yaml</span>
+            </div>
+            <div class="panel-content">
+              <h2 style="color:var(--accent-secondary);">2. Despliegue Autónomo</h2>
+              <p>Cada equipo despliega su microfrontend sin coordinar releases ni provocar regresiones en el bundle global.</p>
+            </div>
+          </div>
+          <div class="kpi-chip" style="color:var(--accent-secondary);" data-layout-ignore>
+            <span>✓ Disponibilidad: 99.99%</span>
+            <span style="color:rgba(255,255,255,0.4);">|</span>
+            <span>CI/CD Independiente</span>
+          </div>
+        </div>
+      </div>
+
+      <footer id="footer" data-layout-ignore>
+        <span>github.com/JorgeDoicela/video-pipeline</span>
+        <span>HyperFrames + Deterministic Glass Physics</span>
+      </footer>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      // Animación de los orbes luminosos en el fondo (crean el efecto de refracción a través del cristal)
+      tl.to("#orb-1", { x: 120, y: -60, scale: 1.15, duration: 8, ease: "sine.inOut" }, 0.0);
+      tl.to("#orb-2", { x: -140, y: 50, scale: 1.2, duration: 8, ease: "sine.inOut" }, 0.0);
+      tl.to("#orb-3", { x: -80, y: -40, scale: 1.1, duration: 8, ease: "sine.inOut" }, 0.0);
+
+      // Entrada del encabezado y paneles de cristal (frame 0 visible)
+      tl.from("#header", { y: -16, duration: 0.8, ease: "power3.out" }, 0.0);
+      tl.from(".glass-panel", {
+        opacity: 0,
+        y: 35,
+        scale: 0.94,
+        stagger: 0.2,
+        duration: 0.8,
+        ease: "back.out(1.4)"
+      }, 0.2);
+      tl.from("#footer", { opacity: 0, duration: 0.7 }, 0.8);
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

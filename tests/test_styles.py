@@ -36,6 +36,7 @@ def test_catalog_3_levels_integrity():
 
     assert {
         "cyber_glass",
+        "clean_studio",
         "swiss_editorial",
         "brutalist_terminal",
         "cinematic_studio",
@@ -154,10 +155,17 @@ def test_level1_macro_design_switching(tmp_path):
     assert "--radius-lg: 4px;" in html_paper
     assert "border-top: 3px solid var(--text-primary);" in html_paper
 
-    # 6. Inspeccionar estado efectivo del proyecto
+    # 6. Cambiar a Diseño Macro clean_studio
+    apply_style_to_project(tmp_path, design_slug="clean_studio")
+    html_clean = html_file.read_text(encoding="utf-8")
+    assert 'data-design="clean_studio"' in html_clean
+    assert 'data-style="minimal_light"' in html_clean
+    assert "--radius-lg: 28px;" in html_clean
+
+    # 7. Inspeccionar estado efectivo del proyecto
     inspected = inspect_project_design(tmp_path)
-    assert inspected["design"] == "academic_paper"
-    assert inspected["style"] == "solarized_sand"
+    assert inspected["design"] == "clean_studio"
+    assert inspected["style"] == "minimal_light"
 
 
 def test_level2_intra_design_options_and_level3_overrides(tmp_path):

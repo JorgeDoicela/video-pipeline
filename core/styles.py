@@ -81,6 +81,8 @@ class DesignSystem:
     use_accent_left_bar: bool
     use_bento_surface: bool = False
     use_double_academic_border: bool = False
+    use_frosted_glass_physics: bool = False
+    use_clean_studio_surface: bool = False
 
 
 @dataclass(frozen=True)
@@ -149,21 +151,41 @@ DEFAULT_CAPTION_STYLE = "karaoke_glow"
 DESIGN_SYSTEMS: dict[str, DesignSystem] = {
     "cyber_glass": DesignSystem(
         slug="cyber_glass",
-        name="Cyber Glass (Glassmorphism Técnico)",
-        description="Diseño con paneles translúcidos, desenfoque de cristal, controles tipo macOS y sombras suaves.",
+        name="Cyber Glass (Glassmorphism & Frosted Glass)",
+        description="Diseño con paneles translúcidos con bisel especular, desenfoque de cristal saturado y controles tipo macOS.",
         default_theme="cyber_dark",
         default_chrome="macos_dots",
         default_motion="dynamic",
         default_caption_style="karaoke_glow",
-        radius_lg="18px",
-        radius_md="12px",
-        radius_sm="6px",
+        radius_lg="24px",
+        radius_md="14px",
+        radius_sm="8px",
         border_width="1px",
-        panel_backdrop="blur(20px)",
-        badge_radius="6px",
+        panel_backdrop="blur(32px) saturate(190%)",
+        badge_radius="999px",
         use_hard_shadow=False,
         use_editorial_rules=False,
         use_accent_left_bar=False,
+        use_frosted_glass_physics=True,
+    ),
+    "clean_studio": DesignSystem(
+        slug="clean_studio",
+        name="Clean Studio (Apple Keynote & Stripe Light)",
+        description="Diseño corporativo luminoso de alta gama con sombras multicapa, tarjetas blancas puras y acentos vivos.",
+        default_theme="minimal_light",
+        default_chrome="hidden",
+        default_motion="smooth",
+        default_caption_style="highlight_pill",
+        radius_lg="28px",
+        radius_md="16px",
+        radius_sm="999px",
+        border_width="1px",
+        panel_backdrop="blur(20px)",
+        badge_radius="999px",
+        use_hard_shadow=False,
+        use_editorial_rules=False,
+        use_accent_left_bar=False,
+        use_clean_studio_surface=True,
     ),
     "swiss_editorial": DesignSystem(
         slug="swiss_editorial",
@@ -280,7 +302,7 @@ THEMES: dict[str, VisualTheme] = {
         text_secondary="#cbd5e1",
         text_muted="#94a3b8",
         title_gradient="linear-gradient(135deg, #ffffff 40%, #94a3b8 100%)",
-        font_sans="'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif",
+        font_sans="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
         font_mono="'JetBrains Mono', monospace",
         accent_primary="#38bdf8",
         accent_primary_soft="rgba(56, 189, 248, 0.12)",
@@ -315,7 +337,7 @@ THEMES: dict[str, VisualTheme] = {
         text_secondary="#1e293b",
         text_muted="#475569",
         title_gradient="linear-gradient(135deg, #0f172a 40%, #334155 100%)",
-        font_sans="'Inter', 'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif",
+        font_sans="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
         font_mono="'JetBrains Mono', monospace",
         accent_primary="#0369a1",
         accent_primary_soft="rgba(3, 105, 161, 0.10)",
@@ -385,7 +407,7 @@ THEMES: dict[str, VisualTheme] = {
         text_secondary="#e4e4e7",
         text_muted="#a1a1aa",
         title_gradient="linear-gradient(135deg, #fafafa 40%, #a78bfa 100%)",
-        font_sans="'Inter', 'JetBrains Mono', -apple-system, sans-serif",
+        font_sans="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
         font_mono="'JetBrains Mono', monospace",
         accent_primary="#a78bfa",
         accent_primary_soft="rgba(167, 139, 250, 0.14)",
@@ -420,7 +442,7 @@ THEMES: dict[str, VisualTheme] = {
         text_secondary="#ccd6f6",
         text_muted="#94a3b8",
         title_gradient="linear-gradient(135deg, #e6f1ff 40%, #64ffda 100%)",
-        font_sans="'JetBrains Mono', -apple-system, sans-serif",
+        font_sans="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
         font_mono="'JetBrains Mono', monospace",
         accent_primary="#64ffda",
         accent_primary_soft="rgba(100, 255, 218, 0.12)",
@@ -455,7 +477,7 @@ THEMES: dict[str, VisualTheme] = {
         text_secondary="#e2e8f0",
         text_muted="#94a3b8",
         title_gradient="linear-gradient(135deg, #f8f8f2 35%, #8be9fd 100%)",
-        font_sans="'JetBrains Mono', -apple-system, sans-serif",
+        font_sans="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
         font_mono="'JetBrains Mono', monospace",
         accent_primary="#8be9fd",
         accent_primary_soft="rgba(139, 233, 253, 0.12)",
@@ -490,7 +512,7 @@ THEMES: dict[str, VisualTheme] = {
         text_secondary="#1e293b",
         text_muted="#475569",
         title_gradient="linear-gradient(135deg, #073642 40%, #0369a1 100%)",
-        font_sans="'Inter', 'JetBrains Mono', -apple-system, sans-serif",
+        font_sans="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Georgia, serif",
         font_mono="'JetBrains Mono', monospace",
         accent_primary="#0369a1",
         accent_primary_soft="rgba(3, 105, 161, 0.10)",
@@ -525,7 +547,7 @@ THEMES: dict[str, VisualTheme] = {
         text_secondary="#e7e5e4",
         text_muted="#a8a29e",
         title_gradient="linear-gradient(135deg, #fafaf9 35%, #fb7185 100%)",
-        font_sans="'JetBrains Mono', -apple-system, sans-serif",
+        font_sans="-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
         font_mono="'JetBrains Mono', monospace",
         accent_primary="#fb7185",
         accent_primary_soft="rgba(251, 113, 133, 0.14)",
@@ -1019,6 +1041,34 @@ def generate_design_structural_css(
                 "      .panel, #main-card, #main-window {",
                 "        border: 1px solid var(--border-strong);",
                 "        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), var(--shadow);",
+                "      }",
+            ]
+        )
+
+    if design.use_frosted_glass_physics:
+        lines.extend(
+            [
+                "      .panel, #main-card, #main-window, .clean-card, .node-glass {",
+                "        background: rgba(255, 255, 255, 0.06);",
+                "        border: 1px solid rgba(255, 255, 255, 0.22);",
+                "        border-top: 1.5px solid rgba(255, 255, 255, 0.45);",
+                "        border-left: 1.5px solid rgba(255, 255, 255, 0.35);",
+                "        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1px 0 rgba(255, 255, 255, 0.40);",
+                "        backdrop-filter: blur(32px) saturate(190%);",
+                "        -webkit-backdrop-filter: blur(32px) saturate(190%);",
+                "      }",
+            ]
+        )
+
+    if design.use_clean_studio_surface:
+        lines.extend(
+            [
+                "      .panel, #main-card, #main-window, .clean-card {",
+                "        background: rgba(255, 255, 255, 0.88);",
+                "        border: 1px solid rgba(255, 255, 255, 0.95);",
+                "        box-shadow: 0 20px 45px -12px rgba(15, 23, 42, 0.08), 0 1px 3px 0 rgba(15, 23, 42, 0.04), inset 0 1px 0 #ffffff;",
+                "        backdrop-filter: blur(24px);",
+                "        -webkit-backdrop-filter: blur(24px);",
                 "      }",
             ]
         )

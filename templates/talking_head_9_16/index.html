@@ -23,7 +23,7 @@
         --text-secondary: #cbd5e1;
         --text-muted: #94a3b8;
         --title-gradient: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
-        --font-sans: 'JetBrains Mono', -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
         --font-mono: 'JetBrains Mono', monospace;
         --accent-primary: #38bdf8;
         --accent-primary-soft: rgba(56, 189, 248, 0.12);
@@ -41,12 +41,12 @@
         --caption-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
         --caption-glow: 0 0 16px #38bdf8;
         /* Tokens estructurales de Diseño Macro y Layout */
-        --radius-lg: 18px;
-        --radius-md: 12px;
-        --radius-sm: 6px;
+        --radius-lg: 24px;
+        --radius-md: 14px;
+        --radius-sm: 8px;
         --border-width: 1px;
-        --panel-backdrop: blur(20px);
-        --badge-radius: 6px;
+        --panel-backdrop: blur(32px) saturate(190%);
+        --badge-radius: 999px;
         --stage-padding: 80px 100px;
         --stage-gap: 40px;
         --split-columns: 1fr 1fr;
@@ -174,7 +174,7 @@
         text-shadow: var(--caption-glow);
       }
       /* @caption-style:end */
-          /* @design-system:start */
+      /* @design-system:start */
       /* Macro Design: cyber_glass | Layout: standard | Chrome: macos_dots */
       .panel, #main-card, #main-window, .node-glass {
         border-radius: var(--radius-lg);
@@ -193,12 +193,51 @@
         bottom: var(--caption-bottom);
         font-size: var(--caption-size);
       }
+      .panel, #main-card, #main-window, .clean-card, .node-glass {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-top: 1.5px solid rgba(255, 255, 255, 0.45);
+        border-left: 1.5px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1px 0 rgba(255, 255, 255, 0.40);
+        backdrop-filter: blur(32px) saturate(190%);
+        -webkit-backdrop-filter: blur(32px) saturate(190%);
+      }
       .lower-third {
         left: 80px;
         right: auto;
         border-radius: var(--radius-md);
       }
       /* @design-system:end */
+    
+      /* Capa ambiental de profundidad y volumen luminoso */
+      .ambient-lights {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 1;
+        overflow: hidden;
+      }
+      .light-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.55;
+        mix-blend-mode: screen;
+      }
+      .orb-primary {
+        width: 650px;
+        height: 650px;
+        background: radial-gradient(circle, var(--accent-primary-glow) 0%, transparent 70%);
+        top: -100px;
+        left: -100px;
+      }
+      .orb-secondary {
+        width: 700px;
+        height: 700px;
+        background: radial-gradient(circle, var(--accent-secondary-soft) 0%, transparent 70%);
+        bottom: -150px;
+        right: -100px;
+      }
     </style>
   </head>
   <body>
@@ -216,6 +255,12 @@
       data-width="1080"
       data-height="1920"
     >
+      <!-- Capa ambiental de profundidad luminosa -->
+      <div class="ambient-lights" data-layout-ignore>
+        <div class="light-orb orb-primary" id="orb-p"></div>
+        <div class="light-orb orb-secondary" id="orb-s"></div>
+      </div>
+
       <video id="bg-video" src="cut.mp4" data-start="0" data-duration="15" muted></video>
 
       <header id="header">

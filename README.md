@@ -102,7 +102,7 @@ El sistema cuenta con **9 plantillas especializadas** (`-t`) y una **arquitectur
   * `feed_4_5` (`1080x1350` 4:5): Formato vertical 4:5 de máxima cobertura en el feed móvil de LinkedIn e Instagram.
 
 ### 3.2. Arquitectura de Diseño Componible en 3 Niveles (`core/styles.py`)
-1. **Nivel 1 — Diseños Macro (`-d, --design`):** `cyber_glass` (defecto), `swiss_editorial`, `brutalist_terminal`, `cinematic_studio`, `bento_grid`, `academic_paper`.
+1. **Nivel 1 — Diseños Macro (`-d, --design`):** `cyber_glass` (defecto), `clean_studio` (Apple Keynote / Stripe Light), `swiss_editorial`, `brutalist_terminal`, `cinematic_studio`, `bento_grid`, `academic_paper`.
 2. **Nivel 2 — Opciones Internas:**
    * **8 Paletas WCAG AA (`-s, --style`):** `cyber_dark`, `minimal_light`, `terminal_hacker`, `linear_violet`, `blueprint_cad`, `dracula_pro`, `solarized_sand`, `crimson_ops`.
    * **4 Layouts (`--layout`):** `standard`, `asymmetric_focus`, `stacked`, `compact_hud`.
