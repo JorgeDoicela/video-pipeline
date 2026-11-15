@@ -119,8 +119,8 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 
 1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
-   * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), franja lateral de acento (`6px solid`), tarjetas limpias (`hidden`), tema nativo `dark_violet` y subtítulos `highlight_pill`.
-   * `editorial`: Estética cálida de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), filetes superior/inferior (`3px solid` / `1px solid`), tema cálido `paper_warm` y subtítulos `minimal_clean`.
+   * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), bordes simétricos limpios, tarjetas limpias (`hidden`), tema nativo `dark_violet` y subtítulos `minimal_clean`.
+   * `editorial`: Estética cálida de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), tipografía limpia sin filetes decorativos, tema cálido `paper_warm` y subtítulos `minimal_clean`.
    * `clean`: Tarjetas blancas minimalistas con radios de `24px`, sombras multicapa suaves, tema nativo `clean_light` y animación `smooth`.
    * `terminal`: Estética TUI con esquinas a 90 grados (`0px`), bordes de `2px`, sombra dura desplazada (`8px 8px 0px`), barra `terminal_bar`, tema nativo `terminal_green` y animación `snappy`.
 

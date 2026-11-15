@@ -51,7 +51,7 @@ flowchart LR
       .lower-third {
         position: absolute; bottom: 80px; left: 80px;
         background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px);
-        border-left: 6px solid #38bdf8; padding: 20px 32px; border-radius: 8px; color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.15); padding: 20px 32px; border-radius: 8px; color: #fff;
         opacity: 0; transform: translateY(30px);
       }
       .kinetic-caption {

@@ -18,7 +18,7 @@ python3 core/pipeline.py produce \
   -d cinematic \
   -s dark_violet \
   --layout standard \
-  --caption-style highlight_pill \
+  --caption-style minimal_clean \
   --title "Arquitectura Kubernetes en 60s" \
   --auto-render
 ```

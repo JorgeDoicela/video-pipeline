@@ -113,7 +113,7 @@ El sistema cuenta con **5 plantillas esenciales** (`-t`) y una **arquitectura de
    * **3 Layouts (`--layout`):** `standard`, `asymmetric_focus`, `stacked`.
    * **4 Marcos de Ventana (`--chrome`):** `auto`, `hidden`, `minimal_line`, `terminal_bar`.
    * **3 Perfiles GSAP (`--motion`):** `smooth`, `snappy`, `minimal`.
-   * **2 Estilos de Subtítulos (`--caption-style`):** `highlight_pill` (defecto), `minimal_clean`.
+   * **2 Estilos de Subtítulos (`--caption-style`):** `minimal_clean` (defecto), `highlight_pill`.
 3. **Nivel 3 — Overrides Granulares (`--set clave=valor`):** Ajuste puntual por proyecto (`accent_primary`, `radius_lg`, `stage_gap`, etc.) persistido en `package.json` (`videoDesign`).
 
 ---

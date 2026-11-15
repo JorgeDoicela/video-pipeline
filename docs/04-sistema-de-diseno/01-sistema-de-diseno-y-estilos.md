@@ -47,10 +47,10 @@ flowchart TD
 
 | Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Chrome / Motion / Captions Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y franja lateral de acento (`6px solid`). | `dark_violet` | `hidden` / `smooth` / `highlight_pill` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
-| `editorial` | Editorial (Cálido / Pergamino) | Estética clásica de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), filetes superior/inferior y cero desenfoque. | `paper_warm` | `hidden` / `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
-| `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `hidden` / `smooth` / `highlight_pill` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
-| `terminal` | Terminal (Brutalismo Técnico TUI) | Esquinas a 90 grados (`0px`), bordes sólidos de `2px` en color de acento y sombra dura desplazada (`8px 8px 0px`). | `terminal_green` | `terminal_bar` / `snappy` / `highlight_pill` | Linux, DevOps, ciberseguridad, CLI y tutoriales de consola. |
+| `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y bordes simétricos limpios. | `dark_violet` | `hidden` / `smooth` / `minimal_clean` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
+| `editorial` | Editorial (Cálido / Pergamino) | Estética clásica de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), tipografía limpia sin filetes y cero desenfoque. | `paper_warm` | `hidden` / `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
+| `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `hidden` / `smooth` / `minimal_clean` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
+| `terminal` | Terminal (Brutalismo Técnico TUI) | Esquinas a 90 grados (`0px`), bordes sólidos de `2px` en color de acento y sombra dura desplazada (`8px 8px 0px`). | `terminal_green` | `terminal_bar` / `snappy` / `minimal_clean` | Linux, DevOps, ciberseguridad, CLI y tutoriales de consola. |
 
 ---
 
@@ -94,8 +94,8 @@ flowchart TD
 
 | Identificador (`--caption-style`) | Efecto sobre la Palabra Activa (`.word.active`) | Opacidad Inactiva |
 | :--- | :--- | :--- |
-| `highlight_pill` *(Defecto)* | Envuelve la palabra pronunciada en una cápsula sólida con borde marcado (`--accent-primary-soft` / `--border-strong`). | `0.45` |
-| `minimal_clean` | Lectura editorial sobria sin adornos; resalta mediante opacidad `1.0` y color primario. | `0.40` |
+| `minimal_clean` *(Defecto)* | Lectura limpia sobria sin cajas ni cápsulas; resalta mediante opacidad `1.0`, color de acento y sombra sutil. | `0.40` |
+| `highlight_pill` | Variante de iluminación tipográfica limpia con resplandor suave sin contenedores tipo caja. | `0.45` |
 
 ---
 
