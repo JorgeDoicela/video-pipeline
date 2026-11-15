@@ -61,6 +61,11 @@ Toda composición HTML dentro de `templates/` o `projects/` debe cumplir estrict
 
 ```text
 video-pipeline/
+├── .agents/           # Directrices, memoria y skills locales del repositorio
+│   ├── AGENTS.md         # Reglas obligatorias de ingeniería y comportamiento
+│   ├── memory.md         # Memoria técnica y decisiones arquitectónicas
+│   └── skills/           # Skills especializadas locales
+│       └── diseno-video/ # Estándares visuales limpios, tipografía y HyperFrames
 ├── core/              # Scripts CLI de procesamiento y orquestación
 │   ├── pipeline.py       # Orquestador maestro end-to-end
 │   ├── styles.py         # Motor de temas visuales (Design Tokens) y estilos de subtítulos
