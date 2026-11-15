@@ -152,7 +152,7 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         badge_radius="999px",
         shadow_mode="theme",
         structural_css=(
-            ".panel, #main-card, #main-window {",
+            ".panel, #main-card {",
             "  border-left: 6px solid var(--accent-primary);",
             "}",
         ),
@@ -173,7 +173,7 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         badge_radius="2px",
         shadow_mode="none",
         structural_css=(
-            ".panel, #main-card, #main-window {",
+            ".panel, #main-card {",
             "  border: 2px solid var(--text-primary);",
             "}",
             "header {",
@@ -199,7 +199,7 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         badge_radius="999px",
         shadow_mode="theme",
         structural_css=(
-            ".panel, #main-card, #main-window, .clean-card {",
+            ".panel, #main-card {",
             "  background: var(--surface);",
             "  border: 1px solid var(--border);",
             "  box-shadow: var(--shadow), inset 0 1px 0 var(--divider);",
@@ -224,7 +224,7 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         badge_radius="0px",
         shadow_mode="hard",
         structural_css=(
-            ".panel, #main-card, #main-window, .lower-third {",
+            ".panel, #main-card, .lower-third {",
             "  border: 2px solid var(--accent-primary);",
             "  box-shadow: var(--shadow);",
             "}",
@@ -439,7 +439,7 @@ CHROME_VARIANTS: dict[str, ChromeVariant] = {
         name="Clean Card (Sin Barra de Ventana)",
         description="Oculta por completo la barra superior de ventana dejando tarjetas puras.",
         css_rules=(
-            ".window-header, .win-bar, .code-header {",
+            ".window-header {",
             "  display: none;",
             "}",
         ),
@@ -449,7 +449,7 @@ CHROME_VARIANTS: dict[str, ChromeVariant] = {
         name="Minimal Editorial Line",
         description="Oculta los botones de ventana y deja únicamente la barra tipográfica limpia.",
         css_rules=(
-            ".window-dots, .win-bar .dot, .dots {",
+            ".window-dots {",
             "  display: none;",
             "}",
         ),
@@ -464,7 +464,7 @@ CHROME_VARIANTS: dict[str, ChromeVariant] = {
             "  width: 12px;",
             "  height: 12px;",
             "}",
-            ".window-header, .win-bar, .code-header {",
+            ".window-header {",
             "  border-bottom: 2px solid var(--accent-primary);",
             "}",
         ),

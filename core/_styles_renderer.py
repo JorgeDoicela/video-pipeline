@@ -168,13 +168,13 @@ def generate_design_structural_css(
     lines = [
         "      /* @design-system:start */",
         f"      /* Macro Design: {design.slug} | Layout: {layout.slug} | Chrome: {effective_chrome} */",
-        "      .panel, #main-card, #main-window, .node-glass {",
+        "      .panel, #main-card {",
         "        border-radius: var(--radius-lg);",
         "        border: var(--border-width) solid var(--border);",
         "        box-shadow: var(--shadow);",
         "        backdrop-filter: var(--panel-backdrop);",
         "      }",
-        "      .badge, .hook-badge, .sys-badge, .term-badge {",
+        "      .badge, .hook-badge {",
         "        border-radius: var(--badge-radius);",
         "      }",
         "      .split-stage {",
@@ -307,7 +307,7 @@ def apply_style_to_html(
         content,
     )
     content = re.sub(
-        r'tl\.(?:from|fromTo)\("(?:\.panel|#main-card|#main-window|#node-a, #node-b)",\s*\{[^}]*\}(?:\s*,\s*\{[^}]*\})?',
+        r'tl\.(?:from|fromTo)\("(?:\.panel|#main-card)",\s*\{[^}]*\}(?:\s*,\s*\{[^}]*\})?',
         lambda m: _replace_motion_props(m, motion.panel_ease),
         content,
     )
