@@ -138,7 +138,7 @@ def generate_html_and_gsap(
     Genera el bloque HTML de subtítulos agrupados y el código JavaScript para la línea de tiempo GSAP.
     Soporta variantes de estilo de subtítulos cinéticos registradas en core.styles.
     """
-    style_cfg = get_caption_style(caption_style)
+    get_caption_style(caption_style)
 
     html_parts = [
         "<!-- @captions:start -->",
@@ -175,15 +175,9 @@ def generate_html_and_gsap(
         for w_idx, w in enumerate(group):
             word_id = f"cw_{g_idx}_{w_idx}"
             w_start = w["start"]
-            w_end = w["end"]
             gsap_lines.append(
                 f'tl.to("#{word_id}", {{ className: "word active", duration: 0.04 }}, {w_start:.3f});'
             )
-            if style_cfg.use_scale_pop:
-                pop_dur = min(0.12, max(0.04, (w_end - w_start) * 0.5))
-                gsap_lines.append(
-                    f'tl.fromTo("#{word_id}", {{ scale: 1.14 }}, {{ scale: 1.0, duration: {pop_dur:.3f}, ease: "back.out(2)" }}, {w_start:.3f});'
-                )
 
         # GSAP Timeline: Desaparece la frase al terminar el bloque
         gsap_lines.append(

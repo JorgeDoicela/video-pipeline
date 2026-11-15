@@ -123,7 +123,6 @@ class CaptionStyle:
     description: str
     word_inactive_opacity: float
     active_css: tuple[str, ...]
-    use_scale_pop: bool = False
 
 
 DEFAULT_DESIGN = "cinematic"
