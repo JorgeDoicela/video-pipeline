@@ -172,11 +172,6 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
             ".panel, #main-card {",
             "  border: 2px solid var(--text-primary);",
             "}",
-            "header {",
-            "  border-top: 3px solid var(--text-primary);",
-            "  border-bottom: 1px solid var(--text-primary);",
-            "  padding: 14px 0;",
-            "}",
         ),
     ),
     "clean": DesignSystem(

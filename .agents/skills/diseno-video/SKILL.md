@@ -1,6 +1,6 @@
 ---
 name: diseno-video
-description: Activa esta skill para la creación, ajuste, estilización o auditoría visual de videos, composiciones HTML, subtítulos cinéticos, badges, tarjetas y motion graphics en el video-pipeline. Aplica de forma estricta los estándares estéticos limpios de Jorge (cero pastillas en palabras de subtítulos, cero cápsulas en badges e iconos SVG, cero franjas laterales asimétricas a la izquierda) y el contrato de renderizado determinista de HyperFrames.
+description: Activa esta skill para la creación, ajuste, estilización o auditoría visual de videos, composiciones HTML, subtítulos cinéticos, badges, tarjetas y motion graphics en el video-pipeline. Aplica de forma estricta los estándares estéticos limpios de Jorge (cero pastillas en palabras de subtítulos, cero cápsulas en badges e iconos SVG, cero franjas laterales asimétricas a la izquierda, cero líneas horizontales en títulos o subtítulos) y el contrato de renderizado determinista de HyperFrames.
 ---
 
 # Skill de Diseño Visual y Composición de Video — video-pipeline
@@ -11,7 +11,7 @@ Esta skill establece las directrices maestras de diseño gráfico, tipografía, 
 
 ## 1. Restricciones Visuales Absolutas de Jorge (Innegociables)
 
-Queda terminantemente prohibido implementar o reintroducir cualquiera de los siguientes tres patrones gráficos:
+Queda terminantemente prohibido implementar o reintroducir cualquiera de los siguientes patrones gráficos:
 
 | Elemento Gráfico | Patrón Prohibido (Rechazado) | Estándar Obligatorio (Limpio) |
 |---|---|---|
@@ -19,6 +19,7 @@ Queda terminantemente prohibido implementar o reintroducir cualquiera de los sig
 | **Badges y Etiquetas** | Envolver texto de categoría (`.hook-badge`, `.badge`) en pastillas redondeadas con fondos o bordes. | Tipografía limpia sin contenedor: `background: transparent; border: none; padding: 0; display: inline-flex;` en mayúsculas, tracking amplio (`0.12em - 0.15em`) y peso 700-800. |
 | **Iconografía SVG** | Rodear iconos vectoriales SVG con fondos redondeados, botones o cápsulas. | Iconos SVG limpios y desnudos, alineados visualmente con el texto tipográfico sin contenedores gráficos envolventes. |
 | **Tarjetas y Paneles** | Bordes de acento asimétricos gruesos en el lateral izquierdo (`border-left: 6px solid var(--accent-primary)`) en `#main-card`, `.panel` o `.lower-third`. | Bordes perimetrales simétricos y uniformes en los cuatro lados (`border: var(--border-width) solid var(--border)`). |
+| **Líneas en Títulos o Subtítulos** | Filetes horizontales, líneas decorativas, subrayados o bordes (`border-top`, `border-bottom`, `text-decoration: underline`, `<hr>`) en cabeceras (`header`), títulos (`h1`-`h6`) o subtítulos. | Tipografía limpia, abierta y sin barras o líneas delimitadoras arriba o abajo del texto. |
 
 ---
 
@@ -112,6 +113,7 @@ Antes de dar por concluida cualquier composición de video, verifica:
 - [ ] ¿Los subtítulos utilizan tipografía limpia sin cajas, pastillas o fondos envolventes alrededor de cada palabra?
 - [ ] ¿Los badges (`.hook-badge`, `.badge`) son texto tipográfico puro sin cajas contenedoras ni bordes redondeados?
 - [ ] ¿Los iconos SVG vectoriales están limpios y sin píldoras o fondos redondeados envolventes?
+- [ ] ¿Los títulos y subtítulos están libres de líneas horizontales decorativas (border-top, border-bottom, subrayados o filetes)?
 - [ ] ¿Las tarjetas, paneles y ventanas tienen bordes simétricos y uniformes en los cuatro lados (sin `border-left` grueso asimétrico)?
 - [ ] ¿Se eliminó cualquier uso de `transition:` en CSS?
 - [ ] ¿La línea de tiempo de GSAP está pausada y registrada en `window.__timelines["main"]`?
