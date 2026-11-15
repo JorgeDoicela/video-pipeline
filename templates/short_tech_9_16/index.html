@@ -46,7 +46,7 @@
         --radius-sm: 999px;
         --border-width: 1px;
         --panel-backdrop: blur(24px);
-        --badge-radius: 999px;
+        --badge-radius: 0px;
         --stage-padding: 80px 100px;
         --stage-gap: 40px;
         --split-columns: 1fr 1fr;
@@ -115,11 +115,12 @@
       }
 
       .hook-badge {
-        display: inline-block;
-        padding: 8px 18px;
-        border-radius: 8px;
-        background: var(--accent-primary-soft);
-        border: 1px solid var(--border);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+        border: none;
+        padding: 0;
         color: var(--accent-primary);
         font-size: 15px;
         font-weight: 800;
@@ -223,7 +224,7 @@
         text-transform: uppercase;
       }
       /* @caption-style:start */
-      /* Caption Style: highlight_pill */
+      /* Caption Style: minimal_clean */
       .caption-phrase {
         display: inline-block;
         background: var(--caption-bg);
@@ -232,18 +233,14 @@
       }
       .word {
         display: inline-block;
-        opacity: 0.45;
+        opacity: 0.4;
         color: var(--caption-text);
         margin: 0 4px;
       }
       .word.active {
         opacity: 1;
         color: var(--caption-active);
-        background: var(--accent-primary-soft);
-        border: 1px solid var(--border-strong);
-        border-radius: var(--radius-sm, 8px);
-        padding: 2px 10px;
-        text-shadow: none;
+        text-shadow: var(--caption-shadow);
       }
       /* @caption-style:end */
       /* @design-system:start */
@@ -255,7 +252,21 @@
         backdrop-filter: var(--panel-backdrop);
       }
       .badge, .hook-badge {
-        border-radius: var(--badge-radius);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+        border: none;
+        padding: 0;
+        color: var(--accent-primary);
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      .badge svg, .hook-badge svg {
+        background: transparent;
+        border: none;
+        padding: 0;
       }
       .split-stage {
         grid-template-columns: var(--split-columns);
@@ -265,12 +276,10 @@
         bottom: var(--caption-bottom);
         font-size: var(--caption-size);
       }
-      .panel, #main-card {
-        border-left: 6px solid var(--accent-primary);
-      }
       .lower-third {
         left: 80px;
         right: auto;
+        border: var(--border-width) solid var(--border);
         border-radius: var(--radius-md);
       }
       .window-header {
@@ -318,7 +327,7 @@
       data-layout="standard"
       data-design="cinematic"
       data-style="dark_violet"
-      data-caption-style="highlight_pill"
+      data-caption-style="minimal_clean"
       data-start="0"
       data-duration="10"
       data-width="1080"

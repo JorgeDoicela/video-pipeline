@@ -50,6 +50,10 @@ Toda composición HTML dentro de `templates/` o `projects/` debe cumplir estrict
 4. **Accesibilidad Visual (WCAG AA):**
    * El contraste de texto sobre fondo debe cumplir un ratio mínimo de 4.5:1 para texto normal y 3:1 para texto grande.
    * La escala de fuentes para texto legible debe ser de al menos 28px en paneles 1080p, o marcarse con `data-layout-ignore` si se trata de textura gráfica puramente decorativa.
+5. **Preferencias Estéticas Obligatorias de Jorge (Restricciones Absolutas):**
+   * **Cero pastillas en palabras de subtítulos:** Queda terminantemente prohibido encerrar palabras de subtítulos en pastillas o cajas contenedoras (`background`, `border`, `border-radius`, `padding` en `.word.active`). Los subtítulos deben usar tipografía limpia (`minimal_clean`), iluminando la palabra activa exclusivamente con color (`var(--caption-active)`), opacidad y sombra tipográfica sutil.
+   * **Cero cápsulas/pastillas en badges e iconos SVG:** Queda prohibido rodear badges, etiquetas o iconos SVG con cajas o fondos redondeados (`background`, `border`, `padding` en `.badge`, `.hook-badge` o SVGs). Los badges deben ser texto tipográfico limpio (tracking amplio, mayúsculas, peso 700-800, color de acento, fondo y borde transparentes/inexistentes) y los iconos vectoriales deben renderizarse limpios y desnudos sin cápsula.
+   * **Cero franjas o bordes de acento asimétricos a la izquierda:** Queda estrictamente prohibido usar `border-left: 6px solid var(--accent-primary)` o barras de acento laterales en tarjetas (`#main-card`, `.panel`, `.lower-third`). Las tarjetas deben tener bordes simétricos y uniformes en los cuatro lados (`border: var(--border-width) solid var(--border)`).
 
 ---
 

@@ -8,14 +8,14 @@
     "check": "hyperframes check"
   },
   "videoStyle": "dark_violet",
-  "captionStyle": "highlight_pill",
+  "captionStyle": "minimal_clean",
   "videoDesign": {
     "design": "cinematic",
     "style": "dark_violet",
     "layout": "standard",
     "chrome": "hidden",
     "motion": "smooth",
-    "captionStyle": "highlight_pill",
+    "captionStyle": "minimal_clean",
     "overrides": {}
   }
 }

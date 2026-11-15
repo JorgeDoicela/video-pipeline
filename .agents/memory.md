@@ -2,7 +2,8 @@
 
 ## 1. Decisiones Arquitectónicas
 * **Pipeline 100% local:** Transcripción con `faster-whisper` (`int8`), recorte de silencios con `FFmpeg`, renderizado determinista con HyperFrames + GSAP `3.15.0` (prohibido `transition:` en CSS).
-* **Catálogo consolidado (5 plantillas + sistema 4x4):** `short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`, combinables con 4 Diseños Macro (`cinematic`, `editorial`, `clean`, `terminal`), 4 Paletas WCAG AA (`dark_violet`, `paper_warm`, `clean_light`, `terminal_green`) y 2 estilos de subtítulos (`highlight_pill`, `minimal_clean`).
+* **Catálogo consolidado (5 plantillas + sistema 4x4):** `short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`, combinables con 4 Diseños Macro (`cinematic`, `editorial`, `clean`, `terminal`), 4 Paletas WCAG AA (`dark_violet`, `paper_warm`, `clean_light`, `terminal_green`) y subtítulos con `minimal_clean` como estándar por defecto.
+* **Estándares visuales limpios de Jorge:** Erradicadas las pastillas en subtítulos (cero cajas alrededor de palabras), los contenedores de pastilla en badges/iconos SVG (tipografía limpia con fondo transparente y cero bordes) y las barras de acento asimétricas a la izquierda en tarjetas (`border-left` eliminado a favor de bordes perimetrales simétricos).
 * **Sistema de diseño componible en 3 niveles (`core/styles.py`):** Los tokens, variantes de Nivel 2 y overrides `--set` de Nivel 3 se persisten en `package.json` (`videoDesign`).
 * **Organización del repositorio:**
   * Documentación técnica centralizada exclusivamente en `docs/` (`00-indice-general.md` y subcarpetas temáticas `01-` a `05-`) y `README.md` raíz.

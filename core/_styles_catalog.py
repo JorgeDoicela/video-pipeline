@@ -130,7 +130,7 @@ DEFAULT_THEME = "dark_violet"
 DEFAULT_LAYOUT = "standard"
 DEFAULT_CHROME = "auto"
 DEFAULT_MOTION = "smooth"
-DEFAULT_CAPTION_STYLE = "highlight_pill"
+DEFAULT_CAPTION_STYLE = "minimal_clean"
 
 # =====================================================================
 # NIVEL 1: CATÁLOGO DE DISEÑOS MACRO (4 DISEÑOS CANÓNICOS)
@@ -139,23 +139,19 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
     "cinematic": DesignSystem(
         slug="cinematic",
         name="Cinematic (Oscuro Premium)",
-        description="Superficie oscura con curvas amplias, desenfoque suave, franja de acento y alto impacto visual.",
+        description="Superficie oscura con curvas amplias, desenfoque suave, bordes simétricos y alto impacto visual.",
         default_theme="dark_violet",
         default_chrome="hidden",
         default_motion="smooth",
-        default_caption_style="highlight_pill",
+        default_caption_style="minimal_clean",
         radius_lg="28px",
         radius_md="16px",
         radius_sm="999px",
         border_width="1px",
         panel_backdrop="blur(24px)",
-        badge_radius="999px",
+        badge_radius="0px",
         shadow_mode="theme",
-        structural_css=(
-            ".panel, #main-card {",
-            "  border-left: 6px solid var(--accent-primary);",
-            "}",
-        ),
+        structural_css=(),
     ),
     "editorial": DesignSystem(
         slug="editorial",
@@ -170,7 +166,7 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         radius_sm="2px",
         border_width="1px",
         panel_backdrop="none",
-        badge_radius="2px",
+        badge_radius="0px",
         shadow_mode="none",
         structural_css=(
             ".panel, #main-card {",
@@ -190,13 +186,13 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         default_theme="clean_light",
         default_chrome="hidden",
         default_motion="smooth",
-        default_caption_style="highlight_pill",
+        default_caption_style="minimal_clean",
         radius_lg="24px",
         radius_md="16px",
         radius_sm="999px",
         border_width="1px",
         panel_backdrop="blur(24px)",
-        badge_radius="999px",
+        badge_radius="0px",
         shadow_mode="theme",
         structural_css=(
             ".panel, #main-card {",
@@ -215,7 +211,7 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         default_theme="terminal_green",
         default_chrome="terminal_bar",
         default_motion="snappy",
-        default_caption_style="highlight_pill",
+        default_caption_style="minimal_clean",
         radius_lg="0px",
         radius_md="0px",
         radius_sm="0px",
@@ -510,17 +506,13 @@ MOTION_PROFILES: dict[str, MotionProfile] = {
 CAPTION_STYLES: dict[str, CaptionStyle] = {
     "highlight_pill": CaptionStyle(
         slug="highlight_pill",
-        name="Highlight Pill (Pastilla Activa)",
-        description="Resalta la palabra pronunciada mediante una pastilla sólida de alto contraste (estándar TikTok/Reels).",
+        name="Highlight Clean (Texto Activo)",
+        description="Resalta la palabra pronunciada mediante iluminación limpia de color y resplandor, sin cajas envolventes.",
         word_inactive_opacity=0.45,
         active_css=(
             "opacity: 1;",
             "color: var(--caption-active);",
-            "background: var(--accent-primary-soft);",
-            "border: 1px solid var(--border-strong);",
-            "border-radius: var(--radius-sm, 8px);",
-            "padding: 2px 10px;",
-            "text-shadow: none;",
+            "text-shadow: var(--caption-glow);",
         ),
     ),
     "minimal_clean": CaptionStyle(

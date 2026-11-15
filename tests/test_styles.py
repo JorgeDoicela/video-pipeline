@@ -32,7 +32,7 @@ from core.styles import (
 def test_catalog_3_levels_integrity():
     assert DEFAULT_DESIGN == "cinematic"
     assert DEFAULT_THEME == "dark_violet"
-    assert DEFAULT_CAPTION_STYLE == "highlight_pill"
+    assert DEFAULT_CAPTION_STYLE == "minimal_clean"
 
     assert {"cinematic", "editorial", "clean", "terminal"} == set(DESIGN_SYSTEMS.keys())
     assert {"dark_violet", "paper_warm", "clean_light", "terminal_green"} == set(THEMES.keys())
@@ -112,7 +112,8 @@ def test_level1_macro_design_switching(tmp_path):
     assert 'data-design="cinematic"' in html_cinema
     assert 'data-style="dark_violet"' in html_cinema
     assert "--radius-lg: 28px;" in html_cinema
-    assert "border-left: 6px solid var(--accent-primary);" in html_cinema
+    assert "border-left: 6px solid" not in html_cinema
+    assert ".badge, .hook-badge {" in html_cinema
 
     # 4. Cambiar a Diseño Macro clean
     apply_style_to_project(tmp_path, design_slug="clean")
