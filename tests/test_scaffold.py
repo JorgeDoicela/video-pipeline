@@ -21,6 +21,8 @@ def test_available_templates_catalog():
         "tech_explainer",
         "code_walkthrough",
         "benchmark_chart",
+        "verse_quote_9_16",
+        "editorial_story",
     }
 
 
@@ -56,11 +58,11 @@ def test_create_project_lifecycle_with_styles(tmp_path, monkeypatch):
         "core.create_project.__file__", str(base_dir / "core" / "create_project.py")
     )
 
-    # Ejecutar creación de proyecto con estilo minimal_light
+    # Ejecutar creación de proyecto con estilo minimal_light y caracteres especiales en título
     proj_path = create_project(
         name="test-scaffold-unit",
         template="portrait_9_16",
-        title="Nuevo Titulo Inyectado",
+        title=r"Nuevo & <Titulo> \1 Inyectado",
         duration=15.5,
         style="minimal_light",
         caption_style="minimal_clean",
@@ -71,7 +73,7 @@ def test_create_project_lifecycle_with_styles(tmp_path, monkeypatch):
     assert 'data-duration="15.5"' in html_content
     assert 'data-style="minimal_light"' in html_content
     assert "--bg: #f8fafc;" in html_content
-    assert "<h1>Nuevo Titulo Inyectado</h1>" in html_content
+    assert r"<h1>Nuevo &amp; &lt;Titulo&gt; \1 Inyectado</h1>" in html_content
 
     pkg_data = json.loads((proj_path / "package.json").read_text(encoding="utf-8"))
     assert pkg_data["videoStyle"] == "minimal_light"

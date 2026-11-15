@@ -41,13 +41,15 @@ renders/
 
 # Excepciones de fixtures para plantillas y activos locales
 !templates/talking_head/cut.mp4
+!templates/talking_head_9_16/cut.mp4
 !assets/audio/*.wav
 
 # Mantener la estructura de carpetas en Git
 !.gitkeep
 
-# Excluir transcripciones intermedias generadas en proyectos
-projects/*/transcript.json
+# Workspace de proyectos locales (generados por el usuario)
+projects/*
+!projects/.gitkeep
 
 # Archivos temporales
 tmp/

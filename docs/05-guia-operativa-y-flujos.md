@@ -24,7 +24,7 @@ python3 core/pipeline.py produce \
 ```
 
 > [!TIP]
-> Puedes elegir cualquiera de los **6 Diseños Macro** (`-d cyber_glass`, `-d swiss_editorial`, `-d brutalist_terminal`, `-d cinematic_studio`, `-d bento_grid`, `-d academic_paper`), cualquiera de las **8 paletas cromáticas** (`-s`) y cualquiera de las **9 plantillas** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
+> Puedes elegir cualquiera de los **7 Diseños Macro** (`-d cyber_glass`, `-d clean_studio`, `-d swiss_editorial`, `-d brutalist_terminal`, `-d cinematic_studio`, `-d bento_grid`, `-d academic_paper`), cualquiera de las **8 paletas cromáticas** (`-s`) y cualquiera de las **11 plantillas** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
 > `python3 core/pipeline.py style tutorial-kubernetes -d swiss_editorial --layout asymmetric_focus --caption-style box_invert`
 
 Este comando ejecuta automáticamente:
@@ -55,7 +55,7 @@ flowchart TD
 ---
 
 ### Paso 1: Inicializar el Proyecto mediante Scaffolding
-Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **9 plantillas especializadas** y los **6 Diseños Macro**:
+Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **11 plantillas especializadas** y los **7 Diseños Macro**:
 
 ```bash
 cd video-pipeline
@@ -100,7 +100,7 @@ Ejecuta el script de transcripcion local utilizando el entorno virtual gestionad
 Ejecuta el filtro algoritmico de FFmpeg para podar pausas muertas:
 
 ```bash
-core/cut_silence.py \
+python3 core/cut_silence.py \
   -i projects/mi-video/raw.mp4 \
   -o projects/mi-video/cut.mp4 \
   --noise-db -30.0 \
@@ -138,14 +138,14 @@ Esto abrira el estudio visual interactivo en `http://localhost:3002`.
 Ejecuta el renderizador con aceleracion de hardware (GPU AMD/Mesa):
 
 ```bash
-pnpm exec hyperframes render projects/mi-video -o projects/mi-video/final.mp4
+pnpm exec hyperframes render projects/mi-video -o projects/mi-video/video_mi-video.mp4
 ```
 
-El video final quedara disponible en `projects/mi-video/final.mp4`.
+El video final quedara disponible en `projects/mi-video/video_mi-video.mp4`.
 
 ---
 
-## 2. Diagnostico y Resolucion de Incidencias
+## 3. Diagnostico y Resolucion de Incidencias
 
 ### 2.1. Verificacion de Salud del Entorno
 Si el renderizador experimenta problemas o no detecta la GPU:
@@ -155,10 +155,10 @@ pnpm exec hyperframes doctor
 ```
 El reporte debe marcar en verde `FFmpeg`, `FFprobe`, `Node.js` y `Chrome (cache)`.
 
-### 2.2. Error de Desajuste de Modulo en Python
+### 3.2. Error de Desajuste de Modulo en Python
 Si se produce un error de importacion al invocar `transcribe.py`:
 ```bash
-uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python -e ".[dev]"
 ```
 
 ### 2.3. Espacio Insuficiente en `/tmp`
@@ -169,7 +169,7 @@ pnpm exec hyperframes clean
 
 ---
 
-## 3. Enlaces Relacionados
+## 4. Enlaces Relacionados
 
 * Volver al indice general de la documentacion en [00-indice-general.md](./00-indice-general.md).
 * Consultar la guia rapida en el [README.md de la raiz](../README.md).

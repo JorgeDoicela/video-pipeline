@@ -99,8 +99,8 @@ El script [create_project.py](../core/create_project.py) genera de manera limpia
 | Parametro | Tipo | Defecto | Descripcion |
 | :--- | :--- | :--- | :--- |
 | `name` | `string` | *(Requerido)* | Nombre o slug del nuevo proyecto a crear en `projects/`. |
-| `-t, --template` | `string` | `portrait_9_16` | Plantilla base (`portrait_9_16`, `landscape_16_9`, `square_1_1`, `feed_4_5`, `talking_head`, `talking_head_9_16`, `tech_explainer`, `code_walkthrough`, `benchmark_chart`). |
-| `-d, --design` | `string` | `cyber_glass` | Diseño Macro de Nivel 1 (`cyber_glass`, `swiss_editorial`, `brutalist_terminal`, `cinematic_studio`, `bento_grid`, `academic_paper`). |
+| `-t, --template` | `string` | `portrait_9_16` | Plantilla base (`portrait_9_16`, `landscape_16_9`, `square_1_1`, `feed_4_5`, `talking_head`, `talking_head_9_16`, `tech_explainer`, `code_walkthrough`, `benchmark_chart`, `verse_quote_9_16`, `editorial_story`). |
+| `-d, --design` | `string` | `cyber_glass` | Diseño Macro de Nivel 1 (`cyber_glass`, `clean_studio`, `swiss_editorial`, `brutalist_terminal`, `cinematic_studio`, `bento_grid`, `academic_paper`). |
 | `-s, --style` | `string` | `None` *(hereda del diseño)* | Tema cromático de Nivel 2 (`cyber_dark`, `minimal_light`, `terminal_hacker`, `linear_violet`, `blueprint_cad`, `dracula_pro`, `solarized_sand`, `crimson_ops`). |
 | `--layout` | `string` | `None` *(hereda del diseño)* | Variante de distribución (`standard`, `asymmetric_focus`, `stacked`, `compact_hud`). |
 | `--chrome` | `string` | `auto` | Marco de contenedores (`auto`, `macos_dots`, `terminal_bar`, `minimal_line`, `hidden`). |

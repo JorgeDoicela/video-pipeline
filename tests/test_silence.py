@@ -2,7 +2,7 @@
 Pruebas unitarias para el algoritmo de recorte y cálculo de intervalos de silencio.
 """
 
-from core.cut_silence import compute_keep_intervals
+from core.cut_silence import build_concat_filter, compute_keep_intervals
 
 
 def test_compute_keep_intervals_no_silence():
@@ -49,3 +49,16 @@ def test_compute_keep_intervals_discards_micro_segments():
 
     # El intervalo de 0.02s debe ser descartado (< 0.1s)
     assert len(keep) == 0
+
+
+def test_build_concat_filter_video_and_audio_only():
+    keep = [(0.0, 2.0), (3.5, 5.0)]
+    f_av = build_concat_filter(keep, include_video=True)
+    assert "[0:v]trim=" in f_av
+    assert "[0:a]atrim=" in f_av
+    assert "concat=n=2:v=1:a=1[outv][outa]" in f_av
+
+    f_a = build_concat_filter(keep, include_video=False)
+    assert "[0:v]" not in f_a
+    assert "[0:a]atrim=" in f_a
+    assert "concat=n=2:v=0:a=1[outa]" in f_a

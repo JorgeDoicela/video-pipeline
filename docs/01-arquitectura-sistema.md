@@ -35,15 +35,15 @@ flowchart TD
 
 ---
 
-## 2. Separacion de Responsabilidades en 3 Capas
+## 2. Separacion de Responsabilidades en 3 Capas (Linux/Nix y Windows)
 
-Para garantizar la estabilidad grafica y la inmutabilidad de la estacion de trabajo, el pipeline se distribuye en tres niveles tecnicos:
+Para garantizar la estabilidad grafica y la reproducibilidad en ambas estaciones de trabajo (Debian con Nix Flakes y Windows 11 nativo), el pipeline se distribuye en tres niveles tecnicos:
 
-| Nivel | Gestor | Componentes | Justificacion de Ingenieria |
+| Nivel | Debian (Nix Flakes) | Windows 11 Nativo | Justificacion de Ingenieria |
 | :--- | :--- | :--- | :--- |
-| **Capa 1: Sistema Base** | Debian (`apt` + `/usr/bin/`) | `ffmpeg 7.1.5`, controladores Mesa (`radeonsi_dri.so`), VA-API y subsistema DRM. | **Acceso nativo a GPU sin desajuste de ABI:** La codificacion y decodificacion de video acelerada por hardware requiere enlace directo con el kernel Linux y los controladores graficos de Debian. |
-| **Capa 2: Entorno Declarativo** | Nix Flakes + Home Manager | `nodejs_22`, `pnpm`, `uv` (en `modules/apps.nix`). | **Hermetismo y Reproducibilidad:** Gestores de paquetes y runtimes de desarrollo CLI puros, fijados criptograficamente en `flake.lock` para garantizar identico comportamiento en todas las laptops. |
-| **Capa 3: Espacio de Proyecto** | Usuario local (`video-pipeline/`) | Entorno virtual `.venv` (`faster-whisper`), dependencias locales (`hyperframes`), proyectos y assets. | **Cero Contaminacion:** Las librerias de IA y modelos preentrenados quedan aislados en el espacio de usuario, sin requerir privilegios de superusuario ni alterar paquetes del sistema. |
+| **Capa 1: Sistema Base** | `apt` (`/usr/bin/ffmpeg 7.1.5`), Mesa (`radeonsi_dri.so`), VA-API y DRM. | `winget` (`Gyan.FFmpeg`), drivers GPU nativos (AMF/NVENC) o CPU. | **Acceso nativo a GPU sin desajuste de ABI:** La codificacion y decodificacion acelerada por hardware enlaza directamente con los controladores graficos del sistema anfitrion. |
+| **Capa 2: Entorno Declarativo** | Nix Flakes + Home Manager (`nodejs_22`, `pnpm`, `uv` en `modules/apps.nix`). | `winget` (`astral-sh.uv`, `OpenJS.NodeJS.LTS`) y `pnpm`. | **Hermetismo y Reproducibilidad:** Runtimes CLI estandarizados para que ambos SO ejecuten exactamente el mismo `pyproject.toml` y `pnpm-lock.yaml`. |
+| **Capa 3: Espacio de Proyecto** | `.venv/` + `node_modules/` + `projects/` + `assets/`. | `.venv\` + `node_modules\` + `projects\` + `assets\`. | **Cero Contaminacion:** Las librerias de IA y dependencias web quedan aisladas dentro del repositorio sin requerir privilegios de administrador. |
 
 ---
 
@@ -60,10 +60,10 @@ A continuacion se detalla la totalidad de herramientas, runtimes, motores y bibl
 | **Silero VAD** | Integrado en Whisper | Deteccion de Actividad Vocal | MIT | Filtro de voz que descarta segmentos sin fonacion para evitar alucinaciones del modelo de lenguaje. |
 | **PyAV (`av`)** | `13.1.0` | Bindings Python de FFmpeg | BSD | Decodificacion y manipulacion de streams de audio directamente en memoria para alimentar a Whisper. |
 | **Node.js** | `22.x LTS` | Runtime JavaScript del Servidor | MIT | Entorno de ejecucion para la CLI de HyperFrames y los workers paralelos de renderizado. |
-| **pnpm** | `12.x` | Gestor de Paquetes Node | MIT | Gestion eficiente de dependencias mediante enlaces duros en Content-Addressable Store. |
+| **pnpm** | `10.x` | Gestor de Paquetes Node | MIT | Gestion eficiente de dependencias mediante enlaces duros en Content-Addressable Store. |
 | **Python** | `3.13 / 3.10+` | Runtime de Scripts de Procesamiento | PSF | Ejecucion de los scripts de ingesta y orquestacion de FFmpeg (`transcribe.py` y `cut_silence.py`). |
 | **uv** | `0.13.4` | Gestor de Entornos Python | Apache 2.0 / MIT | Creacion ultra-rapida y determinista del entorno virtual `.venv` y resolucion de paquetes sin privilegios `sudo`. |
-| **HyperFrames** | `0.9.14+` | Motor de Renderizado Programatico | Apache 2.0 | Compilador de escenas web a video MP4, orquestador de workers y servidor de previsualizacion en vivo. |
+| **HyperFrames** | `0.9.18` | Motor de Renderizado Programatico | Apache 2.0 | Compilador de escenas web a video MP4, orquestador de workers y servidor de previsualizacion en vivo. |
 | **Chrome Headless Shell** | `v152.0+` | Navegador Headless de Captura | BSD / Chromium | Renderizado cuadro a cuadro determinista via `BeginFrame` API sin perdida de fotogramas por sobrecarga. |
 | **GSAP** | `3.15.0` | Motor de Animacion y Timelines | Estandar Web (CDN) | Interpolacion de movimientos, fisicas de aceleracion (*easing*), sincronizacion temporal y transformaciones vectoriales. |
 | **SVG** | W3C Standard | Graficos Vectoriales Dinamicos | Abierto | Representacion procedural de nodos, redes, conexiones Bezier, paquetes de datos y filtros de resplandor (*bloom*). |

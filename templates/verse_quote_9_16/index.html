@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      /* @theme:start */
+      /* Design: academic_paper | Theme: solarized_sand | Layout: standard */
+      :root {
+        --design-slug: "academic_paper";
+        --theme-slug: "solarized_sand";
+        --layout-slug: "standard";
+        --bg: #fdf6e3;
+        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(3, 105, 161, 0.06) 0%, transparent 70%);
+        --surface: rgba(255, 252, 240, 0.96);
+        --surface-elevated: #eee8d5;
+        --border: rgba(7, 54, 66, 0.18);
+        --border-strong: rgba(3, 105, 161, 0.60);
+        --divider: rgba(7, 54, 66, 0.12);
+        --shadow: 0 16px 40px rgba(7, 54, 66, 0.08);
+        --text-primary: #073642;
+        --text-secondary: #1e293b;
+        --text-muted: #475569;
+        --title-gradient: linear-gradient(135deg, #073642 40%, #0369a1 100%);
+        --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Georgia, serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --accent-primary: #0369a1;
+        --accent-primary-soft: rgba(3, 105, 161, 0.10);
+        --accent-primary-glow: rgba(3, 105, 161, 0.25);
+        --accent-secondary: #047857;
+        --accent-secondary-soft: rgba(4, 120, 87, 0.10);
+        --accent-tertiary: #6d28d9;
+        --accent-warning: #b45309;
+        --accent-danger: #be123c;
+        --node-fill: #fffdf7;
+        --cable-idle: #94a3b8;
+        --caption-bg: rgba(253, 246, 227, 0.94);
+        --caption-text: #073642;
+        --caption-active: #0369a1;
+        --caption-shadow: 0 2px 8px rgba(7, 54, 66, 0.12);
+        --caption-glow: none;
+        --radius-lg: 4px;
+        --radius-md: 4px;
+        --radius-sm: 2px;
+        --border-width: 1px;
+        --panel-backdrop: none;
+        --badge-radius: 2px;
+        --stage-padding: 80px 100px;
+        --stage-gap: 40px;
+        --split-columns: 1fr 1fr;
+        --header-align: left;
+        --caption-bottom: 220px;
+        --caption-size: 52px;
+      }
+      /* @theme:end */
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background-color: var(--bg);
+        font-family: var(--font-sans);
+        color: var(--text-primary);
+        position: relative;
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        background: var(--bg);
+        background-image: var(--bg-gradient);
+      }
+
+      header {
+        position: absolute;
+        top: 240px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+      }
+
+      .hook-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        background: var(--accent-primary-soft);
+        border: 1px solid var(--border-strong);
+        color: var(--accent-primary);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+      }
+
+      .main-title {
+        font-size: 48px;
+        font-weight: 800;
+        line-height: 1.2;
+        color: var(--text-primary);
+      }
+
+      #main-card {
+        position: absolute;
+        top: 520px;
+        left: 80px;
+        right: 120px;
+        background: var(--surface);
+        padding: 56px 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      .quote-mark {
+        font-size: 64px;
+        line-height: 1;
+        color: var(--accent-primary);
+        font-weight: 900;
+      }
+
+      .quote-text {
+        font-size: 40px;
+        line-height: 1.45;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .quote-ref {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--accent-primary);
+        letter-spacing: 0.04em;
+        font-style: normal;
+      }
+
+      .quote-note {
+        font-size: 28px;
+        line-height: 1.45;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--divider);
+        padding-top: 24px;
+      }
+
+      #caption-zone {
+        position: absolute;
+        top: 1380px;
+        left: 80px;
+        right: 120px;
+        min-height: 140px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .caption-bar {
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1.3;
+        color: var(--caption-text);
+        text-shadow: var(--caption-shadow);
+      }
+
+      .safe-footer {
+        position: absolute;
+        bottom: 110px;
+        left: 80px;
+        right: 80px;
+        text-align: center;
+        font-size: 20px;
+        color: var(--text-muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* @caption-style:start */
+      /* Caption Style: minimal_clean */
+      .caption-phrase {
+        display: inline-block;
+        background: var(--caption-bg);
+        padding: 6px 18px;
+        border-radius: var(--radius-md, 12px);
+      }
+      .word {
+        display: inline-block;
+        opacity: 0.4;
+        color: var(--caption-text);
+        margin: 0 4px;
+      }
+      .word.active {
+        opacity: 1;
+        color: var(--caption-active);
+        text-shadow: var(--caption-shadow);
+      }
+      /* @caption-style:end */
+
+      /* @design-system:start */
+      /* Macro Design: academic_paper | Layout: standard | Chrome: hidden */
+      .panel, #main-card, #main-window, .node-glass {
+        border-radius: var(--radius-lg);
+        border: var(--border-width) solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: var(--panel-backdrop);
+      }
+      .badge, .hook-badge, .sys-badge, .term-badge {
+        border-radius: var(--badge-radius);
+      }
+      .split-stage {
+        grid-template-columns: var(--split-columns);
+        gap: var(--stage-gap);
+      }
+      .caption-bar {
+        bottom: var(--caption-bottom);
+        font-size: var(--caption-size);
+      }
+      .panel, #main-card, #main-window {
+        border: 2px solid var(--text-primary);
+      }
+      header {
+        border-top: 3px solid var(--text-primary);
+        border-bottom: 1px solid var(--text-primary);
+        padding: 14px 0;
+      }
+      .lower-third {
+        left: 80px;
+        right: auto;
+        border-radius: var(--radius-md);
+      }
+      .window-header, .win-bar, .code-header {
+        display: none;
+      }
+      /* @design-system:end */
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-design="academic_paper"
+      data-style="solarized_sand"
+      data-layout="standard"
+      data-motion="minimal"
+      data-caption-style="minimal_clean"
+      data-start="0"
+      data-duration="12"
+      data-width="1080"
+      data-height="1920"
+    >
+      <header id="header">
+        <div class="hook-badge" data-layout-ignore>Lectura y Reflexión</div>
+        <h1 id="card-title" class="main-title">Sabiduría y Propósito</h1>
+      </header>
+
+      <div id="main-card">
+        <div class="quote-mark" data-layout-ignore>&ldquo;</div>
+        <blockquote class="quote-text">
+          Lámpara es a mis pies tu palabra, y lumbrera a mi camino.
+        </blockquote>
+        <cite class="quote-ref">Salmos 119:105</cite>
+        <p class="quote-note">
+          Una guía clara para tomar decisiones con serenidad, criterio y dirección firme.
+        </p>
+      </div>
+
+      <div id="caption-zone">
+        <!-- @captions:start -->
+        <div id="captions-container" class="caption-bar">
+          <div id="cg_0" class="caption-phrase">
+            <span id="w1" class="word">Lámpara</span>
+            <span id="w2" class="word">es</span>
+            <span id="w3" class="word">a</span>
+            <span id="w4" class="word">mis</span>
+            <span id="w5" class="word">pies</span>
+          </div>
+        </div>
+        <!-- @captions:end -->
+      </div>
+
+      <div class="safe-footer" data-layout-ignore>
+        Guarda esta reflexión para tu día
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      tl.from("#header", { opacity: 0, y: -20, duration: 0.35, ease: "power1.out" }, 0.0);
+      tl.from("#main-card", { opacity: 0, y: 24, duration: 0.35, ease: "power1.out" }, 0.25);
+      tl.from(".quote-ref", { opacity: 0, y: 12, duration: 0.5, ease: "power2.out" }, 3.2);
+      tl.from(".quote-note", { opacity: 0, y: 14, duration: 0.6, ease: "power2.out" }, 5.6);
+      tl.from(".safe-footer", { opacity: 0, y: 10, duration: 0.5, ease: "power2.out" }, 8.0);
+
+      // @captions-gsap:start
+      tl.to("#w1", { className: "word active", duration: 0.05 }, 1.0);
+      tl.to("#w2", { className: "word active", duration: 0.05 }, 1.4);
+      tl.to("#w3", { className: "word active", duration: 0.05 }, 1.7);
+      tl.to("#w4", { className: "word active", duration: 0.05 }, 2.0);
+      tl.to("#w5", { className: "word active", duration: 0.05 }, 2.4);
+      // @captions-gsap:end
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

@@ -5,6 +5,10 @@ Pruebas de interfaz y comprobación de subcomandos para pipeline.py.
 import subprocess
 import sys
 
+import pytest
+
+from core.pipeline import resolve_pnpm
+
 
 def test_pipeline_cli_help():
     res = subprocess.run(
@@ -56,3 +60,12 @@ def test_pipeline_subcommand_style_list():
     assert "crimson_ops" in res.stdout
     assert "underline_bar" in res.stdout
     assert "box_invert" in res.stdout
+
+
+def test_resolve_pnpm(monkeypatch):
+    monkeypatch.setattr("core.pipeline.shutil.which", lambda name: r"C:\tools\pnpm.cmd")
+    assert resolve_pnpm() == r"C:\tools\pnpm.cmd"
+
+    monkeypatch.setattr("core.pipeline.shutil.which", lambda name: None)
+    with pytest.raises(FileNotFoundError, match="pnpm"):
+        resolve_pnpm()

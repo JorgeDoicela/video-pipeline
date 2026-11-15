@@ -10,7 +10,7 @@ Este archivo define las reglas obligatorias de comportamiento, estándares de ca
 * **Stack Tecnológico:**
   * **Transcripción:** `faster-whisper` (CTranslate2, modelo int8, marcas de tiempo palabra por palabra).
   * **Procesamiento de Audio/Video:** FFmpeg con aceleración nativa VA-API (Mesa/Radeon ACO).
-  * **Renderizado y Motion Graphics:** HyperFrames (Chrome Headless Shell con `BeginFrame` determinista) + GSAP 3.12.
+  * **Renderizado y Motion Graphics:** HyperFrames (Chrome Headless Shell con `BeginFrame` determinista) + GSAP 3.15.0.
 * **Política de Cero Costes en la Nube:** Queda prohibida la dependencia de APIs externas de pago (ElevenLabs, fal.ai, HeyGen SaaS, OpenAI Audio). Todo cómputo debe ejecutarse localmente.
 
 ---
@@ -66,7 +66,7 @@ video-pipeline/
 │   ├── create_project.py # Scaffolding automatizado de proyectos
 │   ├── generate_sfx.py   # Síntesis matemática de efectos de sonido WAV
 │   └── generate_icons.py # Generador de iconografía técnica vectorial SVG
-├── templates/         # Catálogo de 9 plantillas reutilizables por formato y caso de uso
+├── templates/         # Catálogo de 11 plantillas reutilizables por formato y caso de uso
 │   ├── landscape_16_9/   # YouTube widescreen split-stage (1920x1080)
 │   ├── portrait_9_16/    # Shorts/Reels/TikTok código y subtítulos (1080x1920)
 │   ├── square_1_1/       # Feeds LinkedIn/Instagram (1080x1080)
@@ -75,15 +75,16 @@ video-pipeline/
 │   ├── talking_head_9_16/# Presentador vertical 9:16 para Shorts/Reels/TikTok
 │   ├── tech_explainer/   # Diagramas de arquitectura SVG interactivos (1920x1080)
 │   ├── code_walkthrough/ # Editor IDE con resaltado de líneas paso a paso (1920x1080)
-│   └── benchmark_chart/  # Barras de rendimiento animadas y telemetría KPI (1920x1080)
+│   ├── benchmark_chart/  # Barras de rendimiento animadas y telemetría KPI (1920x1080)
+│   ├── verse_quote_9_16/ # Citas, versículos y reflexiones en formato vertical 9:16
+│   └── editorial_story/  # Narrativa histórica, bíblica y ensayos en 16:9
 ├── projects/          # Proyectos de video concretos generados a partir de templates
 ├── assets/            # Recursos estáticos globales (audio SFX, fuentes, iconos SVG)
 ├── tests/             # Suite automatizada de pruebas unitarias (pytest)
-├── docs/              # Documentación modular Docs-as-Code (00- a 06-)
-├── ci/                # Pipeline de integración continua (CI) listo para GitHub Actions
+├── docs/              # Documentación modular Docs-as-Code (00- a 07-)
+├── .github/workflows/ # Pipeline de integración continua (CI) en GitHub Actions
 ├── package.json       # Dependencias de HyperFrames y scripts de ejecución
-├── pyproject.toml     # Configuración declarativa de Python, Ruff y pytest
-└── requirements.txt   # Dependencias de Python fijadas
+└── pyproject.toml     # Dependencias Python, extras dev, Ruff y pytest
 ```
 
 ---
@@ -109,5 +110,5 @@ Antes de dar por concluida cualquier modificación o creación de proyecto:
    ```
 4. **Renderizado de Producción:**
    ```bash
-   pnpm exec hyperframes render projects/<nombre_proyecto> -o projects/<nombre_proyecto>/video.mp4
+   pnpm exec hyperframes render projects/<nombre_proyecto> -o projects/<nombre_proyecto>/video_<nombre_proyecto>.mp4
    ```

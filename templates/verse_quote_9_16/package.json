@@ -1,0 +1,10 @@
+{
+  "name": "template-verse-quote-9-16",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "hyperframes preview",
+    "render": "hyperframes render",
+    "check": "hyperframes check"
+  }
+}

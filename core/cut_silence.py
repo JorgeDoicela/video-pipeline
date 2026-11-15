@@ -68,6 +68,24 @@ def get_media_duration(input_file: str) -> float:
     return float(res.stdout.strip())
 
 
+def has_video_stream(input_file: str) -> bool:
+    """Verifica mediante ffprobe si el archivo de entrada contiene al menos un stream de video."""
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-select_streams",
+        "v:0",
+        "-show_entries",
+        "stream=codec_type",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        input_file,
+    ]
+    res = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, check=True)
+    return bool(res.stdout.strip())
+
+
 def compute_keep_intervals(total_duration: float, silence_intervals: list, padding: float = 0.08):
     """
     Invierte los intervalos de silencio para obtener los tramos de voz útil,
@@ -92,9 +110,48 @@ def compute_keep_intervals(total_duration: float, silence_intervals: list, paddi
     return [k for k in keep if (k[1] - k[0]) > 0.1]
 
 
-def cut_and_concat(input_file: str, output_file: str, keep_intervals: list):
+def build_concat_filter(keep_intervals: list[tuple[float, float]], include_video: bool) -> str:
+    """Construye el filter_complex de FFmpeg para extraer y concatenar los segmentos útiles."""
+    filter_parts = []
+    concat_inputs = []
+
+    for idx, (start, end) in enumerate(keep_intervals):
+        a_tag = f"a{idx}"
+        if include_video:
+            v_tag = f"v{idx}"
+            filter_parts.append(
+                f"[0:v]trim=start={start:.3f}:end={end:.3f},setpts=PTS-STARTPTS[{v_tag}];"
+                f"[0:a]atrim=start={start:.3f}:end={end:.3f},asetpts=PTS-STARTPTS[{a_tag}];"
+            )
+            concat_inputs.append(f"[{v_tag}][{a_tag}]")
+        else:
+            filter_parts.append(
+                f"[0:a]atrim=start={start:.3f}:end={end:.3f},asetpts=PTS-STARTPTS[{a_tag}];"
+            )
+            concat_inputs.append(f"[{a_tag}]")
+
+    if include_video:
+        return (
+            "".join(filter_parts)
+            + "".join(concat_inputs)
+            + f"concat=n={len(keep_intervals)}:v=1:a=1[outv][outa]"
+        )
+    return (
+        "".join(filter_parts)
+        + "".join(concat_inputs)
+        + f"concat=n={len(keep_intervals)}:v=0:a=1[outa]"
+    )
+
+
+def cut_and_concat(
+    input_file: str,
+    output_file: str,
+    keep_intervals: list,
+    include_video: bool | None = None,
+):
     """
     Construye el filtro complejo de FFmpeg para extraer y concatenar los segmentos.
+    Soporta tanto archivos de video+audio como archivos de solo audio.
     """
     out_path = Path(output_file)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -107,23 +164,8 @@ def cut_and_concat(input_file: str, output_file: str, keep_intervals: list):
         shutil.copy2(input_file, out_path)
         return
 
-    filter_parts = []
-    concat_inputs = []
-
-    for idx, (start, end) in enumerate(keep_intervals):
-        v_tag = f"v{idx}"
-        a_tag = f"a{idx}"
-        filter_parts.append(
-            f"[0:v]trim=start={start:.3f}:end={end:.3f},setpts=PTS-STARTPTS[{v_tag}];"
-            f"[0:a]atrim=start={start:.3f}:end={end:.3f},asetpts=PTS-STARTPTS[{a_tag}];"
-        )
-        concat_inputs.append(f"[{v_tag}][{a_tag}]")
-
-    concat_filter = (
-        "".join(filter_parts)
-        + "".join(concat_inputs)
-        + f"concat=n={len(keep_intervals)}:v=1:a=1[outv][outa]"
-    )
+    video_present = has_video_stream(input_file) if include_video is None else include_video
+    concat_filter = build_concat_filter(keep_intervals, include_video=video_present)
 
     cmd = [
         "ffmpeg",
@@ -133,26 +175,22 @@ def cut_and_concat(input_file: str, output_file: str, keep_intervals: list):
         input_file,
         "-filter_complex",
         concat_filter,
-        "-map",
-        "[outv]",
-        "-map",
-        "[outa]",
-        "-c:v",
-        "libx264",
-        "-preset",
-        "fast",
-        "-crf",
-        "18",
-        "-c:a",
-        "aac",
-        "-b:a",
-        "192k",
-        str(out_path),
     ]
+    if video_present:
+        cmd.extend(
+            ["-map", "[outv]", "-map", "[outa]", "-c:v", "libx264", "-preset", "fast", "-crf", "18"]
+        )
+    else:
+        cmd.extend(["-map", "[outa]"])
 
-    print(f"[FFmpeg] Ensamblando video sin silencios ({len(keep_intervals)} tomas útiles)...")
+    if out_path.suffix.lower() == ".wav":
+        cmd.extend(["-c:a", "pcm_s16le", str(out_path)])
+    else:
+        cmd.extend(["-c:a", "aac", "-b:a", "192k", str(out_path)])
+
+    print(f"[FFmpeg] Ensamblando medio sin silencios ({len(keep_intervals)} tomas útiles)...")
     subprocess.run(cmd, check=True)
-    print(f"[FFmpeg] Video exportado con éxito a: {out_path.resolve()}")
+    print(f"[FFmpeg] Medio exportado con éxito a: {out_path.resolve()}")
 
 
 def main():

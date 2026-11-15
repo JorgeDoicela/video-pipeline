@@ -7,89 +7,66 @@ auditoría de estándares y renderizado con un único comando.
 """
 
 import argparse
-import os
+import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-# Auto-ejecución con el entorno virtual local si no está activo
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-_VENV_DIR = _REPO_ROOT / ".venv"
-_VENV_PY = _VENV_DIR / "bin" / "python"
-if _VENV_PY.exists() and sys.prefix != str(_VENV_DIR):
-    os.execv(str(_VENV_PY), [str(_VENV_PY), *sys.argv])
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
 
-try:
-    from core.create_project import AVAILABLE_TEMPLATES, create_project, update_composition_duration
-    from core.cut_silence import (
-        compute_keep_intervals,
-        cut_and_concat,
-        detect_silence,
-        get_media_duration,
-    )
-    from core.styles import (
-        CAPTION_STYLES,
-        CHROME_VARIANTS,
-        DEFAULT_CAPTION_STYLE,
-        DEFAULT_DESIGN,
-        DESIGN_SYSTEMS,
-        LAYOUT_VARIANTS,
-        MOTION_PROFILES,
-        THEMES,
-        apply_style_to_project,
-        get_design_system,
-        inspect_project_design,
-        parse_set_overrides,
-        print_catalog,
-    )
-    from core.sync_captions import (
-        export_srt,
-        export_vtt,
-        extract_word_list,
-        generate_html_and_gsap,
-        group_words,
-        inject_into_html,
-        load_transcript,
-    )
-    from core.transcribe import transcribe
-except ModuleNotFoundError:
-    from create_project import (  # type: ignore
-        AVAILABLE_TEMPLATES,
-        create_project,
-        update_composition_duration,
-    )
-    from cut_silence import (  # type: ignore
-        compute_keep_intervals,
-        cut_and_concat,
-        detect_silence,
-        get_media_duration,
-    )
-    from styles import (  # type: ignore
-        CAPTION_STYLES,
-        CHROME_VARIANTS,
-        DEFAULT_CAPTION_STYLE,
-        DEFAULT_DESIGN,
-        DESIGN_SYSTEMS,
-        LAYOUT_VARIANTS,
-        MOTION_PROFILES,
-        THEMES,
-        apply_style_to_project,
-        get_design_system,
-        inspect_project_design,
-        parse_set_overrides,
-        print_catalog,
-    )
-    from sync_captions import (  # type: ignore
-        export_srt,
-        export_vtt,
-        extract_word_list,
-        generate_html_and_gsap,
-        group_words,
-        inject_into_html,
-        load_transcript,
-    )
-    from transcribe import transcribe  # type: ignore
+from core._runtime import ensure_local_venv  # noqa: E402
+
+ensure_local_venv()
+
+from core.create_project import (  # noqa: E402
+    AVAILABLE_TEMPLATES,
+    create_project,
+    update_composition_duration,
+)
+from core.cut_silence import (  # noqa: E402
+    compute_keep_intervals,
+    cut_and_concat,
+    detect_silence,
+    get_media_duration,
+)
+from core.styles import (  # noqa: E402
+    CAPTION_STYLES,
+    CHROME_VARIANTS,
+    DEFAULT_CAPTION_STYLE,
+    DEFAULT_DESIGN,
+    DESIGN_SYSTEMS,
+    LAYOUT_VARIANTS,
+    MOTION_PROFILES,
+    THEMES,
+    apply_style_to_project,
+    get_design_system,
+    inspect_project_design,
+    parse_set_overrides,
+    print_catalog,
+)
+from core.sync_captions import (  # noqa: E402
+    export_srt,
+    export_vtt,
+    extract_word_list,
+    generate_html_and_gsap,
+    group_words,
+    inject_into_html,
+    load_transcript,
+)
+from core.transcribe import transcribe  # noqa: E402
+
+
+def resolve_pnpm() -> str:
+    """Resuelve el ejecutable de pnpm de forma portable entre POSIX y Windows (.cmd/.exe)."""
+    pnpm_bin = shutil.which("pnpm")
+    if not pnpm_bin:
+        raise FileNotFoundError(
+            "No se encontró 'pnpm' en PATH. Instala Node.js/pnpm antes de ejecutar HyperFrames."
+        )
+    return pnpm_bin
 
 
 def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
@@ -202,8 +179,9 @@ def produce_pipeline(
 
     # 5. Auditoría de Estándares HyperFrames (WCAG AA, Motion, Layout)
     print("\n--> [Paso 5/5] Auditando estándares con hyperframes check...")
+    pnpm_bin = resolve_pnpm()
     try:
-        run_command(["pnpm", "exec", "hyperframes", "check", str(project_dir)])
+        run_command([pnpm_bin, "exec", "hyperframes", "check", str(project_dir)])
     except subprocess.CalledProcessError:
         print("\nAdvertencia: El linter de HyperFrames reportó observaciones en el proyecto.")
 
@@ -213,7 +191,7 @@ def produce_pipeline(
         print("\n--> Compilando MP4 final con aceleración GPU...")
         run_command(
             [
-                "pnpm",
+                pnpm_bin,
                 "exec",
                 "hyperframes",
                 "render",
@@ -257,33 +235,33 @@ def _add_design_arguments(subparser: argparse.ArgumentParser, default_design: st
         "--design",
         default=default_design,
         choices=list(DESIGN_SYSTEMS.keys()),
-        help="Nivel 1: Diseño Macro completo (cyber_glass, swiss_editorial, brutalist_terminal, cinematic_studio)",
+        help=f"Nivel 1: Diseño Macro completo ({', '.join(DESIGN_SYSTEMS.keys())})",
     )
     subparser.add_argument(
         "-s",
         "--style",
         choices=list(THEMES.keys()),
-        help="Nivel 2: Tema cromático y tipográfico (cyber_dark, minimal_light, terminal_hacker, linear_violet, blueprint_cad)",
+        help=f"Nivel 2: Tema cromático y tipográfico ({', '.join(THEMES.keys())})",
     )
     subparser.add_argument(
         "--layout",
         choices=list(LAYOUT_VARIANTS.keys()),
-        help="Nivel 2: Variante de distribución interna (standard, asymmetric_focus, stacked, compact_hud)",
+        help=f"Nivel 2: Variante de distribución interna ({', '.join(LAYOUT_VARIANTS.keys())})",
     )
     subparser.add_argument(
         "--chrome",
         choices=list(CHROME_VARIANTS.keys()),
-        help="Nivel 2: Variante de marco de ventanas (auto, macos_dots, terminal_bar, minimal_line, hidden)",
+        help=f"Nivel 2: Variante de marco de ventanas ({', '.join(CHROME_VARIANTS.keys())})",
     )
     subparser.add_argument(
         "--motion",
         choices=list(MOTION_PROFILES.keys()),
-        help="Nivel 2: Perfil de animación GSAP (dynamic, smooth, snappy, minimal)",
+        help=f"Nivel 2: Perfil de animación GSAP ({', '.join(MOTION_PROFILES.keys())})",
     )
     subparser.add_argument(
         "--caption-style",
         choices=list(CAPTION_STYLES.keys()),
-        help="Nivel 2: Estilo de subtítulos cinéticos (karaoke_glow, highlight_pill, pop_scale, minimal_clean)",
+        help=f"Nivel 2: Estilo de subtítulos cinéticos ({', '.join(CAPTION_STYLES.keys())})",
     )
     subparser.add_argument(
         "--set",
@@ -505,15 +483,15 @@ def main():
             if not Path(args.project).exists()
             else Path(args.project)
         )
-        run_command(["pnpm", "exec", "hyperframes", "check", str(p_dir)])
+        run_command([resolve_pnpm(), "exec", "hyperframes", "check", str(p_dir)])
     elif args.subcommand == "render":
         p_dir = (
             Path("projects") / args.project
             if not Path(args.project).exists()
             else Path(args.project)
         )
-        out = args.output or f"{p_dir}/video_{p_dir.name}.mp4"
-        run_command(["pnpm", "exec", "hyperframes", "render", str(p_dir), "-o", str(out)])
+        out = args.output or str(p_dir / f"video_{p_dir.name}.mp4")
+        run_command([resolve_pnpm(), "exec", "hyperframes", "render", str(p_dir), "-o", out])
 
 
 if __name__ == "__main__":

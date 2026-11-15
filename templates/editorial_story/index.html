@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1920, height=1080" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      /* @theme:start */
+      /* Design: cinematic_studio | Theme: linear_violet | Layout: standard */
+      :root {
+        --design-slug: "cinematic_studio";
+        --theme-slug: "linear_violet";
+        --layout-slug: "standard";
+        --bg: #09090b;
+        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(167, 139, 250, 0.14) 0%, transparent 70%);
+        --surface: rgba(24, 24, 27, 0.90);
+        --surface-elevated: rgba(255, 255, 255, 0.04);
+        --border: rgba(167, 139, 250, 0.26);
+        --border-strong: rgba(167, 139, 250, 0.65);
+        --divider: rgba(255, 255, 255, 0.08);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+        --text-primary: #fafafa;
+        --text-secondary: #e4e4e7;
+        --text-muted: #a1a1aa;
+        --title-gradient: linear-gradient(135deg, #fafafa 40%, #a78bfa 100%);
+        --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+        --font-mono: 'JetBrains Mono', monospace;
+        --accent-primary: #a78bfa;
+        --accent-primary-soft: rgba(167, 139, 250, 0.14);
+        --accent-primary-glow: rgba(167, 139, 250, 0.35);
+        --accent-secondary: #34d399;
+        --accent-secondary-soft: rgba(52, 211, 153, 0.14);
+        --accent-tertiary: #f472b6;
+        --accent-warning: #fbbf24;
+        --accent-danger: #fb7185;
+        --node-fill: #18181b;
+        --cable-idle: #3f3f46;
+        --caption-bg: transparent;
+        --caption-text: #fafafa;
+        --caption-active: #a78bfa;
+        --caption-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
+        --caption-glow: 0 0 16px #a78bfa;
+        --radius-lg: 28px;
+        --radius-md: 16px;
+        --radius-sm: 999px;
+        --border-width: 1px;
+        --panel-backdrop: blur(24px);
+        --badge-radius: 999px;
+        --stage-padding: 80px 100px;
+        --stage-gap: 40px;
+        --split-columns: 1fr 1fr;
+        --header-align: left;
+        --caption-bottom: 220px;
+        --caption-size: 52px;
+      }
+      /* @theme:end */
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        width: 1920px;
+        height: 1080px;
+        overflow: hidden;
+        background-color: var(--bg);
+        font-family: var(--font-sans);
+        color: var(--text-primary);
+      }
+
+      #root {
+        position: relative;
+        width: 1920px;
+        height: 1080px;
+        padding: var(--stage-padding);
+        background: var(--bg);
+        background-image: var(--bg-gradient);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      #header {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        text-align: var(--header-align);
+      }
+
+      .hook-badge {
+        align-self: flex-start;
+        padding: 8px 20px;
+        background: var(--accent-primary-soft);
+        border: 1px solid var(--border-strong);
+        color: var(--accent-primary);
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        font-size: 58px;
+        font-weight: 900;
+        line-height: 1.15;
+        color: var(--text-primary);
+      }
+
+      .split-stage {
+        display: grid;
+        grid-template-columns: var(--split-columns);
+        gap: var(--stage-gap);
+        align-items: stretch;
+        margin: 28px 0;
+      }
+
+      .panel {
+        background: var(--surface);
+        padding: 44px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 22px;
+      }
+
+      .chapter-label {
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--accent-primary);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .story-quote {
+        font-size: 38px;
+        line-height: 1.4;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .story-source {
+        font-size: 28px;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .key-points {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .key-points li {
+        font-size: 30px;
+        line-height: 1.35;
+        color: var(--text-secondary);
+        padding-left: 20px;
+        border-left: 4px solid var(--accent-secondary);
+      }
+
+      .key-points strong {
+        color: var(--text-primary);
+      }
+
+      #caption-zone {
+        min-height: 90px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+
+      .caption-bar {
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1.25;
+        color: var(--caption-text);
+        text-shadow: var(--caption-shadow);
+      }
+
+      /* @caption-style:start */
+      /* Caption Style: pop_scale */
+      .caption-phrase {
+        display: inline-block;
+        background: var(--caption-bg);
+        padding: 6px 18px;
+        border-radius: var(--radius-md, 12px);
+      }
+      .word {
+        display: inline-block;
+        opacity: 0.3;
+        color: var(--caption-text);
+        margin: 0 4px;
+      }
+      .word.active {
+        opacity: 1;
+        color: var(--caption-active);
+        text-shadow: var(--caption-glow);
+      }
+      /* @caption-style:end */
+
+      /* @design-system:start */
+      /* Macro Design: cinematic_studio | Layout: standard | Chrome: hidden */
+      .panel, #main-card, #main-window, .node-glass {
+        border-radius: var(--radius-lg);
+        border: var(--border-width) solid var(--border);
+        box-shadow: var(--shadow);
+        backdrop-filter: var(--panel-backdrop);
+      }
+      .badge, .hook-badge, .sys-badge, .term-badge {
+        border-radius: var(--badge-radius);
+      }
+      .split-stage {
+        grid-template-columns: var(--split-columns);
+        gap: var(--stage-gap);
+      }
+      .caption-bar {
+        bottom: var(--caption-bottom);
+        font-size: var(--caption-size);
+      }
+      .panel, #main-card, #main-window {
+        border-left: 6px solid var(--accent-primary);
+      }
+      .lower-third {
+        left: 80px;
+        right: auto;
+        border-radius: var(--radius-md);
+      }
+      .window-header, .win-bar, .code-header {
+        display: none;
+      }
+      /* @design-system:end */
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-design="cinematic_studio"
+      data-style="linear_violet"
+      data-layout="standard"
+      data-motion="smooth"
+      data-caption-style="pop_scale"
+      data-start="0"
+      data-duration="14"
+      data-width="1920"
+      data-height="1080"
+    >
+      <header id="header">
+        <div class="hook-badge" data-layout-ignore>Ensayo y Contexto</div>
+        <h1>Contexto Histórico y Enseñanza Principal</h1>
+      </header>
+
+      <div class="split-stage">
+        <div id="main-card" class="panel">
+          <div class="chapter-label" data-layout-ignore>Pasaje Central</div>
+          <blockquote class="story-quote">
+            El principio de la sabiduría es el temor del Señor; los insensatos desprecian la sabiduría y la enseñanza.
+          </blockquote>
+          <div class="story-source">Proverbios 1:7</div>
+        </div>
+
+        <div class="panel">
+          <div class="chapter-label" data-layout-ignore>Claves de Lectura</div>
+          <ul class="key-points">
+            <li><strong>1. Fundamento:</strong> La reverencia precede al entendimiento práctico.</li>
+            <li><strong>2. Disciplina:</strong> El aprendizaje requiere humildad para corregir el rumbo.</li>
+            <li><strong>3. Aplicación:</strong> Sabiduría es criterio aplicado a decisiones cotidianas.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div id="caption-zone">
+        <!-- @captions:start -->
+        <div id="captions-container" class="caption-bar">
+          <div id="cg_0" class="caption-phrase">
+            <span id="w1" class="word">Contexto</span>
+            <span id="w2" class="word">claro</span>
+            <span id="w3" class="word">para</span>
+            <span id="w4" class="word">cada</span>
+            <span id="w5" class="word">enseñanza</span>
+          </div>
+        </div>
+        <!-- @captions:end -->
+      </div>
+    </div>
+
+    <script>
+      const tl = gsap.timeline({ paused: true });
+
+      tl.from("#header", { opacity: 0, y: -24, duration: 0.95, ease: "power2.out" }, 0.0);
+      tl.from(".panel", { opacity: 0, y: 30, stagger: 0.25, duration: 0.95, ease: "power3.out" }, 0.3);
+      tl.from(".story-source", { opacity: 0, y: 14, duration: 0.6, ease: "power2.out" }, 3.5);
+      tl.from(".key-points li", { opacity: 0, x: 20, stagger: 2.3, duration: 0.7, ease: "power2.out" }, 5.5);
+
+      // @captions-gsap:start
+      tl.to("#w1", { className: "word active", duration: 0.05 }, 1.2);
+      tl.to("#w2", { className: "word active", duration: 0.05 }, 1.6);
+      tl.to("#w3", { className: "word active", duration: 0.05 }, 1.9);
+      tl.to("#w4", { className: "word active", duration: 0.05 }, 2.2);
+      tl.to("#w5", { className: "word active", duration: 0.05 }, 2.6);
+      // @captions-gsap:end
+
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>

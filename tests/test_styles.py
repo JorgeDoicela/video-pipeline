@@ -217,3 +217,28 @@ def test_level2_intra_design_options_and_level3_overrides(tmp_path):
 def test_apply_style_missing_file(tmp_path):
     with pytest.raises(FileNotFoundError):
         apply_style_to_html(tmp_path / "no-existe.html", "cyber_dark")
+
+
+def test_motion_updates_from_to_and_reordered_props(tmp_path):
+    html_file = tmp_path / "index.html"
+    html_file.write_text(
+        """<!doctype html>
+<html>
+  <head><style>:root { --bg: #000; }</style></head>
+  <body>
+    <div id="root" data-composition-id="main"></div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#header", { opacity: 0 }, { opacity: 1, ease: "power1.out", duration: 0.2 }, 0.1);
+      tl.fromTo(".panel", { y: 20 }, { y: 0, ease: "power1.out", duration: 0.2 }, 0.2);
+      window.__timelines = { main: tl };
+    </script>
+  </body>
+</html>""",
+        encoding="utf-8",
+    )
+    apply_style_to_html(html_file, motion_slug="snappy")
+    updated = html_file.read_text(encoding="utf-8")
+    assert 'ease: "power4.out"' in updated
+    assert 'ease: "back.out(2.0)"' in updated
+    assert "duration: 0.45" in updated

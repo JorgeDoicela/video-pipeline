@@ -19,11 +19,11 @@ flowchart LR
 
 ## 1. Requisitos Previos y Compatibilidad de Entorno
 
-* **Sistema Operativo:** Distribuciones Linux (Debian, Ubuntu, Fedora, Arch Linux, NixOS) o entornos con soporte Chromium/FFmpeg (WSL2 / macOS).
-* **Controlador Grafico:** Compatible con aceleracion por hardware mediante AMDGPU (VA-API/Mesa), Intel QuickSync o NVIDIA (NVENC/CUDA). Opcionalmente corre en modo software sobre CPU si no hay GPU dedicada.
+* **Sistema Operativo:** Distribuciones Linux (Debian con Nix Flakes, Ubuntu, Fedora, Arch Linux, NixOS), **Windows 11 nativo** (PowerShell + `winget`) o macOS / WSL2.
+* **Controlador Grafico:** Compatible con aceleracion por hardware mediante AMDGPU (VA-API/Mesa) en Linux, AMF/NVENC en Windows, o CPU (`libx264`) si no hay GPU dedicada.
 * **FFmpeg:** Version 7.0 o superior instalada en el sistema.
 * **Node.js:** Version 20 o 22 LTS y gestor de paquetes `pnpm`.
-* **Python:** Version 3.10 o superior (gestionado con `uv`).
+* **Python:** Version 3.11 o superior (gestionado con `uv`).
 
 ### Resumen del Stack Tecnológico
 
@@ -40,13 +40,23 @@ flowchart LR
 ## 2. Inicio Rápido (Quickstart)
 
 ### Paso 1: Clonar el Repositorio e Inicializar el Entorno Python
+
+**Linux / macOS / WSL2:**
 ```bash
 git clone https://github.com/JorgeDoicela/video-pipeline.git
 cd video-pipeline
 
-# Crear entorno virtual aislado e instalar dependencias
 uv venv .venv
-uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python -e ".[dev]"
+```
+
+**Windows (PowerShell):**
+```powershell
+git clone https://github.com/JorgeDoicela/video-pipeline.git
+cd video-pipeline
+
+uv venv .venv
+uv pip install --python .venv\Scripts\python.exe -e ".[dev]"
 ```
 
 ### Paso 2: Instalar Dependencias de Node.js
@@ -85,7 +95,7 @@ El video final quedará disponible en `projects/mi-primer-video/video_mi-primer-
 
 ## 3. Modelos de Video, Plantillas y Sistemas de Diseño
 
-El sistema cuenta con **9 plantillas especializadas** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--chrome`, `--motion`, `--caption-style`, `--set`):
+El sistema cuenta con **11 plantillas especializadas** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--chrome`, `--motion`, `--caption-style`, `--set`):
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Grabación a Cámara o Pantalla (Talking Head):**
@@ -95,6 +105,9 @@ El sistema cuenta con **9 plantillas especializadas** (`-t`) y una **arquitectur
   * `tech_explainer` (`1920x1080` 16:9): Diagramas de arquitectura de sistemas SVG con flujo animado de paquetes de red.
   * `code_walkthrough` (`1920x1080` 16:9): Editor de código IDE con resaltado secuencial de líneas y notas laterales de arquitectura.
   * `benchmark_chart` (`1920x1080` 16:9): Gráficos de barras comparativas animadas (throughput, latencia, memoria) y paneles KPI.
+* **Narrativa Editorial, Citas y Multitemática (Sin Código):**
+  * `verse_quote_9_16` (`1080x1920` 9:16): Formato vertical para citas, versículos bíblicos, reflexiones y narrativa breve con zonas seguras.
+  * `editorial_story` (`1920x1080` 16:9): Narrativa widescreen para ensayos, historia, teología o divulgación general con puntos clave.
 * **Formatos Multicanal y Microlearning:**
   * `landscape_16_9` (`1920x1080` 16:9): Escenario dividido (*split-stage*) para comparativas técnicas en YouTube y escritorio.
   * `portrait_9_16` (`1080x1920` 9:16): Tarjeta de código vertical con subtítulos cinéticos para TikTok, Reels y Shorts.
@@ -142,12 +155,14 @@ video-pipeline/
 ├── assets/                 # Recursos locales reutilizables (audio SFX, fuentes, iconos SVG)
 │   ├── audio/             # Efectos de sonido libres (whoosh, pop, click, chime, beep WAV)
 │   ├── fonts/             # Tipografías del sistema
-│   ├── icons/             # Iconografía técnica vectorial (Docker, K8s, Kafka, Redis SVG)
-│   └── README.md          # Especificación y guía de uso de recursos
+│   └── icons/             # Iconografía técnica vectorial (Docker, K8s, Kafka, Redis SVG)
 ├── core/                   # Herramientas del motor compartido
 │   ├── __init__.py        # Módulo Python del núcleo
+│   ├── _runtime.py        # Inicialización de rutas y entorno virtual local
 │   ├── pipeline.py        # Orquestador maestro de producción end-to-end
-│   ├── styles.py          # Motor de temas visuales (Design Tokens) y estilos de subtítulos
+│   ├── styles.py          # Fachada CLI y API del motor de diseño en 3 niveles
+│   ├── _styles_catalog.py # Catálogo declarativo de diseños, temas, layouts y tokens
+│   ├── _styles_renderer.py# Compilador CSS, mutación HTML y persistencia
 │   ├── sync_captions.py   # Motor de subtítulos cinéticos y exportador SRT/VTT
 │   ├── create_project.py  # Scaffold automatizado a partir de plantillas
 │   ├── cut_silence.py     # Algoritmo de poda de silencios (FFmpeg)
@@ -167,8 +182,9 @@ video-pipeline/
 │   ├── 03-motor-renderizado-hyperframes.md
 │   ├── 04-formatos-de-video.md
 │   ├── 05-guia-operativa-y-flujos.md
-│   └── 06-sistema-de-diseno-y-estilos.md
-├── templates/              # Catálogo de 9 plantillas base integradas con Design Tokens
+│   ├── 06-sistema-de-diseno-y-estilos.md
+│   └── 07-recursos-y-assets.md
+├── templates/              # Catálogo de 11 plantillas base integradas con Design Tokens
 │   ├── portrait_9_16/     # TikTok, Reels, Shorts (1080x1920 con Safe Zones)
 │   ├── landscape_16_9/    # YouTube y Desktop (1920x1080 Widescreen Split-Stage)
 │   ├── square_1_1/        # Feeds de Instagram y LinkedIn (1080x1080)
@@ -177,16 +193,16 @@ video-pipeline/
 │   ├── talking_head_9_16/ # Presentador vertical 9:16 para Shorts/Reels/TikTok
 │   ├── tech_explainer/    # Diagramas de infraestructura SVG y flujo de paquetes
 │   ├── code_walkthrough/  # Auditoría de código IDE con resaltado paso a paso
-│   └── benchmark_chart/   # Telemetría comparativa y barras de rendimiento animadas
-├── projects/               # Espacio de trabajo para producciones individuales
-│   ├── demo/              # Proyecto piloto validado funcionalmente
-│   ├── test-arquitectura/ # Caso real de explicador técnico 9:16 vertical
-│   └── test-16-9-cqrs/    # Caso real de arquitectura CQRS 16:9 widescreen
-├── ci/                     # Especificación de integración continua (GitHub Actions)
-├── AGENTS.md              # Directrices de ingeniería para agentes de IA
-├── package.json           # Dependencias de HyperFrames y scripts de ejecución
-├── pyproject.toml         # Configuración declarativa de Python, Ruff y pytest
-├── requirements.txt       # Dependencias fijadas del runtime de Python
+│   ├── benchmark_chart/   # Telemetría comparativa y barras de rendimiento animadas
+│   ├── verse_quote_9_16/  # Citas, versículos y reflexiones en formato vertical 9:16
+│   └── editorial_story/   # Narrativa histórica, bíblica y ensayos en 16:9
+├── projects/               # Espacio de trabajo local (ignorado en Git salvo .gitkeep)
+├── .agents/                # Directrices de ingeniería y memoria técnica para agentes de IA
+│   ├── AGENTS.md
+│   └── memory.md
+├── .github/workflows/      # Pipeline activo de GitHub Actions (ci.yml)
+├── package.json            # Dependencias de HyperFrames y scripts de ejecución
+├── pyproject.toml         # Dependencias Python, extras dev, Ruff y pytest
 └── README.md              # Guía de entrada y especificación del repositorio
 ```
 
@@ -205,7 +221,8 @@ Consulta el catalogo maestro:
 3. [03 — Motor de Renderizado (HyperFrames)](docs/03-motor-renderizado-hyperframes.md): Modelo temporal en segundos, Chromium Headless Shell y aceleracion por hardware GPU.
 4. [04 — Formatos de Video Soportados](docs/04-formatos-de-video.md): Contratos de diseño y catalogo de las 9 plantillas de video.
 5. [05 — Guía Operativa y Flujos de Trabajo](docs/05-guia-operativa-y-flujos.md): Runbooks secuenciales desde la grabacion hasta la exportacion final.
-6. [06 — Sistema de Diseño y Estilos Componibles](docs/06-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (6 Diseños Macro, 8 Temas WCAG AA, Layouts, Chrome, Motion, 6 Estilos de Subtitulos y Overrides `--set`).
+6. [06 — Sistema de Diseño y Estilos Componibles](docs/06-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (7 Diseños Macro, 8 Temas WCAG AA, Layouts, Chrome, Motion, 6 Estilos de Subtitulos y Overrides `--set`).
+7. [07 — Recursos Estáticos y Assets](docs/07-recursos-y-assets.md): Efectos de sonido WAV, iconografia tecnica SVG y tipografias locales.
 
 ---
 

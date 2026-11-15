@@ -6,25 +6,22 @@ en elementos HTML y código de animación GSAP determinista, además de exportar
 """
 
 import argparse
+import html
 import json
 import re
 import sys
 from pathlib import Path
 
-try:
-    from core.styles import (
-        CAPTION_STYLES,
-        DEFAULT_CAPTION_STYLE,
-        generate_caption_css,
-        get_caption_style,
-    )
-except ModuleNotFoundError:
-    from styles import (  # type: ignore
-        CAPTION_STYLES,
-        DEFAULT_CAPTION_STYLE,
-        generate_caption_css,
-        get_caption_style,
-    )
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+from core.styles import (  # noqa: E402
+    CAPTION_STYLES,
+    DEFAULT_CAPTION_STYLE,
+    generate_caption_css,
+    get_caption_style,
+)
 
 
 def load_transcript(json_path: Path) -> dict:
@@ -35,21 +32,24 @@ def load_transcript(json_path: Path) -> dict:
         return json.load(f)
 
 
+def _split_timestamp(seconds: float) -> tuple[int, int, int, int]:
+    """Descompone segundos en (horas, minutos, segundos, milisegundos) sin overflow a 1000ms."""
+    total_ms = max(0, round(seconds * 1000))
+    total_secs, millis = divmod(total_ms, 1000)
+    mins, secs = divmod(total_secs, 60)
+    hrs, mins = divmod(mins, 60)
+    return hrs, mins, secs, millis
+
+
 def format_timestamp_srt(seconds: float) -> str:
     """Convierte segundos a formato SRT (HH:MM:SS,mmm)."""
-    hrs = int(seconds // 3600)
-    mins = int((seconds % 3600) // 60)
-    secs = int(seconds % 60)
-    millis = int(round((seconds - int(seconds)) * 1000))
+    hrs, mins, secs, millis = _split_timestamp(seconds)
     return f"{hrs:02d}:{mins:02d}:{secs:02d},{millis:03d}"
 
 
 def format_timestamp_vtt(seconds: float) -> str:
     """Convierte segundos a formato WebVTT (HH:MM:SS.mmm)."""
-    hrs = int(seconds // 3600)
-    mins = int((seconds % 3600) // 60)
-    secs = int(seconds % 60)
-    millis = int(round((seconds - int(seconds)) * 1000))
+    hrs, mins, secs, millis = _split_timestamp(seconds)
     return f"{hrs:02d}:{mins:02d}:{secs:02d}.{millis:03d}"
 
 
@@ -161,7 +161,7 @@ def generate_html_and_gsap(
 
         for w_idx, w in enumerate(group):
             word_id = f"cw_{g_idx}_{w_idx}"
-            word_text = w["word"].replace("<", "&lt;").replace(">", "&gt;")
+            word_text = html.escape(w["word"], quote=False)
             html_parts.append(f'    <span id="{word_id}" class="word">{word_text}</span>')
 
         html_parts.append("  </div>")
@@ -197,6 +197,30 @@ def generate_html_and_gsap(
     return "\n".join(html_parts), "\n".join(gsap_lines)
 
 
+def _replace_balanced_div(
+    content: str, open_tag_pattern: str, replacement: str
+) -> tuple[str, bool]:
+    """Reemplaza un bloque <div>...</div> balanceando etiquetas <div> anidadas."""
+    match = re.search(open_tag_pattern, content)
+    if not match:
+        return content, False
+
+    start_idx = match.start()
+    pos = match.end()
+    depth = 1
+    tag_iter = re.finditer(r"<div\b[^>]*>|</div>", content[pos:], flags=re.IGNORECASE)
+    for tag_match in tag_iter:
+        if tag_match.group(0).lower().startswith("</div"):
+            depth -= 1
+            if depth == 0:
+                end_idx = pos + tag_match.end()
+                return content[:start_idx] + replacement + content[end_idx:], True
+        else:
+            depth += 1
+
+    return content, False
+
+
 def inject_into_html(
     html_path: Path,
     html_snippet: str,
@@ -219,7 +243,7 @@ def inject_into_html(
         if "/* @caption-style:start */" in content and "/* @caption-style:end */" in content:
             content = re.sub(
                 r"\s*/\* @caption-style:start \*/.*?/\* @caption-style:end \*/",
-                "\n" + cap_css,
+                lambda _: "\n" + cap_css,
                 content,
                 count=1,
                 flags=re.DOTALL,
@@ -231,32 +255,44 @@ def inject_into_html(
     if "<!-- @captions:start -->" in content and "<!-- @captions:end -->" in content:
         content = re.sub(
             r"<!-- @captions:start -->.*?<!-- @captions:end -->",
-            html_snippet,
+            lambda _: html_snippet,
             content,
             flags=re.DOTALL,
             count=1,
         )
     elif '<div id="caption-zone">' in content:
-        content = re.sub(
-            r'(<div id="caption-zone">\s*).*?(\s*</div>)',
-            rf"\g<1>{html_snippet}\g<2>",
+        content, replaced = _replace_balanced_div(
             content,
-            flags=re.DOTALL,
-            count=1,
+            r'<div id="caption-zone"[^>]*>',
+            f'<div id="caption-zone">\n      {html_snippet}\n    </div>',
         )
+        if not replaced:
+            content = re.sub(
+                r'(<div id="caption-zone">\s*).*?(\s*</div>)',
+                lambda m: f"{m.group(1)}{html_snippet}{m.group(2)}",
+                content,
+                flags=re.DOTALL,
+                count=1,
+            )
     elif '<div class="caption-bar">' in content or '<div id="captions-container"' in content:
-        content = re.sub(
-            r'(<!-- Subtítulos Cinéticos -->\s*)?<div (?:id="captions-container"|class="caption-bar")[^>]*>.*?</div>',
-            f"<!-- Subtítulos Cinéticos -->\n      {html_snippet}",
+        content, replaced = _replace_balanced_div(
             content,
-            flags=re.DOTALL,
-            count=1,
+            r'(?:<!-- Subtítulos Cinéticos -->\s*)?<div (?:id="captions-container"|class="caption-bar")[^>]*>',
+            f"<!-- Subtítulos Cinéticos -->\n      {html_snippet}",
         )
+        if not replaced:
+            content = re.sub(
+                r'(<!-- Subtítulos Cinéticos -->\s*)?<div (?:id="captions-container"|class="caption-bar")[^>]*>.*?</div>',
+                lambda _: f"<!-- Subtítulos Cinéticos -->\n      {html_snippet}",
+                content,
+                flags=re.DOTALL,
+                count=1,
+            )
     else:
         # Insertar justo antes del cierre del contenedor #root
         content = re.sub(
             r"(</div>\s*<script>)",
-            rf"      {html_snippet}\n    \g<1>",
+            lambda m: f"      {html_snippet}\n    {m.group(1)}",
             content,
             count=1,
         )
@@ -265,7 +301,7 @@ def inject_into_html(
     if "// @captions-gsap:start" in content and "// @captions-gsap:end" in content:
         content = re.sub(
             r"// @captions-gsap:start.*?// @captions-gsap:end",
-            gsap_snippet,
+            lambda _: gsap_snippet,
             content,
             flags=re.DOTALL,
             count=1,
@@ -279,7 +315,7 @@ def inject_into_html(
         )
         content = re.sub(
             r"(window\.__timelines\s*=\s*window\.__timelines\s*\|\|\s*\{\};)",
-            rf"{gsap_snippet}\n\n      \g<1>",
+            lambda m: f"{gsap_snippet}\n\n      {m.group(1)}",
             content,
             count=1,
         )

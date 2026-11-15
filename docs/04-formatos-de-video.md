@@ -1,6 +1,6 @@
 # 04 — Formatos de Video Soportados
 
-Este documento define la especificacion de diseño, contratos tecnicos y ejemplos de codigo para los dos formatos de video que produce el pipeline.
+Este documento define la especificacion de diseño, contratos tecnicos y ejemplos de codigo para los formatos, relaciones de aspecto y las 9 plantillas de video que produce el pipeline.
 
 ---
 
@@ -158,9 +158,9 @@ El pipeline permite renderizar en cualquier relacion de aspecto ajustando los at
 | **Square (Cuadrado)** | `1080x1080` | 1:1 | Instagram Feed, LinkedIn Feed | Lectura equilibrada en timelines de escritorio y movil. Maxima atencion en publicaciones estaticas con video integrado. |
 | **Feed Portrait** | `1080x1350` | 4:5 | Instagram Post Feed | Maxima cobertura vertical dentro del feed estandar de Instagram sin entrar al visor de Reels. |
 
-### 4.1. Catálogo Completo de las 9 Plantillas Disponibles en `templates/`
+### 4.1. Catálogo Completo de las 11 Plantillas Disponibles en `templates/`
 
-Para cubrir múltiples tipologías de videos técnicos, educativos y de divulgación sin diseñar desde cero, el directorio `templates/` proporciona **9 plantillas especializadas**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../core/styles.py)):
+Para cubrir múltiples tipologías de videos técnicos, educativos, editoriales y de divulgación sin diseñar desde cero, el directorio `templates/` proporciona **11 plantillas especializadas**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../core/styles.py)):
 
 | Plantilla (`-t`) | Resolución / Ratio | Categoría | Componentes y Estructura Visual |
 | :--- | :--- | :--- | :--- |
@@ -173,6 +173,8 @@ Para cubrir múltiples tipologías de videos técnicos, educativos y de divulgac
 | `tech_explainer` | `1920x1080` (16:9) | Diagrama de Sistemas SVG | Nodos vectoriales SVG de infraestructura, enlaces de red y paquetes de datos animados mediante coordenadas GSAP. |
 | `code_walkthrough` | `1920x1080` (16:9) | Auditoría de Código IDE | Ventana de editor de código numerada que resalta secuencialmente bloques de líneas sincronizados con tarjetas laterales de arquitectura. |
 | `benchmark_chart` | `1920x1080` (16:9) | Telemetría y Rendimiento | Barras comparativas animadas (throughput, latencia, consumo) acompañadas de paneles laterales de indicadores clave (KPIs). |
+| `verse_quote_9_16` | `1080x1920` (9:16) | Citas / Versículos / Reflexión | Tarjeta tipográfica vertical con cita principal, referencia o autor, contexto editorial y subtítulos cinéticos en zonas seguras. |
+| `editorial_story` | `1920x1080` (16:9) | Narrativa Editorial / Historia / Ensayo | Escenario dividido widescreen con crónica principal, referencia temática y panel lateral de puntos clave sin bloques de código. |
 
 ---
 

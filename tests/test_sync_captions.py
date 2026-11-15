@@ -23,6 +23,11 @@ def test_format_timestamps():
     assert format_timestamp_srt(short) == "00:00:04,050"
     assert format_timestamp_vtt(short) == "00:00:04.050"
 
+    # Evitar overflow a 1000ms al redondear cerca del siguiente segundo
+    boundary = 1.9999
+    assert format_timestamp_srt(boundary) == "00:00:02,000"
+    assert format_timestamp_vtt(boundary) == "00:00:02.000"
+
 
 def test_extract_word_list():
     sample_data = {
@@ -143,3 +148,37 @@ def test_idempotent_inject_into_html(tmp_path):
     assert "#w1" not in result
     assert result.count('id="captions-container"') == 1
     assert result.count("// @captions-gsap:start") == 1
+
+
+def test_inject_handles_backslashes_html_escape_and_nested_divs(tmp_path):
+    html_file = tmp_path / "index.html"
+    html_file.write_text(
+        """<!doctype html>
+<html>
+  <head><style>:root { --bg: #000; }</style></head>
+  <body>
+    <div id="root" data-composition-id="main">
+      <div id="captions-container" class="caption-bar">
+        <div id="cg_0" class="caption-phrase"><span class="word">Viejo</span></div>
+        <div id="cg_1" class="caption-phrase"><span class="word">Texto</span></div>
+      </div>
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>""",
+        encoding="utf-8",
+    )
+
+    groups = [[{"word": r"C:\ruta & <tag>", "start": 0.1, "end": 0.5}]]
+    h_code, g_code = generate_html_and_gsap(groups)
+    inject_into_html(html_file, h_code, g_code)
+
+    result = html_file.read_text(encoding="utf-8")
+    assert r"C:\ruta &amp; &lt;tag&gt;" in result
+    assert "Viejo" not in result
+    assert "Texto" not in result
+    assert result.count('id="captions-container"') == 1

@@ -6,35 +6,28 @@ Copia la plantilla seleccionada, aplica la arquitectura jerárquica de diseño e
 """
 
 import argparse
+import html
+import json
 import re
 import shutil
 import sys
 from pathlib import Path
 
-try:
-    from core.styles import (
-        CAPTION_STYLES,
-        CHROME_VARIANTS,
-        DEFAULT_DESIGN,
-        DESIGN_SYSTEMS,
-        LAYOUT_VARIANTS,
-        MOTION_PROFILES,
-        THEMES,
-        apply_style_to_project,
-        parse_set_overrides,
-    )
-except ModuleNotFoundError:
-    from styles import (  # type: ignore
-        CAPTION_STYLES,
-        CHROME_VARIANTS,
-        DEFAULT_DESIGN,
-        DESIGN_SYSTEMS,
-        LAYOUT_VARIANTS,
-        MOTION_PROFILES,
-        THEMES,
-        apply_style_to_project,
-        parse_set_overrides,
-    )
+_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
+if _REPO_ROOT not in sys.path:
+    sys.path.insert(0, _REPO_ROOT)
+
+from core.styles import (  # noqa: E402
+    CAPTION_STYLES,
+    CHROME_VARIANTS,
+    DEFAULT_DESIGN,
+    DESIGN_SYSTEMS,
+    LAYOUT_VARIANTS,
+    MOTION_PROFILES,
+    THEMES,
+    apply_style_to_project,
+    parse_set_overrides,
+)
 
 AVAILABLE_TEMPLATES = {
     "portrait_9_16": "Formato vertical 9:16 (1080x1920) para TikTok, Instagram Reels y YouTube Shorts",
@@ -46,6 +39,8 @@ AVAILABLE_TEMPLATES = {
     "tech_explainer": "Diagramas de arquitectura SVG interactivos con nodos animados y flujo de paquetes",
     "code_walkthrough": "Explicación de código paso a paso con resaltado progresivo de líneas en GSAP",
     "benchmark_chart": "Comparativa de rendimiento con barras animadas y KPIs de latencia/throughput",
+    "verse_quote_9_16": "Formato vertical 9:16 (1080x1920) para citas, versículos, reflexiones y narrativa breve",
+    "editorial_story": "Formato horizontal 16:9 (1920x1080) para narrativa histórica, bíblica, ensayos y puntos clave",
 }
 
 
@@ -145,8 +140,6 @@ def create_project(
     # Actualizar nombre del paquete en package.json antes de aplicar el estado de diseño
     pkg_file = target_path / "package.json"
     if pkg_file.exists():
-        import json
-
         try:
             pkg_data = json.loads(pkg_file.read_text(encoding="utf-8"))
             pkg_data["name"] = f"project-{project_slug}"
@@ -172,11 +165,12 @@ def create_project(
             update_composition_duration(html_file, duration)
 
         if title:
+            safe_title = html.escape(title, quote=False)
             html_content = html_file.read_text(encoding="utf-8")
             if "<h1" in html_content:
                 html_content = re.sub(
                     r"(<h1[^>]*>).*?(</h1>)",
-                    rf"\g<1>{title}\g<2>",
+                    lambda m: f"{m.group(1)}{safe_title}{m.group(2)}",
                     html_content,
                     count=1,
                     flags=re.DOTALL,
@@ -184,7 +178,7 @@ def create_project(
             elif 'id="card-title"' in html_content:
                 html_content = re.sub(
                     r'(<[^>]+id="card-title"[^>]*>).*?(</h[1-6]>)',
-                    rf"\g<1>{title}\g<2>",
+                    lambda m: f"{m.group(1)}{safe_title}{m.group(2)}",
                     html_content,
                     count=1,
                     flags=re.DOTALL,

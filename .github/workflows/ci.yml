@@ -8,8 +8,12 @@ on:
 
 jobs:
   python-quality:
-    name: Python Lint, Format and Tests
-    runs-on: ubuntu-latest
+    name: Python Lint, Format and Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,23 +23,22 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
         run: |
           uv venv .venv
-          uv pip install --python .venv/bin/python ruff pytest
-          uv pip install --python .venv/bin/python -r requirements.txt
+          uv pip install -e ".[dev]"
 
       - name: Check code formatting (Ruff)
-        run: .venv/bin/ruff format --check core tests
+        run: uv run --no-sync ruff format --check core tests
 
       - name: Lint codebase (Ruff)
-        run: .venv/bin/ruff check core tests
+        run: uv run --no-sync ruff check core tests
 
       - name: Run unit tests (pytest)
-        run: .venv/bin/pytest tests
+        run: uv run --no-sync pytest tests
 
   template-quality:
     name: HyperFrames Templates Lint & Standards
@@ -52,7 +55,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 12
+          version: 10
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -65,5 +68,11 @@ jobs:
           pnpm exec hyperframes check templates/landscape_16_9
           pnpm exec hyperframes check templates/portrait_9_16
           pnpm exec hyperframes check templates/square_1_1
+          pnpm exec hyperframes check templates/feed_4_5
           pnpm exec hyperframes check templates/talking_head
+          pnpm exec hyperframes check templates/talking_head_9_16
           pnpm exec hyperframes check templates/tech_explainer
+          pnpm exec hyperframes check templates/code_walkthrough
+          pnpm exec hyperframes check templates/benchmark_chart
+          pnpm exec hyperframes check templates/verse_quote_9_16
+          pnpm exec hyperframes check templates/editorial_story
