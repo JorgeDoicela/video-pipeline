@@ -1,0 +1,21 @@
+{
+  "name": "template-short-quote-9-16",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "hyperframes preview",
+    "render": "hyperframes render",
+    "check": "hyperframes check"
+  },
+  "videoStyle": "paper_warm",
+  "captionStyle": "minimal_clean",
+  "videoDesign": {
+    "design": "editorial",
+    "style": "paper_warm",
+    "layout": "standard",
+    "chrome": "hidden",
+    "motion": "minimal",
+    "captionStyle": "minimal_clean",
+    "overrides": {}
+  }
+}

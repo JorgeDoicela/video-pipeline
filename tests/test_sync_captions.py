@@ -95,7 +95,7 @@ def test_generate_html_and_gsap_styles():
             {"word": "Containers", "start": 0.95, "end": 1.4},
         ]
     ]
-    html_code, gsap_code = generate_html_and_gsap(groups, caption_style="karaoke_glow")
+    html_code, gsap_code = generate_html_and_gsap(groups, caption_style="highlight_pill")
 
     assert '<div id="captions-container" class="caption-bar">' in html_code
     assert '<span id="cw_0_0" class="word">Docker</span>' in html_code
@@ -105,9 +105,9 @@ def test_generate_html_and_gsap_styles():
     assert 'tl.to("#cw_0_0", { className: "word active", duration: 0.04 }, 0.500);' in gsap_code
     assert 'tl.set("#cg_0", { opacity: 0, display: "none" }, 1.550);' in gsap_code
 
-    # Probar variante pop_scale que agrega animación de escala
-    _, gsap_pop = generate_html_and_gsap(groups, caption_style="pop_scale")
-    assert "scale: 1.14" in gsap_pop
+    # Probar variante minimal_clean sin escala artificial
+    _, gsap_clean = generate_html_and_gsap(groups, caption_style="minimal_clean")
+    assert "scale:" not in gsap_clean
 
 
 def test_idempotent_inject_into_html(tmp_path):
@@ -135,8 +135,8 @@ def test_idempotent_inject_into_html(tmp_path):
     )
 
     groups_1 = [[{"word": "Primera", "start": 0.2, "end": 0.6}]]
-    h1, g1 = generate_html_and_gsap(groups_1, caption_style="karaoke_glow")
-    inject_into_html(html_file, h1, g1, caption_style="karaoke_glow")
+    h1, g1 = generate_html_and_gsap(groups_1, caption_style="minimal_clean")
+    inject_into_html(html_file, h1, g1, caption_style="minimal_clean")
 
     groups_2 = [[{"word": "Segunda", "start": 0.4, "end": 0.9}]]
     h2, g2 = generate_html_and_gsap(groups_2, caption_style="highlight_pill")

@@ -1,6 +1,6 @@
 """
 Pruebas unitarias para la arquitectura jerárquica de diseño en 3 niveles:
-  - Nivel 1: Diseños Macro (DESIGN_SYSTEMS: cyber_glass, swiss_editorial, brutalist_terminal, cinematic_studio)
+  - Nivel 1: Diseños Macro (DESIGN_SYSTEMS: cinematic, editorial, clean, terminal)
   - Nivel 2: Variantes internas (THEMES, LAYOUT_VARIANTS, CHROME_VARIANTS, MOTION_PROFILES, CAPTION_STYLES)
   - Nivel 3: Overrides granulares (--set clave=valor)
 """
@@ -30,42 +30,16 @@ from core.styles import (
 
 
 def test_catalog_3_levels_integrity():
-    assert DEFAULT_DESIGN == "cyber_glass"
-    assert DEFAULT_THEME == "cyber_dark"
-    assert DEFAULT_CAPTION_STYLE == "karaoke_glow"
+    assert DEFAULT_DESIGN == "cinematic"
+    assert DEFAULT_THEME == "dark_violet"
+    assert DEFAULT_CAPTION_STYLE == "highlight_pill"
 
-    assert {
-        "cyber_glass",
-        "clean_studio",
-        "swiss_editorial",
-        "brutalist_terminal",
-        "cinematic_studio",
-        "bento_grid",
-        "academic_paper",
-    } == set(DESIGN_SYSTEMS.keys())
-    assert {
-        "cyber_dark",
-        "minimal_light",
-        "terminal_hacker",
-        "linear_violet",
-        "blueprint_cad",
-        "dracula_pro",
-        "solarized_sand",
-        "crimson_ops",
-    } == set(THEMES.keys())
-    assert {"standard", "asymmetric_focus", "stacked", "compact_hud"} == set(LAYOUT_VARIANTS.keys())
-    assert {"auto", "macos_dots", "terminal_bar", "minimal_line", "hidden"} == set(
-        CHROME_VARIANTS.keys()
-    )
-    assert {"dynamic", "smooth", "snappy", "minimal"} == set(MOTION_PROFILES.keys())
-    assert {
-        "karaoke_glow",
-        "highlight_pill",
-        "pop_scale",
-        "minimal_clean",
-        "underline_bar",
-        "box_invert",
-    } == set(CAPTION_STYLES.keys())
+    assert {"cinematic", "editorial", "clean", "terminal"} == set(DESIGN_SYSTEMS.keys())
+    assert {"dark_violet", "paper_warm", "clean_light", "terminal_green"} == set(THEMES.keys())
+    assert {"standard", "asymmetric_focus", "stacked"} == set(LAYOUT_VARIANTS.keys())
+    assert {"auto", "hidden", "minimal_line", "terminal_bar"} == set(CHROME_VARIANTS.keys())
+    assert {"smooth", "snappy", "minimal"} == set(MOTION_PROFILES.keys())
+    assert {"highlight_pill", "minimal_clean"} == set(CAPTION_STYLES.keys())
 
 
 def test_invalid_identifiers_and_overrides():
@@ -87,7 +61,7 @@ def test_invalid_identifiers_and_overrides():
 
 def test_level1_macro_design_switching(tmp_path):
     """
-    Nivel 1: Verifica que cambiar entre Diseños Macro transforme la geometría,
+    Nivel 1: Verifica que cambiar entre los 4 Diseños Macro transforme la geometría,
     sombras, bordes, preset cromático y coreografía GSAP sin perder el contenido del proyecto.
     """
     html_file = tmp_path / "index.html"
@@ -97,7 +71,7 @@ def test_level1_macro_design_switching(tmp_path):
     html_file.write_text(
         """<!doctype html>
 <html lang="es">
-  <head><style>:root { --bg: #070b14; }</style></head>
+  <head><style>:root { --bg: #09090b; }</style></head>
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-duration="10" data-width="1920" data-height="1080">
       <header id="header"><h1>Título Intacto</h1></header>
@@ -106,7 +80,7 @@ def test_level1_macro_design_switching(tmp_path):
     <script>
       const tl = gsap.timeline({ paused: true });
       tl.from("#header", { opacity: 0, y: -20, duration: 0.8, ease: "power2.out" }, 0.2);
-      tl.from(".panel", { opacity: 0, y: 30, stagger: 0.2, duration: 0.8, ease: "back.out(1.5)" }, 0.4);
+      tl.from(".panel", { opacity: 0, y: 30, stagger: 0.2, duration: 0.8, ease: "power3.out" }, 0.4);
       window.__timelines = { main: tl };
     </script>
   </body>
@@ -114,58 +88,43 @@ def test_level1_macro_design_switching(tmp_path):
         encoding="utf-8",
     )
 
-    # 1. Cambiar a Diseño Macro swiss_editorial
-    apply_style_to_project(tmp_path, design_slug="swiss_editorial")
-    html_swiss = html_file.read_text(encoding="utf-8")
-    assert 'data-design="swiss_editorial"' in html_swiss
-    assert 'data-style="minimal_light"' in html_swiss
-    assert "--radius-lg: 2px;" in html_swiss
-    assert "border-top: 4px solid var(--text-primary);" in html_swiss
-    assert "<h1>Título Intacto</h1>" in html_swiss
+    # 1. Cambiar a Diseño Macro editorial
+    apply_style_to_project(tmp_path, design_slug="editorial")
+    html_ed = html_file.read_text(encoding="utf-8")
+    assert 'data-design="editorial"' in html_ed
+    assert 'data-style="paper_warm"' in html_ed
+    assert "--radius-lg: 4px;" in html_ed
+    assert "border-top: 3px solid var(--text-primary);" in html_ed
+    assert "<h1>Título Intacto</h1>" in html_ed
 
-    # 2. Cambiar a Diseño Macro brutalist_terminal
-    apply_style_to_project(tmp_path, design_slug="brutalist_terminal")
-    html_brutal = html_file.read_text(encoding="utf-8")
-    assert 'data-design="brutalist_terminal"' in html_brutal
-    assert 'data-style="terminal_hacker"' in html_brutal
-    assert "--radius-lg: 0px;" in html_brutal
-    assert "8px 8px 0px" in html_brutal
-    assert 'ease: "back.out(2.0)"' in html_brutal
+    # 2. Cambiar a Diseño Macro terminal
+    apply_style_to_project(tmp_path, design_slug="terminal")
+    html_term = html_file.read_text(encoding="utf-8")
+    assert 'data-design="terminal"' in html_term
+    assert 'data-style="terminal_green"' in html_term
+    assert "--radius-lg: 0px;" in html_term
+    assert "8px 8px 0px" in html_term
+    assert 'ease: "back.out(2.0)"' in html_term
 
-    # 3. Cambiar a Diseño Macro cinematic_studio
-    apply_style_to_project(tmp_path, design_slug="cinematic_studio")
+    # 3. Cambiar a Diseño Macro cinematic
+    apply_style_to_project(tmp_path, design_slug="cinematic")
     html_cinema = html_file.read_text(encoding="utf-8")
-    assert 'data-design="cinematic_studio"' in html_cinema
-    assert 'data-style="linear_violet"' in html_cinema
+    assert 'data-design="cinematic"' in html_cinema
+    assert 'data-style="dark_violet"' in html_cinema
     assert "--radius-lg: 28px;" in html_cinema
     assert "border-left: 6px solid var(--accent-primary);" in html_cinema
 
-    # 4. Cambiar a Diseño Macro bento_grid
-    apply_style_to_project(tmp_path, design_slug="bento_grid")
-    html_bento = html_file.read_text(encoding="utf-8")
-    assert 'data-design="bento_grid"' in html_bento
-    assert 'data-style="dracula_pro"' in html_bento
-    assert "--radius-lg: 24px;" in html_bento
-
-    # 5. Cambiar a Diseño Macro academic_paper
-    apply_style_to_project(tmp_path, design_slug="academic_paper")
-    html_paper = html_file.read_text(encoding="utf-8")
-    assert 'data-design="academic_paper"' in html_paper
-    assert 'data-style="solarized_sand"' in html_paper
-    assert "--radius-lg: 4px;" in html_paper
-    assert "border-top: 3px solid var(--text-primary);" in html_paper
-
-    # 6. Cambiar a Diseño Macro clean_studio
-    apply_style_to_project(tmp_path, design_slug="clean_studio")
+    # 4. Cambiar a Diseño Macro clean
+    apply_style_to_project(tmp_path, design_slug="clean")
     html_clean = html_file.read_text(encoding="utf-8")
-    assert 'data-design="clean_studio"' in html_clean
-    assert 'data-style="minimal_light"' in html_clean
-    assert "--radius-lg: 28px;" in html_clean
+    assert 'data-design="clean"' in html_clean
+    assert 'data-style="clean_light"' in html_clean
+    assert "--radius-lg: 24px;" in html_clean
 
-    # 7. Inspeccionar estado efectivo del proyecto
+    # 5. Inspeccionar estado efectivo del proyecto
     inspected = inspect_project_design(tmp_path)
-    assert inspected["design"] == "clean_studio"
-    assert inspected["style"] == "minimal_light"
+    assert inspected["design"] == "clean"
+    assert inspected["style"] == "clean_light"
 
 
 def test_level2_intra_design_options_and_level3_overrides(tmp_path):
@@ -182,41 +141,37 @@ def test_level2_intra_design_options_and_level3_overrides(tmp_path):
         encoding="utf-8",
     )
 
-    # Fijar Diseño Macro swiss_editorial
-    apply_style_to_project(tmp_path, design_slug="swiss_editorial")
+    apply_style_to_project(tmp_path, design_slug="editorial")
 
-    # Nivel 2: Cambiar solo el layout y la paleta dentro de swiss_editorial
     apply_style_to_project(
         tmp_path,
-        theme_slug="blueprint_cad",
+        theme_slug="clean_light",
         layout_slug="asymmetric_focus",
-        chrome_slug="hidden",
+        chrome_slug="minimal_line",
     )
     pkg_data = json.loads(pkg_file.read_text(encoding="utf-8"))
-    assert pkg_data["videoDesign"]["design"] == "swiss_editorial"
-    assert pkg_data["videoDesign"]["style"] == "blueprint_cad"
+    assert pkg_data["videoDesign"]["design"] == "editorial"
+    assert pkg_data["videoDesign"]["style"] == "clean_light"
     assert pkg_data["videoDesign"]["layout"] == "asymmetric_focus"
-    assert pkg_data["videoDesign"]["chrome"] == "hidden"
+    assert pkg_data["videoDesign"]["chrome"] == "minimal_line"
 
-    # Nivel 3: Aplicar override puntual solo en este diseño
     overrides = parse_set_overrides(["accent_primary=#ff5500", "stage_gap=64px"])
     apply_style_to_project(tmp_path, overrides=overrides)
 
     updated_html = html_file.read_text(encoding="utf-8")
     assert "--accent-primary: #ff5500;" in updated_html
     assert "--stage-gap: 64px;" in updated_html
-    assert 'data-design="swiss_editorial"' in updated_html
+    assert 'data-design="editorial"' in updated_html
 
-    # Resetear overrides conservando el diseño y sus opciones de Nivel 2
     apply_style_to_project(tmp_path, reset_overrides=True)
     reset_html = html_file.read_text(encoding="utf-8")
-    assert "--accent-primary: #64ffda;" in reset_html
-    assert 'data-design="swiss_editorial"' in reset_html
+    assert "--accent-primary: #0369a1;" in reset_html
+    assert 'data-design="editorial"' in reset_html
 
 
 def test_apply_style_missing_file(tmp_path):
     with pytest.raises(FileNotFoundError):
-        apply_style_to_html(tmp_path / "no-existe.html", "cyber_dark")
+        apply_style_to_html(tmp_path / "no-existe.html", "dark_violet")
 
 
 def test_motion_updates_from_to_and_reordered_props(tmp_path):

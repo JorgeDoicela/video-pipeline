@@ -99,13 +99,13 @@ El script [create_project.py](../../core/create_project.py) genera de manera lim
 | Parametro | Tipo | Defecto | Descripcion |
 | :--- | :--- | :--- | :--- |
 | `name` | `string` | *(Requerido)* | Nombre o slug del nuevo proyecto a crear en `projects/`. |
-| `-t, --template` | `string` | `portrait_9_16` | Plantilla base (`portrait_9_16`, `landscape_16_9`, `square_1_1`, `feed_4_5`, `talking_head`, `talking_head_9_16`, `tech_explainer`, `code_walkthrough`, `benchmark_chart`, `verse_quote_9_16`, `editorial_story`). |
-| `-d, --design` | `string` | `cyber_glass` | Diseño Macro de Nivel 1 (`cyber_glass`, `clean_studio`, `swiss_editorial`, `brutalist_terminal`, `cinematic_studio`, `bento_grid`, `academic_paper`). |
-| `-s, --style` | `string` | `None` *(hereda del diseño)* | Tema cromático de Nivel 2 (`cyber_dark`, `minimal_light`, `terminal_hacker`, `linear_violet`, `blueprint_cad`, `dracula_pro`, `solarized_sand`, `crimson_ops`). |
-| `--layout` | `string` | `None` *(hereda del diseño)* | Variante de distribución (`standard`, `asymmetric_focus`, `stacked`, `compact_hud`). |
-| `--chrome` | `string` | `auto` | Marco de contenedores (`auto`, `macos_dots`, `terminal_bar`, `minimal_line`, `hidden`). |
-| `--motion` | `string` | `None` *(hereda del diseño)* | Perfil de animación GSAP (`dynamic`, `smooth`, `snappy`, `minimal`). |
-| `--caption-style` | `string` | `None` *(hereda del diseño)* | Estilo de subtítulos cinéticos (`karaoke_glow`, `highlight_pill`, `pop_scale`, `minimal_clean`, `underline_bar`, `box_invert`). |
+| `-t, --template` | `string` | `short_quote_9_16` | Plantilla base (`short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`). |
+| `-d, --design` | `string` | `cinematic` | Diseño Macro de Nivel 1 (`cinematic`, `editorial`, `clean`, `terminal`). |
+| `-s, --style` | `string` | `None` *(hereda del diseño)* | Tema cromático de Nivel 2 (`dark_violet`, `paper_warm`, `clean_light`, `terminal_green`). |
+| `--layout` | `string` | `None` *(hereda del diseño)* | Variante de distribución (`standard`, `asymmetric_focus`, `stacked`). |
+| `--chrome` | `string` | `auto` | Marco de contenedores (`auto`, `hidden`, `minimal_line`, `terminal_bar`). |
+| `--motion` | `string` | `None` *(hereda del diseño)* | Perfil de animación GSAP (`smooth`, `snappy`, `minimal`). |
+| `--caption-style` | `string` | `None` *(hereda del diseño)* | Estilo de subtítulos cinéticos (`highlight_pill`, `minimal_clean`). |
 | `--set` | `list[k=v]` | `None` | Overrides granulares de Nivel 3 (`--set accent_primary=#ff5500 --set stage_gap=56px`). |
 | `--title` | `string` | `None` | Titulo principal para inyectar en la etiqueta `<h1>` o `#card-title` de `index.html`. |
 | `--duration` | `float` | `None` | Duracion total en segundos para el atributo `data-duration`. |
@@ -119,21 +119,18 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 
 1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
-   * `cyber_glass` *(Defecto)*: Glassmorphism y física de cristal esmerilado (`blur(32px) saturate(190%)`), controles estilo macOS (`macos_dots`), esquinas `24px` y orbes de luz en segundo plano.
-   * `clean_studio`: Estilo Apple Keynote / Stripe corporativo en fondo blanco con orbes cálidos, tarjetas blancas puras con bisel sutil, sombras multicapa y chips KPI.
-   * `swiss_editorial`: Retícula editorial suiza con bordes rectos (`2px`), filetes superiores gruesos (`4px solid`), sin botones de ventana (`minimal_line`), tema nativo `minimal_light` y animación `smooth`.
-   * `brutalist_terminal`: Estética neo-brutalista con esquinas a 90 grados (`0px`), bordes gruesos (`2px`) y sombra dura desplazada (`8px 8px 0px`), barra TUI (`terminal_bar`), tema nativo `terminal_hacker` y animación `snappy`.
-   * `cinematic_studio`: Encuadre de estudio con curvas amplias (`28px`), franja lateral de acento (`6px solid`), tarjetas limpias sin cabecera (`hidden`), tema nativo `linear_violet` y subtítulos `pop_scale`.
-   * `bento_grid`: Tarjetas modulares estilo Bento con radios de `24px`, borde interno iluminado (`minimal_line`), tema nativo `dracula_pro` y subtítulos `underline_bar`.
-   * `academic_paper`: Publicación científica y algorítmica con filetes clásicos (`3px solid` / `1px solid`), esquinas sobrias (`4px`), tema cálido `solarized_sand` y subtítulos `minimal_clean`.
+   * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), franja lateral de acento (`6px solid`), tarjetas limpias (`hidden`), tema nativo `dark_violet` y subtítulos `highlight_pill`.
+   * `editorial`: Estética cálida de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), filetes superior/inferior (`3px solid` / `1px solid`), tema cálido `paper_warm` y subtítulos `minimal_clean`.
+   * `clean`: Tarjetas blancas minimalistas con radios de `24px`, sombras multicapa suaves, tema nativo `clean_light` y animación `smooth`.
+   * `terminal`: Estética TUI con esquinas a 90 grados (`0px`), bordes de `2px`, sombra dura desplazada (`8px 8px 0px`), barra `terminal_bar`, tema nativo `terminal_green` y animación `snappy`.
 
 2. **Nivel 2 — Opciones Internas dentro de un mismo Diseño:**
    Permite personalizar sub-dimensiones manteniendo el Diseño Macro activo:
-   * **Temas Cromáticos (`-s, --style`):** `cyber_dark`, `minimal_light`, `terminal_hacker`, `linear_violet`, `blueprint_cad`, `dracula_pro`, `solarized_sand`, `crimson_ops`.
-   * **Distribución de Escenario (`--layout`):** `standard` (2 columnas simétricas, lower-third izquierda), `asymmetric_focus` (proporción 60/40, lower-third derecha), `stacked` (filas apiladas verticales), `compact_hud` (márgenes amplios).
-   * **Marco de Ventanas (`--chrome`):** `auto`, `macos_dots`, `terminal_bar`, `minimal_line`, `hidden`.
-   * **Perfil de Animación GSAP (`--motion`):** `dynamic`, `smooth`, `snappy`, `minimal`.
-   * **Estilo de Subtítulos (`--caption-style`):** `karaoke_glow`, `highlight_pill`, `pop_scale`, `minimal_clean`, `underline_bar`, `box_invert`.
+   * **Temas Cromáticos (`-s, --style`):** `dark_violet`, `paper_warm`, `clean_light`, `terminal_green`.
+   * **Distribución de Escenario (`--layout`):** `standard` (2 columnas simétricas, lower-third izquierda), `asymmetric_focus` (proporción 60/40, lower-third derecha), `stacked` (filas apiladas verticales).
+   * **Marco de Ventanas (`--chrome`):** `auto`, `hidden`, `minimal_line`, `terminal_bar`.
+   * **Perfil de Animación GSAP (`--motion`):** `smooth`, `snappy`, `minimal`.
+   * **Estilo de Subtítulos (`--caption-style`):** `highlight_pill`, `minimal_clean`.
 
 3. **Nivel 3 — Ajustes Granulares sobre un solo Diseño (`--set clave=valor`):**
    Permite modificar propiedades específicas únicamente en el proyecto/diseño actual (persistidas en `package.json` bajo `videoDesign.overrides`) e inspeccionar la configuración activa con `--inspect`:
@@ -142,8 +139,8 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 # Listar catálogo completo de los 3 niveles (o en JSON con --json)
 python3 core/pipeline.py style --list
 
-# Nivel 1: Cambiar todo el proyecto a otro Diseño Macro diferente (ej. Swiss Editorial o Bento Grid)
-python3 core/pipeline.py style mi-proyecto -d swiss_editorial
+# Nivel 1: Cambiar todo el proyecto a otro Diseño Macro diferente (ej. editorial o terminal)
+python3 core/pipeline.py style mi-proyecto -d editorial
 
 # Nivel 2: Dentro de ese mismo diseño, elegir opciones internas (layout, marco, paleta o motion)
 python3 core/pipeline.py style mi-proyecto --layout asymmetric_focus --chrome hidden --motion smooth

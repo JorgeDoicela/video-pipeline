@@ -63,7 +63,7 @@ flowchart LR
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-style="cyber_dark" data-start="0" data-duration="15" data-width="1920" data-height="1080">
+    <div id="root" data-composition-id="main" data-style="dark_violet" data-start="0" data-duration="15" data-width="1920" data-height="1080">
       <video id="bg-video" src="cut.mp4" data-start="0" data-duration="15" muted></video>
       <div id="card" class="lower-third">
         <h3 style="margin:0 0 6px 0; font-size: 28px;">Base de Datos Distribuida</h3>
@@ -158,23 +158,17 @@ El pipeline permite renderizar en cualquier relacion de aspecto ajustando los at
 | **Square (Cuadrado)** | `1080x1080` | 1:1 | Instagram Feed, LinkedIn Feed | Lectura equilibrada en timelines de escritorio y movil. Maxima atencion en publicaciones estaticas con video integrado. |
 | **Feed Portrait** | `1080x1350` | 4:5 | Instagram Post Feed | Maxima cobertura vertical dentro del feed estandar de Instagram sin entrar al visor de Reels. |
 
-### 4.1. Catálogo Completo de las 11 Plantillas Disponibles en `templates/`
+### 4.1. Catálogo Completo de las 5 Plantillas Esenciales en `templates/`
 
-Para cubrir múltiples tipologías de videos técnicos, educativos, editoriales y de divulgación sin diseñar desde cero, el directorio `templates/` proporciona **11 plantillas especializadas**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../../core/styles.py)):
+Para cubrir producción vertical (TikTok/Reels/Shorts) y horizontal (YouTube/Presentaciones) sin sobrecarga operativa, el directorio `templates/` proporciona **5 plantillas esenciales**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../../core/styles.py)):
 
 | Plantilla (`-t`) | Resolución / Ratio | Categoría | Componentes y Estructura Visual |
 | :--- | :--- | :--- | :--- |
-| `landscape_16_9` | `1920x1080` (16:9) | Comparativa / Widescreen | Escenario dividido en dos paneles (`split-stage`) para contrastar arquitecturas, patrones o antes/después en YouTube. |
-| `portrait_9_16` | `1080x1920` (9:16) | Social Vertical (Sin Rostro) | Zonas seguras calibradas para Shorts/Reels/TikTok, ventana de código central y contenedor de subtítulos cinéticos a `y: 1420px`. |
-| `square_1_1` | `1080x1080` (1:1) | Microlearning Feed | Formato cuadrado 1:1 con ventana técnica central para publicaciones de alto impacto en feeds de LinkedIn e Instagram. |
-| `feed_4_5` | `1080x1350` (4:5) | Feed Móvil Vertical | Formato 4:5 que maximiza el área vertical en timelines móviles de LinkedIn e Instagram con ventana de código y tarjetas de métricas KPI. |
-| `talking_head` | `1920x1080` (16:9) | Presentador Widescreen | Video de cámara o screencast a pantalla completa (`cut.mp4`), tarjeta *lower-third* animada y subtítulos cinéticos sincronizados. |
+| `short_quote_9_16` | `1080x1920` (9:16) | Citas / Versículos / Reflexión | Tarjeta tipográfica vertical sin código con cita principal, referencia o autor, contexto editorial y subtítulos cinéticos en zonas seguras. |
+| `short_tech_9_16` | `1080x1920` (9:16) | Vertical Técnico (Sin Rostro) | Zonas seguras calibradas para Shorts/Reels/TikTok, ventana de código central y contenedor de subtítulos cinéticos a `y: 1420px`. |
 | `talking_head_9_16` | `1080x1920` (9:16) | Presentador Vertical | Video de presentador vertical para Shorts/Reels/TikTok con insignia superior, tarjeta flotante y subtítulos dentro de zonas seguras. |
-| `tech_explainer` | `1920x1080` (16:9) | Diagrama de Sistemas SVG | Nodos vectoriales SVG de infraestructura, enlaces de red y paquetes de datos animados mediante coordenadas GSAP. |
-| `code_walkthrough` | `1920x1080` (16:9) | Auditoría de Código IDE | Ventana de editor de código numerada que resalta secuencialmente bloques de líneas sincronizados con tarjetas laterales de arquitectura. |
-| `benchmark_chart` | `1920x1080` (16:9) | Telemetría y Rendimiento | Barras comparativas animadas (throughput, latencia, consumo) acompañadas de paneles laterales de indicadores clave (KPIs). |
-| `verse_quote_9_16` | `1080x1920` (9:16) | Citas / Versículos / Reflexión | Tarjeta tipográfica vertical con cita principal, referencia o autor, contexto editorial y subtítulos cinéticos en zonas seguras. |
-| `editorial_story` | `1920x1080` (16:9) | Narrativa Editorial / Historia / Ensayo | Escenario dividido widescreen con crónica principal, referencia temática y panel lateral de puntos clave sin bloques de código. |
+| `editorial_16_9` | `1920x1080` (16:9) | Narrativa Editorial / Historia / Ensayo | Escenario dividido widescreen con crónica principal, referencia temática y panel lateral de puntos clave sin bloques de código. |
+| `talking_head_16_9` | `1920x1080` (16:9) | Presentador Widescreen | Video de cámara o screencast a pantalla completa (`cut.mp4`), tarjeta *lower-third* animada y subtítulos cinéticos sincronizados. |
 
 ---
 

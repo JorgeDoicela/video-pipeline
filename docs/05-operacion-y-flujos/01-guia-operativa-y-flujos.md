@@ -14,18 +14,18 @@ cd video-pipeline
 python3 core/pipeline.py produce \
   -i /ruta/a/grabacion_cruda.mp4 \
   -p tutorial-kubernetes \
-  -t talking_head \
-  -d cyber_glass \
-  -s cyber_dark \
+  -t talking_head_16_9 \
+  -d cinematic \
+  -s dark_violet \
   --layout standard \
-  --caption-style karaoke_glow \
+  --caption-style highlight_pill \
   --title "Arquitectura Kubernetes en 60s" \
   --auto-render
 ```
 
 > [!TIP]
-> Puedes elegir cualquiera de los **7 Diseños Macro** (`-d cyber_glass`, `-d clean_studio`, `-d swiss_editorial`, `-d brutalist_terminal`, `-d cinematic_studio`, `-d bento_grid`, `-d academic_paper`), cualquiera de las **8 paletas cromáticas** (`-s`) y cualquiera de las **11 plantillas** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
-> `python3 core/pipeline.py style tutorial-kubernetes -d swiss_editorial --layout asymmetric_focus --caption-style box_invert`
+> Puedes elegir cualquiera de los **4 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`, `-d terminal`), cualquiera de las **4 paletas cromáticas** (`-s`) y cualquiera de las **5 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
+> `python3 core/pipeline.py style tutorial-kubernetes -d editorial --layout asymmetric_focus --caption-style minimal_clean`
 
 Este comando ejecuta automáticamente:
 1. Scaffolding del proyecto desde la plantilla especificada.
@@ -55,22 +55,23 @@ flowchart TD
 ---
 
 ### Paso 1: Inicializar el Proyecto mediante Scaffolding
-Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **11 plantillas especializadas** y los **7 Diseños Macro**:
+Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **5 plantillas esenciales** y los **4 Diseños Macro**:
 
 ```bash
 cd video-pipeline
 
-# 1. Video vertical 9:16 para Shorts/Reels/TikTok con diseño Cyber Glass
-python3 core/create_project.py mi-video -t portrait_9_16 -d cyber_glass --title "Título de Alto Impacto"
+# 1. Video vertical 9:16 para citas, versículos y reflexiones (sin código)
+python3 core/create_project.py salmo-23 -t short_quote_9_16 -d editorial --title "Salmo 23"
 
-# 2. Presentador vertical 9:16 o horizontal 16:9 con subtítulos cinéticos
-python3 core/create_project.py reel-presentador -t talking_head_9_16 -d cinematic_studio
-python3 core/create_project.py youtube-presentador -t talking_head -d swiss_editorial
+# 2. Video vertical 9:16 para tips técnicos y código
+python3 core/create_project.py tip-docker -t short_tech_9_16 -d cinematic --title "Docker en 60s"
 
-# 3. Walkthrough de código IDE, Benchmark de rendimiento o Diagrama SVG
-python3 core/create_project.py revision-codigo -t code_walkthrough -d brutalist_terminal
-python3 core/create_project.py comparativa-db -t benchmark_chart -d bento_grid
-python3 core/create_project.py flujo-eventos -t tech_explainer -d academic_paper
+# 3. Presentador vertical 9:16 o horizontal 16:9 con subtítulos cinéticos
+python3 core/create_project.py reel-presentador -t talking_head_9_16 -d cinematic
+python3 core/create_project.py youtube-presentador -t talking_head_16_9 -d clean
+
+# 4. Narrativa widescreen 16:9 para historia, ensayos o divulgación
+python3 core/create_project.py historia-roma -t editorial_16_9 -d editorial
 ```
 
 Si cuentas con una grabacion de audio o camara en crudo, copiala al directorio del proyecto:

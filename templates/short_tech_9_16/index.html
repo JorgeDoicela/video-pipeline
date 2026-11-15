@@ -6,46 +6,46 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
       /* @theme:start */
-      /* Design: cyber_glass | Theme: cyber_dark | Layout: standard */
+      /* Design: cinematic | Theme: dark_violet | Layout: standard */
       :root {
-        --design-slug: "cyber_glass";
-        --theme-slug: "cyber_dark";
+        --design-slug: "cinematic";
+        --theme-slug: "dark_violet";
         --layout-slug: "standard";
-        --bg: #070b14;
-        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.12) 0%, transparent 70%);
-        --surface: rgba(16, 23, 42, 0.88);
-        --surface-elevated: rgba(255, 255, 255, 0.03);
-        --border: rgba(56, 189, 248, 0.25);
-        --border-strong: rgba(56, 189, 248, 0.65);
+        --bg: #09090b;
+        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(167, 139, 250, 0.14) 0%, transparent 70%);
+        --surface: rgba(24, 24, 27, 0.90);
+        --surface-elevated: rgba(255, 255, 255, 0.04);
+        --border: rgba(167, 139, 250, 0.26);
+        --border-strong: rgba(167, 139, 250, 0.65);
         --divider: rgba(255, 255, 255, 0.08);
-        --shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
-        --text-primary: #f8fafc;
-        --text-secondary: #cbd5e1;
-        --text-muted: #94a3b8;
-        --title-gradient: linear-gradient(135deg, #ffffff 40%, #94a3b8 100%);
+        --shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+        --text-primary: #fafafa;
+        --text-secondary: #e4e4e7;
+        --text-muted: #a1a1aa;
+        --title-gradient: linear-gradient(135deg, #fafafa 40%, #a78bfa 100%);
         --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
         --font-mono: 'JetBrains Mono', monospace;
-        --accent-primary: #38bdf8;
-        --accent-primary-soft: rgba(56, 189, 248, 0.12);
-        --accent-primary-glow: rgba(56, 189, 248, 0.35);
-        --accent-secondary: #10b981;
-        --accent-secondary-soft: rgba(16, 185, 129, 0.12);
-        --accent-tertiary: #c084fc;
+        --accent-primary: #a78bfa;
+        --accent-primary-soft: rgba(167, 139, 250, 0.14);
+        --accent-primary-glow: rgba(167, 139, 250, 0.35);
+        --accent-secondary: #34d399;
+        --accent-secondary-soft: rgba(52, 211, 153, 0.14);
+        --accent-tertiary: #f472b6;
         --accent-warning: #fbbf24;
-        --accent-danger: #f43f5e;
-        --node-fill: #10172a;
-        --cable-idle: #1e293b;
+        --accent-danger: #fb7185;
+        --node-fill: #18181b;
+        --cable-idle: #3f3f46;
         --caption-bg: transparent;
-        --caption-text: #f8fafc;
-        --caption-active: #38bdf8;
+        --caption-text: #fafafa;
+        --caption-active: #a78bfa;
         --caption-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
-        --caption-glow: 0 0 16px #38bdf8;
+        --caption-glow: 0 0 16px #a78bfa;
         /* Tokens estructurales de Diseño Macro y Layout */
-        --radius-lg: 24px;
-        --radius-md: 14px;
-        --radius-sm: 8px;
+        --radius-lg: 28px;
+        --radius-md: 16px;
+        --radius-sm: 999px;
         --border-width: 1px;
-        --panel-backdrop: blur(32px) saturate(190%);
+        --panel-backdrop: blur(24px);
         --badge-radius: 999px;
         --stage-padding: 80px 100px;
         --stage-gap: 40px;
@@ -223,7 +223,7 @@
         text-transform: uppercase;
       }
       /* @caption-style:start */
-      /* Caption Style: karaoke_glow */
+      /* Caption Style: highlight_pill */
       .caption-phrase {
         display: inline-block;
         background: var(--caption-bg);
@@ -232,18 +232,22 @@
       }
       .word {
         display: inline-block;
-        opacity: 0.25;
+        opacity: 0.45;
         color: var(--caption-text);
         margin: 0 4px;
       }
       .word.active {
         opacity: 1;
         color: var(--caption-active);
-        text-shadow: var(--caption-glow);
+        background: var(--accent-primary-soft);
+        border: 1px solid var(--border-strong);
+        border-radius: var(--radius-sm, 8px);
+        padding: 2px 10px;
+        text-shadow: none;
       }
       /* @caption-style:end */
       /* @design-system:start */
-      /* Macro Design: cyber_glass | Layout: standard | Chrome: macos_dots */
+      /* Macro Design: cinematic | Layout: standard | Chrome: hidden */
       .panel, #main-card, #main-window, .node-glass {
         border-radius: var(--radius-lg);
         border: var(--border-width) solid var(--border);
@@ -261,19 +265,16 @@
         bottom: var(--caption-bottom);
         font-size: var(--caption-size);
       }
-      .panel, #main-card, #main-window, .clean-card, .node-glass {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        border-top: 1.5px solid rgba(255, 255, 255, 0.45);
-        border-left: 1.5px solid rgba(255, 255, 255, 0.35);
-        box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.70), inset 0 1px 1px 0 rgba(255, 255, 255, 0.40);
-        backdrop-filter: blur(32px) saturate(190%);
-        -webkit-backdrop-filter: blur(32px) saturate(190%);
+      .panel, #main-card, #main-window {
+        border-left: 6px solid var(--accent-primary);
       }
       .lower-third {
         left: 80px;
         right: auto;
         border-radius: var(--radius-md);
+      }
+      .window-header, .win-bar, .code-header {
+        display: none;
       }
       /* @design-system:end */
     
@@ -313,11 +314,11 @@
       id="root"
       data-composition-id="main"
       data-hold
-      data-motion="dynamic"
+      data-motion="smooth"
       data-layout="standard"
-      data-design="cyber_glass"
-      data-style="cyber_dark"
-      data-caption-style="karaoke_glow"
+      data-design="cinematic"
+      data-style="dark_violet"
+      data-caption-style="highlight_pill"
       data-start="0"
       data-duration="10"
       data-width="1080"
@@ -381,8 +382,8 @@
       const tl = gsap.timeline({ paused: true });
 
       // Entrada Cinemática Vertical
-      tl.from("#header", { y: -24, duration: 0.8, ease: "power3.out" }, 0.0);
-      tl.from("#main-card", { opacity: 0, scale: 0.92, y: 50, duration: 0.8, ease: "back.out(1.5)" }, 0.3);
+      tl.from("#header", { y: -24, duration: 0.95, ease: "power2.out" }, 0.0);
+      tl.from("#main-card", { opacity: 0, scale: 0.92, y: 50, duration: 0.95, ease: "power3.out" }, 0.3);
 
       // @captions-gsap:start
       // Sincronización palabra por palabra de ejemplo

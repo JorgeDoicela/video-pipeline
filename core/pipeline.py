@@ -78,7 +78,7 @@ def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProce
 def produce_pipeline(
     input_media: str,
     project_name: str,
-    template: str = "talking_head",
+    template: str = "talking_head_16_9",
     design: str = DEFAULT_DESIGN,
     style: str | None = None,
     layout: str | None = None,
@@ -220,9 +220,7 @@ def produce_pipeline(
         print("\nComando para previsualizar:")
         print(f"  pnpm exec hyperframes preview {project_dir}")
         print("Comando para cambiar a otro Diseño Macro o ajustar opciones:")
-        print(
-            f"  python3 core/pipeline.py style {project_dir.name} -d swiss_editorial -s minimal_light"
-        )
+        print(f"  python3 core/pipeline.py style {project_dir.name} -d editorial -s paper_warm")
         print("Comando para renderizar MP4:")
         print(f"  pnpm exec hyperframes render {project_dir} -o {final_output}")
     print("=" * 65 + "\n")
@@ -287,7 +285,7 @@ def main():
     p_produce.add_argument(
         "-t",
         "--template",
-        default="talking_head",
+        default="talking_head_16_9",
         choices=list(AVAILABLE_TEMPLATES.keys()),
         help="Plantilla base para el proyecto",
     )
@@ -347,7 +345,7 @@ def main():
     p_sc.add_argument(
         "-t",
         "--template",
-        default="portrait_9_16",
+        default="short_quote_9_16",
         choices=list(AVAILABLE_TEMPLATES.keys()),
     )
     _add_design_arguments(p_sc, default_design=DEFAULT_DESIGN)

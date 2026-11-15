@@ -46,20 +46,16 @@ def test_pipeline_subcommand_style_list():
         text=True,
         check=True,
     )
-    assert "cyber_glass" in res.stdout
-    assert "clean_studio" in res.stdout
-    assert "bento_grid" in res.stdout
-    assert "academic_paper" in res.stdout
-    assert "cyber_dark" in res.stdout
-    assert "minimal_light" in res.stdout
-    assert "terminal_hacker" in res.stdout
-    assert "linear_violet" in res.stdout
-    assert "blueprint_cad" in res.stdout
-    assert "dracula_pro" in res.stdout
-    assert "solarized_sand" in res.stdout
-    assert "crimson_ops" in res.stdout
-    assert "underline_bar" in res.stdout
-    assert "box_invert" in res.stdout
+    assert "cinematic" in res.stdout
+    assert "editorial" in res.stdout
+    assert "clean" in res.stdout
+    assert "terminal" in res.stdout
+    assert "dark_violet" in res.stdout
+    assert "paper_warm" in res.stdout
+    assert "clean_light" in res.stdout
+    assert "terminal_green" in res.stdout
+    assert "highlight_pill" in res.stdout
+    assert "minimal_clean" in res.stdout
 
 
 def test_resolve_pnpm(monkeypatch):

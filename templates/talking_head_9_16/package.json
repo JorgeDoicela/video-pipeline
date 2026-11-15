@@ -4,6 +4,16 @@
   "private": true,
   "dependencies": {
     "hyperframes": "0.9.18"
+  },
+  "videoStyle": "dark_violet",
+  "captionStyle": "highlight_pill",
+  "videoDesign": {
+    "design": "cinematic",
+    "style": "dark_violet",
+    "layout": "standard",
+    "chrome": "hidden",
+    "motion": "smooth",
+    "captionStyle": "highlight_pill",
+    "overrides": {}
   }
 }
-

@@ -6,10 +6,10 @@
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
       /* @theme:start */
-      /* Design: academic_paper | Theme: solarized_sand | Layout: standard */
+      /* Design: editorial | Theme: paper_warm | Layout: standard */
       :root {
-        --design-slug: "academic_paper";
-        --theme-slug: "solarized_sand";
+        --design-slug: "editorial";
+        --theme-slug: "paper_warm";
         --layout-slug: "standard";
         --bg: #fdf6e3;
         --bg-gradient: radial-gradient(circle at 50% 20%, rgba(3, 105, 161, 0.06) 0%, transparent 70%);
@@ -18,7 +18,7 @@
         --border: rgba(7, 54, 66, 0.18);
         --border-strong: rgba(3, 105, 161, 0.60);
         --divider: rgba(7, 54, 66, 0.12);
-        --shadow: 0 16px 40px rgba(7, 54, 66, 0.08);
+        --shadow: none;
         --text-primary: #073642;
         --text-secondary: #1e293b;
         --text-muted: #475569;
@@ -40,6 +40,7 @@
         --caption-active: #0369a1;
         --caption-shadow: 0 2px 8px rgba(7, 54, 66, 0.12);
         --caption-glow: none;
+        /* Tokens estructurales de Diseño Macro y Layout */
         --radius-lg: 4px;
         --radius-md: 4px;
         --radius-sm: 2px;
@@ -52,6 +53,22 @@
         --header-align: left;
         --caption-bottom: 220px;
         --caption-size: 52px;
+        /* Alias de compatibilidad con plantillas existentes */
+        --card: var(--surface);
+        --card-bg: var(--surface);
+        --panel-bg: var(--surface);
+        --border-color: var(--border);
+        --card-border: var(--border);
+        --panel-border: var(--border);
+        --text: var(--text-primary);
+        --text-sub: var(--text-muted);
+        --text-code: var(--text-secondary);
+        --cyan: var(--accent-primary);
+        --cyan-glow: var(--accent-primary-glow);
+        --green: var(--accent-secondary);
+        --purple: var(--accent-tertiary);
+        --gold: var(--accent-warning);
+        --red: var(--accent-danger);
       }
       /* @theme:end */
 
@@ -177,7 +194,6 @@
         letter-spacing: 0.08em;
         text-transform: uppercase;
       }
-
       /* @caption-style:start */
       /* Caption Style: minimal_clean */
       .caption-phrase {
@@ -198,9 +214,8 @@
         text-shadow: var(--caption-shadow);
       }
       /* @caption-style:end */
-
       /* @design-system:start */
-      /* Macro Design: academic_paper | Layout: standard | Chrome: hidden */
+      /* Macro Design: editorial | Layout: standard | Chrome: hidden */
       .panel, #main-card, #main-window, .node-glass {
         border-radius: var(--radius-lg);
         border: var(--border-width) solid var(--border);
@@ -241,8 +256,8 @@
     <div
       id="root"
       data-composition-id="main"
-      data-design="academic_paper"
-      data-style="solarized_sand"
+      data-design="editorial"
+      data-style="paper_warm"
       data-layout="standard"
       data-motion="minimal"
       data-caption-style="minimal_clean"

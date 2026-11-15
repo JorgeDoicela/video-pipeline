@@ -65,14 +65,8 @@ jobs:
 
       - name: Validate Templates
         run: |
-          pnpm exec hyperframes check templates/landscape_16_9
-          pnpm exec hyperframes check templates/portrait_9_16
-          pnpm exec hyperframes check templates/square_1_1
-          pnpm exec hyperframes check templates/feed_4_5
-          pnpm exec hyperframes check templates/talking_head
+          pnpm exec hyperframes check templates/short_quote_9_16
+          pnpm exec hyperframes check templates/short_tech_9_16
           pnpm exec hyperframes check templates/talking_head_9_16
-          pnpm exec hyperframes check templates/tech_explainer
-          pnpm exec hyperframes check templates/code_walkthrough
-          pnpm exec hyperframes check templates/benchmark_chart
-          pnpm exec hyperframes check templates/verse_quote_9_16
-          pnpm exec hyperframes check templates/editorial_story
+          pnpm exec hyperframes check templates/editorial_16_9
+          pnpm exec hyperframes check templates/talking_head_16_9

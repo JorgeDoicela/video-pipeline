@@ -82,9 +82,9 @@ pnpm run test:py
 ### Paso 6: Ejecutar tu Primer Video de Prueba (End-to-End)
 ```bash
 python3 core/pipeline.py produce \
-  -i templates/talking_head/cut.mp4 \
+  -i templates/talking_head_16_9/cut.mp4 \
   -p mi-primer-video \
-  -t talking_head \
+  -t talking_head_16_9 \
   --title "Hola Mundo Programático" \
   --auto-render
 ```
@@ -95,34 +95,26 @@ El video final quedará disponible en `projects/mi-primer-video/video_mi-primer-
 
 ## 3. Modelos de Video, Plantillas y Sistemas de Diseño
 
-El sistema cuenta con **11 plantillas especializadas** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--chrome`, `--motion`, `--caption-style`, `--set`):
+El sistema cuenta con **5 plantillas esenciales** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--chrome`, `--motion`, `--caption-style`, `--set`):
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
-* **Grabación a Cámara o Pantalla (Talking Head):**
-  * `talking_head` (`1920x1080` 16:9): Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
-  * `talking_head_9_16` (`1080x1920` 9:16): Presentador vertical para Shorts, Reels y TikTok con zonas seguras calibradas.
-* **Explicadores Técnicos, Código y Telemetría (Sin Rostro):**
-  * `tech_explainer` (`1920x1080` 16:9): Diagramas de arquitectura de sistemas SVG con flujo animado de paquetes de red.
-  * `code_walkthrough` (`1920x1080` 16:9): Editor de código IDE con resaltado secuencial de líneas y notas laterales de arquitectura.
-  * `benchmark_chart` (`1920x1080` 16:9): Gráficos de barras comparativas animadas (throughput, latencia, memoria) y paneles KPI.
-* **Narrativa Editorial, Citas y Multitemática (Sin Código):**
-  * `verse_quote_9_16` (`1080x1920` 9:16): Formato vertical para citas, versículos bíblicos, reflexiones y narrativa breve con zonas seguras.
-  * `editorial_story` (`1920x1080` 16:9): Narrativa widescreen para ensayos, historia, teología o divulgación general con puntos clave.
-* **Formatos Multicanal y Microlearning:**
-  * `landscape_16_9` (`1920x1080` 16:9): Escenario dividido (*split-stage*) para comparativas técnicas en YouTube y escritorio.
-  * `portrait_9_16` (`1080x1920` 9:16): Tarjeta de código vertical con subtítulos cinéticos para TikTok, Reels y Shorts.
-  * `square_1_1` (`1080x1080` 1:1): Formato cuadrado para feeds técnicos de LinkedIn e Instagram.
-  * `feed_4_5` (`1080x1350` 4:5): Formato vertical 4:5 de máxima cobertura en el feed móvil de LinkedIn e Instagram.
+* **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
+  * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
+  * `short_tech_9_16`: Tarjeta de código y terminal vertical con subtítulos cinéticos.
+  * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
+* **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
+  * `editorial_16_9`: Narrativa widescreen para ensayos, historia, teología o divulgación con puntos clave.
+  * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 
 ### 3.2. Arquitectura de Diseño Componible en 3 Niveles (`core/styles.py`)
-1. **Nivel 1 — Diseños Macro (`-d, --design`):** `cyber_glass` (defecto), `clean_studio` (Apple Keynote / Stripe Light), `swiss_editorial`, `brutalist_terminal`, `cinematic_studio`, `bento_grid`, `academic_paper`.
+1. **Nivel 1 — Diseños Macro (`-d, --design`):** `cinematic` (defecto), `editorial`, `clean`, `terminal`.
 2. **Nivel 2 — Opciones Internas:**
-   * **8 Paletas WCAG AA (`-s, --style`):** `cyber_dark`, `minimal_light`, `terminal_hacker`, `linear_violet`, `blueprint_cad`, `dracula_pro`, `solarized_sand`, `crimson_ops`.
-   * **4 Layouts (`--layout`):** `standard`, `asymmetric_focus`, `stacked`, `compact_hud`.
-   * **5 Marcos de Ventana (`--chrome`):** `auto`, `macos_dots`, `terminal_bar`, `minimal_line`, `hidden`.
-   * **4 Perfiles GSAP (`--motion`):** `dynamic`, `smooth`, `snappy`, `minimal`.
-   * **6 Estilos de Subtítulos (`--caption-style`):** `karaoke_glow`, `highlight_pill`, `pop_scale`, `minimal_clean`, `underline_bar`, `box_invert`.
-3. **Nivel 3 — Overrides Granulares (`--set clave=valor`):** Ajuste puntual por proyecto (`accent_primary`, `radius_lg`, `stage_gap`, `shadow_card`, etc.) persistido en `package.json` (`videoDesign`).
+   * **4 Paletas WCAG AA (`-s, --style`):** `dark_violet`, `paper_warm`, `clean_light`, `terminal_green`.
+   * **3 Layouts (`--layout`):** `standard`, `asymmetric_focus`, `stacked`.
+   * **4 Marcos de Ventana (`--chrome`):** `auto`, `hidden`, `minimal_line`, `terminal_bar`.
+   * **3 Perfiles GSAP (`--motion`):** `smooth`, `snappy`, `minimal`.
+   * **2 Estilos de Subtítulos (`--caption-style`):** `highlight_pill` (defecto), `minimal_clean`.
+3. **Nivel 3 — Overrides Granulares (`--set clave=valor`):** Ajuste puntual por proyecto (`accent_primary`, `radius_lg`, `stage_gap`, etc.) persistido en `package.json` (`videoDesign`).
 
 ---
 
@@ -189,18 +181,12 @@ video-pipeline/
 │   │   └── 02-recursos-y-assets.md
 │   └── 05-operacion-y-flujos/
 │       └── 01-guia-operativa-y-flujos.md
-├── templates/              # Catálogo de 11 plantillas base integradas con Design Tokens
-│   ├── portrait_9_16/     # TikTok, Reels, Shorts (1080x1920 con Safe Zones)
-│   ├── landscape_16_9/    # YouTube y Desktop (1920x1080 Widescreen Split-Stage)
-│   ├── square_1_1/        # Feeds de Instagram y LinkedIn (1080x1080)
-│   ├── feed_4_5/          # Feed vertical móvil para LinkedIn e Instagram (1080x1350)
-│   ├── talking_head/      # Presentador 16:9 con lower-thirds y subtítulos cinéticos
-│   ├── talking_head_9_16/ # Presentador vertical 9:16 para Shorts/Reels/TikTok
-│   ├── tech_explainer/    # Diagramas de infraestructura SVG y flujo de paquetes
-│   ├── code_walkthrough/  # Auditoría de código IDE con resaltado paso a paso
-│   ├── benchmark_chart/   # Telemetría comparativa y barras de rendimiento animadas
-│   ├── verse_quote_9_16/  # Citas, versículos y reflexiones en formato vertical 9:16
-│   └── editorial_story/   # Narrativa histórica, bíblica y ensayos en 16:9
+├── templates/              # Catálogo de 5 plantillas esenciales integradas con Design Tokens
+│   ├── short_quote_9_16/  # TikTok/Reels/Shorts citas, versículos y reflexiones (1080x1920)
+│   ├── short_tech_9_16/   # TikTok/Reels/Shorts código y tecnología (1080x1920)
+│   ├── talking_head_9_16/ # Presentador vertical 9:16 para Shorts/Reels/TikTok (1080x1920)
+│   ├── editorial_16_9/    # Narrativa histórica, bíblica y ensayos en 16:9 (1920x1080)
+│   └── talking_head_16_9/ # Presentador widescreen 16:9 con lower-thirds (1920x1080)
 ├── projects/               # Espacio de trabajo local (ignorado en Git salvo .gitkeep)
 ├── .agents/                # Directrices de ingeniería y memoria técnica para agentes de IA
 │   ├── AGENTS.md
@@ -224,8 +210,8 @@ Consulta el catalogo maestro:
 1. [01 — Arquitectura del Sistema](docs/01-arquitectura/01-arquitectura-sistema.md): Separacion en 3 capas (Debian, Nix, Workspace), filosofia de coste cero y topologia del pipeline.
 2. [02 — Núcleo de Procesamiento y CLI](docs/02-nucleo-y-cli/01-nucleo-procesamiento.md): Especificacion de `faster-whisper`, esquema de `transcript.json`, filtros de corte en FFmpeg y CLI de orquestacion.
 3. [03.1 — Motor de Renderizado (HyperFrames)](docs/03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md): Modelo temporal en segundos, Chromium Headless Shell y aceleracion por hardware GPU.
-4. [03.2 — Formatos de Video Soportados](docs/03-renderizado-y-formatos/02-formatos-de-video.md): Contratos de diseño y catalogo de las 11 plantillas de video.
-5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (7 Diseños Macro, 8 Temas WCAG AA, Layouts, Chrome, Motion, 6 Estilos de Subtitulos y Overrides `--set`).
+4. [03.2 — Formatos de Video Soportados](docs/03-renderizado-y-formatos/02-formatos-de-video.md): Contratos de diseño y catalogo de las 5 plantillas esenciales (9:16 y 16:9).
+5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (4 Diseños Macro, 4 Temas WCAG AA, 3 Layouts, 4 Marcos, 3 Perfiles Motion, 2 Estilos de Subtítulos y Overrides `--set`).
 6. [04.2 — Recursos Estáticos y Assets](docs/04-sistema-de-diseno/02-recursos-y-assets.md): Efectos de sonido WAV, iconografia tecnica SVG y tipografias locales.
 7. [05 — Guía Operativa y Flujos de Trabajo](docs/05-operacion-y-flujos/01-guia-operativa-y-flujos.md): Runbooks secuenciales desde la grabacion hasta la exportacion final.
 

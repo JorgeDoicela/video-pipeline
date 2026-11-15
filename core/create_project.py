@@ -30,17 +30,11 @@ from core.styles import (  # noqa: E402
 )
 
 AVAILABLE_TEMPLATES = {
-    "portrait_9_16": "Formato vertical 9:16 (1080x1920) para TikTok, Instagram Reels y YouTube Shorts",
-    "landscape_16_9": "Formato horizontal 16:9 (1920x1080) para YouTube y presentaciones widescreen",
-    "square_1_1": "Formato cuadrado 1:1 (1080x1080) para feeds de LinkedIn, Twitter e Instagram",
-    "feed_4_5": "Formato vertical 4:5 (1080x1350) de alta cobertura para feeds móviles de LinkedIn e Instagram",
-    "talking_head": "Video horizontal 16:9 con presentador, lower-third animado y subtítulos cinéticos",
-    "talking_head_9_16": "Video vertical 9:16 con presentador para Shorts/Reels/TikTok y subtítulos en zona segura",
-    "tech_explainer": "Diagramas de arquitectura SVG interactivos con nodos animados y flujo de paquetes",
-    "code_walkthrough": "Explicación de código paso a paso con resaltado progresivo de líneas en GSAP",
-    "benchmark_chart": "Comparativa de rendimiento con barras animadas y KPIs de latencia/throughput",
-    "verse_quote_9_16": "Formato vertical 9:16 (1080x1920) para citas, versículos, reflexiones y narrativa breve",
-    "editorial_story": "Formato horizontal 16:9 (1920x1080) para narrativa histórica, bíblica, ensayos y puntos clave",
+    "short_quote_9_16": "Formato vertical 9:16 (1080x1920) para citas, versículos, reflexiones y narrativa breve",
+    "short_tech_9_16": "Formato vertical 9:16 (1080x1920) para tips técnicos, código y terminal en TikTok/Reels/Shorts",
+    "talking_head_9_16": "Video vertical 9:16 (1080x1920) con presentador y subtítulos en zona segura",
+    "editorial_16_9": "Formato horizontal 16:9 (1920x1080) para narrativa histórica, bíblica, ensayos y puntos clave",
+    "talking_head_16_9": "Video horizontal 16:9 (1920x1080) con presentador, lower-third animado y subtítulos cinéticos",
 }
 
 
@@ -69,7 +63,7 @@ def update_composition_duration(html_path: Path, duration: float) -> None:
 
 def create_project(
     name: str,
-    template: str = "portrait_9_16",
+    template: str = "short_quote_9_16",
     title: str | None = None,
     duration: float | None = None,
     force: bool = False,
@@ -190,7 +184,7 @@ def create_project(
     print("\nComandos operativos:")
     print(f"  1. Vista previa interactiva : pnpm exec hyperframes preview projects/{project_slug}")
     print(
-        f"  2. Cambiar diseño o estilo  : python3 core/pipeline.py style {project_slug} -d swiss_editorial"
+        f"  2. Cambiar diseño o estilo  : python3 core/pipeline.py style {project_slug} -d editorial"
     )
     print(f"  3. Validación de estándares : pnpm exec hyperframes check projects/{project_slug}")
     print(
@@ -208,7 +202,7 @@ def main():
     parser.add_argument(
         "-t",
         "--template",
-        default="portrait_9_16",
+        default="short_quote_9_16",
         choices=list(AVAILABLE_TEMPLATES.keys()),
         help="Plantilla base a utilizar",
     )

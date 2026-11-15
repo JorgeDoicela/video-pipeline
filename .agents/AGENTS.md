@@ -66,18 +66,12 @@ video-pipeline/
 │   ├── create_project.py # Scaffolding automatizado de proyectos
 │   ├── generate_sfx.py   # Síntesis matemática de efectos de sonido WAV
 │   └── generate_icons.py # Generador de iconografía técnica vectorial SVG
-├── templates/         # Catálogo de 11 plantillas reutilizables por formato y caso de uso
-│   ├── landscape_16_9/   # YouTube widescreen split-stage (1920x1080)
-│   ├── portrait_9_16/    # Shorts/Reels/TikTok código y subtítulos (1080x1920)
-│   ├── square_1_1/       # Feeds LinkedIn/Instagram (1080x1080)
-│   ├── feed_4_5/         # Feed móvil vertical LinkedIn/Instagram (1080x1350)
-│   ├── talking_head/     # Presentador widescreen 16:9 con lower-third y subtítulos
+├── templates/         # Catálogo de 5 plantillas esenciales (9:16 y 16:9)
+│   ├── short_quote_9_16/ # Citas, versículos y reflexiones en formato vertical 9:16
+│   ├── short_tech_9_16/  # Shorts/Reels/TikTok código y subtítulos (1080x1920)
 │   ├── talking_head_9_16/# Presentador vertical 9:16 para Shorts/Reels/TikTok
-│   ├── tech_explainer/   # Diagramas de arquitectura SVG interactivos (1920x1080)
-│   ├── code_walkthrough/ # Editor IDE con resaltado de líneas paso a paso (1920x1080)
-│   ├── benchmark_chart/  # Barras de rendimiento animadas y telemetría KPI (1920x1080)
-│   ├── verse_quote_9_16/ # Citas, versículos y reflexiones en formato vertical 9:16
-│   └── editorial_story/  # Narrativa histórica, bíblica y ensayos en 16:9
+│   ├── editorial_16_9/   # Narrativa histórica, bíblica y ensayos en 16:9
+│   └── talking_head_16_9/# Presentador widescreen 16:9 con lower-third y subtítulos
 ├── projects/          # Proyectos de video concretos generados a partir de templates
 ├── assets/            # Recursos estáticos globales (audio SFX, fuentes, iconos SVG)
 ├── tests/             # Suite automatizada de pruebas unitarias (pytest)
@@ -95,7 +89,7 @@ Antes de dar por concluida cualquier modificación o creación de proyecto:
 
 1. **Flujo de Producción Rápido Unificado:**
    ```bash
-   python3 core/pipeline.py produce -i ruta/grabacion.mp4 -p nombre-proyecto -t talking_head --auto-render
+   python3 core/pipeline.py produce -i ruta/grabacion.mp4 -p nombre-proyecto -t talking_head_16_9 --auto-render
    ```
 2. **Validación de Estándares HyperFrames:**
    ```bash

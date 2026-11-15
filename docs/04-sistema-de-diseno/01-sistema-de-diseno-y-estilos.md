@@ -1,4 +1,4 @@
-# 06 — Sistema de Diseño y Estilos Componibles en 3 Niveles
+# Sistema de Diseño y Estilos Componibles en 3 Niveles
 
 Este documento especifica la arquitectura del motor de sistemas de diseño y temas visuales implementado en [`core/styles.py`](../../core/styles.py). El motor permite alternar de manera no destructiva entre diseños estructuralmente distintos, configurar opciones internas de cada diseño y aplicar ajustes granulares por proyecto sin alterar el contenido HTML, los activos multimedia ni las marcas de tiempo de transcripción.
 
@@ -11,26 +11,23 @@ El sistema desacopla la presentación visual del contenido semántico mediante t
 ```mermaid
 flowchart TD
     subgraph N1 ["Nivel 1: Diseños Macro (--design)"]
-        D1["cyber_glass (Frosted Glass Physics)"]
-        D2["clean_studio (Apple Keynote / Stripe Light)"]
-        D3["swiss_editorial (Swiss Grid & Poster)"]
-        D4["brutalist_terminal (TUI Neo-Brutalism)"]
-        D5["cinematic_studio (Executive Frame)"]
-        D6["bento_grid (Apple Modular Bento)"]
-        D7["academic_paper (LaTeX / IEEE Paper)"]
+        D1["cinematic (Oscuro Premium)"]
+        D2["editorial (Cálido / Pergamino)"]
+        D3["clean (Claro Minimalista)"]
+        D4["terminal (Brutalismo Técnico TUI)"]
     end
 
     subgraph N2 ["Nivel 2: Opciones Internas del Diseño"]
-        S["Paleta Cromática (--style): 8 Temas WCAG AA"]
-        L["Distribución (--layout): 4 Layouts"]
-        C["Marco de Ventana (--chrome): 5 Variantes"]
-        M["Coreografía GSAP (--motion): 4 Perfiles"]
-        K["Subtítulos (--caption-style): 6 Estilos"]
+        S["Paleta Cromática (--style): 4 Temas WCAG AA"]
+        L["Distribución (--layout): 3 Layouts"]
+        C["Marco de Ventana (--chrome): 4 Variantes"]
+        M["Coreografía GSAP (--motion): 3 Perfiles"]
+        K["Subtítulos (--caption-style): 2 Estilos"]
     end
 
     subgraph N3 ["Nivel 3: Overrides Granulares (--set clave=valor)"]
         O1["Geometría: radius_lg, stage_gap, panel_padding"]
-        O2["Bordes/Sombras: border_width, shadow_card, backdrop_blur"]
+        O2["Bordes/Sombras: border_width, shadow"]
         O3["Tokens de Color: bg, surface, accent_primary, text_primary"]
     end
 
@@ -48,77 +45,57 @@ flowchart TD
 
 ## 2. Nivel 1: Catálogo de Diseños Macro (`--design` / `-d`)
 
-Un **Diseño Macro** ([`DesignSystem`](../../core/styles.py)) transforma la estructura visual completa del video: geometría de esquinas, grosor de bordes, sombras proyectadas, presencia o ausencia de barras de ventana, tipografía base, tema cromático predeterminado y curvas de animación GSAP.
-
-| Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Layout / Chrome / Motion Nativo | Caso de Uso Principal |
+| Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Chrome / Motion / Captions Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `cyber_glass` *(Defecto)* | Cyber Glass & Frosted Glass | Paneles translúcidos con bisel superior/izquierdo especular, desenfoque profundo saturado (`blur(32px) saturate(190%)`), controles macOS y orbes ambientales. | `cyber_dark` | `standard` / `macos_dots` / `dynamic` | Tutoriales de desarrollo, ingeniería cloud, demos de producto de impacto visual. |
-| `clean_studio` | Clean Studio (Apple / Stripe) | Canvas blanco puro con orbes cálidos difusos, tarjetas blancas puras con bisel translúcido, sombras multicapa suaves y chips de métricas KPI. | `minimal_light` | `standard` / `hidden` / `smooth` | Lanzamientos de producto, keynotes corporativas, presentaciones de arquitectura de alto nivel. |
-| `swiss_editorial` | Swiss Editorial Grid | Retícula editorial suiza con esquinas casi rectas (`2px`), filete superior grueso (`4px solid`) y cero desenfoque. | `minimal_light` | `standard` / `minimal_line` / `smooth` | Presentaciones ejecutivas, arquitectura empresarial y divulgación técnica limpia. |
-| `brutalist_terminal` | Brutalist Terminal HUD | Esquinas a 90 grados (`0px`), bordes sólidos de `2px` en color de acento y sombra dura desplazada (`8px 8px 0px`). | `terminal_hacker` | `standard` / `terminal_bar` / `snappy` | Ciberseguridad, administración de sistemas Linux, DevOps, redes y CLI. |
-| `cinematic_studio` | Cinematic Studio Frame | Curvas amplias (`28px`), sombra ambiental cinematográfica, franja lateral de acento (`6px solid`) sin barra superior. | `linear_violet` | `standard` / `hidden` / `smooth` | Keynotes, lanzamientos de software, videos de presentador y narrativa técnica. |
-| `bento_grid` | Bento Grid Modular | Tarjetas modulares estilo Bento con radios suaves (`24px`), borde interno iluminado y cabeceras limpias. | `dracula_pro` | `standard` / `minimal_line` / `dynamic` | Resúmenes de funcionalidades, comparativas de métricas y microlearning en feeds. |
-| `academic_paper` | Academic Paper & IEEE | Estética de publicación científica con filetes superiores/inferiores (`3px`/`1px solid`), esquinas sobrias (`4px`) y alto contraste. | `solarized_sand` | `standard` / `hidden` / `minimal` | Explicaciones de algoritmos, estructuras de datos, papers de IA y matemáticas. |
+| `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y franja lateral de acento (`6px solid`). | `dark_violet` | `hidden` / `smooth` / `highlight_pill` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
+| `editorial` | Editorial (Cálido / Pergamino) | Estética clásica de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), filetes superior/inferior y cero desenfoque. | `paper_warm` | `hidden` / `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
+| `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `hidden` / `smooth` / `highlight_pill` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
+| `terminal` | Terminal (Brutalismo Técnico TUI) | Esquinas a 90 grados (`0px`), bordes sólidos de `2px` en color de acento y sombra dura desplazada (`8px 8px 0px`). | `terminal_green` | `terminal_bar` / `snappy` / `highlight_pill` | Linux, DevOps, ciberseguridad, CLI y tutoriales de consola. |
 
 ---
 
 ## 3. Nivel 2: Opciones Internas dentro de un Diseño
 
-Cuando seleccionas un Diseño Macro en el Nivel 1, este aplica sus opciones nativas. Sin embargo, puedes sobrescribir cualquiera de las 5 dimensiones internas del Nivel 2 sin abandonar el Diseño Macro activo.
-
 ### 3.1. Temas Cromáticos (`--style` / `-s`)
-
-Cada [`ThemeTokens`](../../core/styles.py) define 18 variables CSS semánticas (`--bg`, `--surface`, `--text-primary`, `--accent-primary`, `--caption-bg`, etc.):
 
 | Identificador (`-s`) | Nombre | Fondo Principal (`--bg`) | Acento Primario (`--accent-primary`) | Acento Secundario (`--accent-secondary`) | Naturaleza Cromática |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `cyber_dark` *(Defecto)* | Cyber Dark (Glass & Neon) | `#070b14` | `#38bdf8` (Cian) | `#10b981` (Esmeralda) | Oscuro profundo de alto contraste |
-| `minimal_light` | Minimal Light (Editorial Paper) | `#f8fafc` | `#0369a1` (Azul) | `#047857` (Verde) | Claro limpio calibrado WCAG AA |
-| `terminal_hacker` | Terminal Hacker (CRT Phosphor) | `#050805` | `#22c55e` (Verde CRT) | `#eab308` (Ámbar) | Oscuro monocromático de consola |
-| `linear_violet` | Linear Violet (Modern SaaS) | `#090714` | `#c084fc` (Violeta) | `#38bdf8` (Cian) | Oscuro atmosférico moderno |
-| `blueprint_cad` | Blueprint CAD (Engineering Grid) | `#06152d` | `#64ffda` (Turquesa) | `#38bdf8` (Azul) | Azul técnico de plano de ingeniería |
-| `dracula_pro` | Dracula Pro (Vampire IDE) | `#13111c` | `#ff79c6` (Rosa) | `#8be9fd` (Cian) | Oscuro púrpura inspirado en IDE |
-| `solarized_sand` | Solarized Sand (Warm Academic) | `#fdf6e3` | `#0369a1` (Azul Cobalto) | `#047857` (Esmeralda) | Claro cálido antirreflejo |
-| `crimson_ops` | Crimson Ops (Red Team Security) | `#0c0608` | `#fb7185` (Carmesí) | `#fbbf24` (Ámbar) | Oscuro táctico de operaciones |
+| `dark_violet` *(Defecto)* | Dark Violet (Obsidiana y Cristal) | `#09090b` | `#a78bfa` (Violeta) | `#34d399` (Esmeralda) | Oscuro atmosférico de alto contraste |
+| `paper_warm` | Paper Warm (Pergamino Cálido) | `#fdf6e3` | `#0369a1` (Cobalto) | `#047857` (Esmeralda) | Claro cálido antirreflejo para lectura |
+| `clean_light` | Clean Light (Blanco Neutro) | `#f8fafc` | `#0369a1` (Azul) | `#047857` (Verde) | Claro limpio calibrado WCAG AA |
+| `terminal_green` | Terminal Green (Consola CRT) | `#050a06` | `#22c55e` (Verde CRT) | `#f59e0b` (Ámbar) | Oscuro monocromático de consola |
 
 ### 3.2. Variantes de Distribución (`--layout`)
 
 | Identificador (`--layout`) | Descripción Estructural |
 | :--- | :--- |
 | `standard` *(Defecto)* | Distribución equilibrada: columnas simétricas `1fr 1fr` en `split-stage`, tarjeta lower-third alineada a la izquierda (`left: 80px`). |
-| `asymmetric_focus` | Foco asimétrico: columna principal `1.45fr` y secundaria `0.85fr`; tarjeta lower-third alineada a la derecha (`right: 80px`). |
+| `asymmetric_focus` | Foco asimétrico: columna principal `1.35fr` y secundaria `0.85fr`; tarjeta lower-third alineada a la derecha (`right: 80px`). |
 | `stacked` | Disposición vertical apilada (`grid-template-columns: 1fr`) y cabecera centrada. |
-| `compact_hud` | Márgenes perimetrales ampliados y contenedor de subtítulos elevado para dejar mayor aire visual. |
 
 ### 3.3. Variantes de Marco de Ventana (`--chrome`)
 
 | Identificador (`--chrome`) | Descripción Visual |
 | :--- | :--- |
 | `auto` *(Defecto)* | Adopta automáticamente el marco nativo del Diseño Macro seleccionado en el Nivel 1. |
-| `macos_dots` | Barra superior con los tres indicadores circulares (rojo, ámbar, verde) y título de archivo. |
-| `terminal_bar` | Barra superior de consola TUI con prefijo `[TERM // SYS]`, bordes rectos y fondo de contraste. |
+| `hidden` | Oculta por completo la barra superior (`.window-header`, `.win-bar`, `.code-header`) para tarjetas limpias. |
 | `minimal_line` | Oculta los botones circulares y deja únicamente una línea divisoria limpia con el título del bloque. |
-| `hidden` | Oculta por completo la barra superior (`.win-bar`, `.terminal-bar`) para tarjetas de contenido puro. |
+| `terminal_bar` | Controles cuadrados angulares tipo terminal técnica con borde inferior marcado. |
 
 ### 3.4. Perfiles de Coreografía GSAP (`--motion`)
 
-| Identificador (`--motion`) | Curva de Entrada (`ease`) | Duración Base | Escala Inicial | Comportamiento Visual |
-| :--- | :--- | :--- | :--- | :--- |
-| `dynamic` *(Defecto)* | `back.out(1.5)` | `0.8s` | `0.94` | Entrada con rebote elástico sutil y desplazamiento dinámico. |
-| `smooth` | `power3.out` | `0.95s` | `0.98` | Desaceleración progresiva y fluida de estilo editorial. |
-| `snappy` | `back.out(2.0)` | `0.45s` | `0.92` | Transición rápida y enérgica de respuesta inmediata. |
-| `minimal` | `power2.out` | `0.6s` | `1.00` | Aparición sobria sin rebote ni cambio de escala. |
+| Identificador (`--motion`) | Curva de Entrada (`ease`) | Duración Base | Comportamiento Visual |
+| :--- | :--- | :--- | :--- |
+| `smooth` *(Defecto)* | `power2.out` / `power3.out` | `0.95s` | Desaceleración progresiva y fluida de estilo editorial/cinematográfico. |
+| `snappy` | `power4.out` / `back.out(2.0)` | `0.45s` | Transición rápida y enérgica ideal para Shorts, Reels y estilo terminal. |
+| `minimal` | `power1.out` | `0.35s` | Aparición sobria y discreta para lectura tranquila. |
 
 ### 3.5. Estilos de Subtítulos Cinéticos (`--caption-style`)
 
 | Identificador (`--caption-style`) | Efecto sobre la Palabra Activa (`.word.active`) | Opacidad Inactiva |
 | :--- | :--- | :--- |
-| `karaoke_glow` *(Defecto)* | Cambia al color `--accent-primary` con resplandor luminoso (`--caption-glow`) y `scale(1.06)`. | `0.32` |
-| `highlight_pill` | Envuelve la palabra pronunciada en una cápsula sólida de color `--accent-primary` con texto contrastado. | `0.45` |
-| `pop_scale` | Salto elástico (`scale(1.18) translateY(-4px)`) en color `--accent-secondary`. | `0.30` |
-| `minimal_clean` | Lectura editorial sobria sin cambio de escala ni brillo artificial; resalta mediante opacidad `1.0` y color primario. | `0.38` |
-| `underline_bar` | Traza una barra inferior sólida de `4px` en color `--accent-primary` debajo de la palabra activa. | `0.35` |
-| `box_invert` | Invierte el bloque con fondo `--text-primary`, texto `--bg` y borde de `2px solid var(--accent-primary)`. | `0.40` |
+| `highlight_pill` *(Defecto)* | Envuelve la palabra pronunciada en una cápsula sólida con borde marcado (`--accent-primary-soft` / `--border-strong`). | `0.45` |
+| `minimal_clean` | Lectura editorial sobria sin adornos; resalta mediante opacidad `1.0` y color primario. | `0.40` |
 
 ---
 
@@ -126,67 +103,32 @@ Cada [`ThemeTokens`](../../core/styles.py) define 18 variables CSS semánticas (
 
 El Nivel 3 permite ajustar tokens geométricos o cromáticos específicos en un único proyecto sin modificar el catálogo global ni perder la capacidad de cambiar de Diseño Macro posteriormente.
 
-### Propiedades Configurables mediante `--set`
-
 | Categoría | Propiedad (`--set`) | Variable CSS / Efecto Destino | Ejemplo de Uso |
 | :--- | :--- | :--- | :--- |
-| **Geometría** | `radius_lg`, `radius_md`, `radius_sm` | `--radius-lg`, `--radius-md`, `--radius-sm` | `--set radius_lg=0px` |
-| **Geometría** | `border_width` | `--border-width` | `--set border_width=3px` |
-| **Espaciado / Layout** | `stage_padding`, `stage_gap` | `--stage-padding`, `--stage-gap` | `--set stage_gap=56px` |
-| **Espaciado / Layout** | `split_columns`, `header_align`, `lower_third_side` | `--split-columns`, `--header-align`, posición lower-third (`left`/`right`) | `--set lower_third_side=right` |
-| **Subtítulos** | `caption_bottom`, `caption_size`, `caption_bg`, `caption_text`, `caption_active` | `--caption-bottom`, `--caption-size`, `--caption-bg`, `--caption-text`, `--caption-active` | `--set caption_size=48px` |
-| **Tipografía** | `font_sans`, `font_mono` | `--font-sans`, `--font-mono` | `--set "font_mono='Fira Code', monospace"` |
-| **Superficie y Sombra** | `bg`, `surface`, `surface_elevated`, `border`, `border_strong`, `divider`, `shadow` | `--bg`, `--surface`, `--surface-elevated`, `--border`, `--border-strong`, `--divider`, `--shadow` | `--set bg=#020617` |
-| **Acentos y Texto** | `accent_primary`, `accent_secondary`, `accent_tertiary`, `accent_warning`, `accent_danger`, `text_primary`, `text_secondary`, `text_muted` | Variables de acento y jerarquía de texto en `:root` | `--set accent_primary=#f43f5e` |
-| **Diagramas SVG** | `node_fill`, `cable_idle` | `--node-fill`, `--cable-idle` | `--set node_fill=#0f172a` |
+| **Geometría** | `radius_lg`, `radius_md`, `radius_sm`, `border_width` | `--radius-lg`, `--radius-md`, `--radius-sm`, `--border-width` | `--set radius_lg=0px` |
+| **Espaciado / Layout** | `stage_padding`, `stage_gap`, `split_columns`, `header_align`, `lower_third_side` | `--stage-padding`, `--stage-gap`, `--split-columns`, posición lower-third | `--set stage_gap=56px` |
+| **Subtítulos** | `caption_bottom`, `caption_size`, `caption_bg`, `caption_text`, `caption_active` | Variables de subtítulos en `:root` | `--set caption_size=48px` |
+| **Tipografía y Color** | `font_sans`, `font_mono`, `bg`, `surface`, `accent_primary`, `text_primary`, etc. | Tokens semánticos en `:root` | `--set accent_primary=#f43f5e` |
 
 ---
 
 ## 5. Ejemplos Prácticos de Composición y Conmutación
 
-### 5.1. Consultar el Catálogo Completo o en Formato JSON
 ```bash
-# Vista estructurada legible en terminal
+# Consultar el catálogo completo o en JSON
 python3 core/pipeline.py style --list
-
-# Salida serializada en JSON para integración con herramientas o agentes
 python3 core/pipeline.py style --list --json
-```
 
-### 5.2. Cambiar entre Diseños Macro Completamente Diferentes (Nivel 1)
-```bash
-# Pasar un proyecto existente al diseño Swiss Editorial (tema claro, bordes rectos, filete superior)
-python3 core/pipeline.py style mi-proyecto -d swiss_editorial
+# Cambiar a Diseño Macro editorial (cálido pergamino) o terminal
+python3 core/pipeline.py style mi-proyecto -d editorial
+python3 core/pipeline.py style mi-proyecto -d terminal
 
-# Cambiar el mismo proyecto al diseño Brutalist Terminal (verde CRT, esquinas 0px, sombra desplazada)
-python3 core/pipeline.py style mi-proyecto -d brutalist_terminal
+# Combinar diseño editorial con paleta limpia y foco asimétrico
+python3 core/pipeline.py style mi-proyecto -d editorial -s clean_light --layout asymmetric_focus
 
-# Cambiar a Bento Grid Modular (tarjetas de 32px con tema Dracula Pro y foco asimétrico)
-python3 core/pipeline.py style mi-proyecto -d bento_grid
-```
-
-### 5.3. Personalizar Opciones Internas dentro de un mismo Diseño (Nivel 2)
-```bash
-# Mantener el diseño swiss_editorial pero usar la paleta oscura blueprint_cad y subtítulos box_invert
-python3 core/pipeline.py style mi-proyecto \
-  -d swiss_editorial \
-  -s blueprint_cad \
-  --layout asymmetric_focus \
-  --caption-style box_invert
-```
-
-### 5.4. Ajustar Propiedades Puntuales de un solo Diseño e Inspeccionar Estado (Nivel 3)
-```bash
-# Aplicar overrides puntuales sobre el proyecto actual
-python3 core/pipeline.py style mi-proyecto \
-  --set accent_primary=#ff5500 \
-  --set stage_gap=60px \
-  --set radius_lg=8px
-
-# Inspeccionar la configuración efectiva de los 3 niveles en el proyecto
+# Ajustar un token puntual e inspeccionar estado
+python3 core/pipeline.py style mi-proyecto --set accent_primary=#ff5500 --set stage_gap=60px
 python3 core/pipeline.py style mi-proyecto --inspect
-
-# Restablecer únicamente los overrides de Nivel 3 conservando el Diseño Macro y Nivel 2
 python3 core/pipeline.py style mi-proyecto --reset-overrides
 ```
 
@@ -194,6 +136,6 @@ python3 core/pipeline.py style mi-proyecto --reset-overrides
 
 ## 6. Enlaces Relacionados
 
-* Ver el catálogo de las 9 plantillas de video en [04-formatos-de-video.md](../03-renderizado-y-formatos/02-formatos-de-video.md).
-* Consultar los flujos de trabajo paso a paso en [05-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
+* Ver el catálogo de las 5 plantillas esenciales en [02-formatos-de-video.md](../03-renderizado-y-formatos/02-formatos-de-video.md).
+* Consultar los flujos de trabajo paso a paso en [01-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
 * Volver al índice maestro en [00-indice-general.md](../00-indice-general.md).
