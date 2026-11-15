@@ -30,6 +30,7 @@ from core.styles import (  # noqa: E402
 )
 
 AVAILABLE_TEMPLATES = {
+    "explainer_scenes_9_16": "Formato vertical 9:16 (1080x1920) multi-escena estilo Vox/Explainer con SVG animados, UI mockups y SFX",
     "short_quote_9_16": "Formato vertical 9:16 (1080x1920) para citas, versículos, reflexiones y narrativa breve",
     "short_tech_9_16": "Formato vertical 9:16 (1080x1920) para tips técnicos, código y terminal en TikTok/Reels/Shorts",
     "talking_head_9_16": "Video vertical 9:16 (1080x1920) con presentador y subtítulos en zona segura",

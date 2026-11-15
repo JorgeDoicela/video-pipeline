@@ -17,6 +17,7 @@ def test_available_templates_catalog():
         "talking_head_9_16",
         "editorial_16_9",
         "talking_head_16_9",
+        "explainer_scenes_9_16",
     }
 
 

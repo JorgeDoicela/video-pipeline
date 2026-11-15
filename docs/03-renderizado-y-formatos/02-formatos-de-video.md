@@ -158,9 +158,9 @@ El pipeline permite renderizar en cualquier relacion de aspecto ajustando los at
 | **Square (Cuadrado)** | `1080x1080` | 1:1 | Instagram Feed, LinkedIn Feed | Lectura equilibrada en timelines de escritorio y movil. Maxima atencion en publicaciones estaticas con video integrado. |
 | **Feed Portrait** | `1080x1350` | 4:5 | Instagram Post Feed | Maxima cobertura vertical dentro del feed estandar de Instagram sin entrar al visor de Reels. |
 
-### 4.1. Catálogo Completo de las 5 Plantillas Esenciales en `templates/`
+### 4.1. Catálogo Completo de las 6 Plantillas Esenciales en `templates/`
 
-Para cubrir producción vertical (TikTok/Reels/Shorts) y horizontal (YouTube/Presentaciones) sin sobrecarga operativa, el directorio `templates/` proporciona **5 plantillas esenciales**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../../core/styles.py)):
+Para cubrir producción vertical (TikTok/Reels/Shorts) y horizontal (YouTube/Presentaciones) sin sobrecarga operativa, el directorio `templates/` proporciona **6 plantillas esenciales**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../../core/styles.py)):
 
 | Plantilla (`-t`) | Resolución / Ratio | Categoría | Componentes y Estructura Visual |
 | :--- | :--- | :--- | :--- |
@@ -169,6 +169,7 @@ Para cubrir producción vertical (TikTok/Reels/Shorts) y horizontal (YouTube/Pre
 | `talking_head_9_16` | `1080x1920` (9:16) | Presentador Vertical | Video de presentador vertical para Shorts/Reels/TikTok con insignia superior, tarjeta flotante y subtítulos dentro de zonas seguras. |
 | `editorial_16_9` | `1920x1080` (16:9) | Narrativa Editorial / Historia / Ensayo | Escenario dividido widescreen con crónica principal, referencia temática y panel lateral de puntos clave sin bloques de código. |
 | `talking_head_16_9` | `1920x1080` (16:9) | Presentador Widescreen | Video de cámara o screencast a pantalla completa (`cut.mp4`), tarjeta *lower-third* animada y subtítulos cinéticos sincronizados. |
+| `explainer_scenes_9_16` | `1080x1920` (9:16) | Explainer Multi-Escena Faceless | Orquestación temporal desde `storyboard.json` con atmósfera 2D, 5 componentes vectoriales animados (`phone_mockup`, `network_graph`, `terminal_grid`, `connector_flow`, `stat_callout`) y mezcla de SFX/voz (`audio_mix.wav`). |
 
 ---
 

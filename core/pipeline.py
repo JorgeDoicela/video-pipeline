@@ -21,6 +21,7 @@ from core._runtime import ensure_local_venv  # noqa: E402
 
 ensure_local_venv()
 
+from core.audio_mix import mix_storyboard_audio  # noqa: E402
 from core.create_project import (  # noqa: E402
     AVAILABLE_TEMPLATES,
     create_project,
@@ -31,6 +32,12 @@ from core.cut_silence import (  # noqa: E402
     cut_and_concat,
     detect_silence,
     get_media_duration,
+)
+from core.scenes import (  # noqa: E402
+    attach_audio_track_to_html,
+    extract_sfx_events,
+    inject_storyboard_into_html,
+    load_storyboard,
 )
 from core.styles import (  # noqa: E402
     CAPTION_STYLES,
@@ -388,6 +395,26 @@ def main():
     p_rnd.add_argument("project", help="Ruta o nombre del proyecto")
     p_rnd.add_argument("-o", "--output", help="Ruta del video MP4 de salida")
 
+    # Subcomando: storyboard
+    p_sb = subparsers.add_parser(
+        "storyboard",
+        help="Compilar storyboard multi-escena en index.html y mezclar pista SFX",
+    )
+    p_sb.add_argument("project", help="Ruta o nombre del proyecto")
+    p_sb.add_argument(
+        "--spec",
+        help="Ruta a storyboard.json (por defecto: <proyecto>/storyboard.json)",
+    )
+    p_sb.add_argument(
+        "--audio",
+        help="Ruta opcional de pista de voz (WAV/MP3/M4A) para mezclar con SFX",
+    )
+    p_sb.add_argument(
+        "--mix-sfx",
+        action="store_true",
+        help="Mezclar eventos SFX (y voz si se indica --audio) en audio_mix.wav",
+    )
+
     args = parser.parse_args()
 
     if not args.subcommand:
@@ -490,6 +517,28 @@ def main():
         )
         out = args.output or str(p_dir / f"video_{p_dir.name}.mp4")
         run_command([resolve_pnpm(), "exec", "hyperframes", "render", str(p_dir), "-o", out])
+    elif args.subcommand == "storyboard":
+        p_dir = (
+            Path("projects") / args.project
+            if not Path(args.project).exists()
+            else Path(args.project)
+        )
+        spec_path = Path(args.spec) if args.spec else p_dir / "storyboard.json"
+        html_path = p_dir / "index.html"
+        sb = load_storyboard(spec_path)
+        inject_storyboard_into_html(html_path, sb)
+        print(f"Storyboard inyectado en {html_path} ({len(sb.scenes)} escenas)")
+        if args.mix_sfx:
+            events = extract_sfx_events(sb)
+            voice_path = Path(args.audio) if args.audio else None
+            mixed_wav = mix_storyboard_audio(
+                project_dir=p_dir,
+                events=events,
+                total_duration=sb.duration,
+                voice_path=voice_path,
+            )
+            attach_audio_track_to_html(html_path, mixed_wav.name, sb.duration)
+            print(f"Audio mezclado en {mixed_wav} ({len(events)} eventos SFX)")
 
 
 if __name__ == "__main__":

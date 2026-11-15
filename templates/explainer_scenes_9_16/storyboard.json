@@ -1,0 +1,92 @@
+{
+  "title": "Análisis Técnico Multi-Escena",
+  "duration": 12.0,
+  "aspect_ratio": "9:16",
+  "atmosphere": "sunburst",
+  "scenes": [
+    {
+      "id": "scene_phone",
+      "start": 0.0,
+      "end": 3.0,
+      "badge": "Ciberseguridad",
+      "headline": "Se guardan en una carpeta",
+      "component": "phone_mockup",
+      "transition": "zoom_in",
+      "sfx": "sub_hit",
+      "sfx_volume": 0.42,
+      "props": {
+        "app_title": "Archivos",
+        "items": [
+          { "label": "Fotos", "sublabel": "12 elementos", "highlight": false },
+          { "label": "Descargas", "sublabel": "43 elementos", "highlight": false },
+          { "label": "Documentos", "sublabel": "74 elementos", "highlight": false },
+          { "label": "Capturas", "sublabel": "sin permisos", "highlight": true }
+        ]
+      }
+    },
+    {
+      "id": "scene_terminals",
+      "start": 3.0,
+      "end": 6.0,
+      "badge": "Auditoría",
+      "headline": "Procesos en segundo plano",
+      "component": "terminal_grid",
+      "transition": "snap",
+      "sfx": "glitch",
+      "sfx_volume": 0.35,
+      "props": {
+        "screens": [
+          { "id": "PC-01", "lines": ["> arranque", "> kernel 6.8", "> estado: ok"], "status": "ok" },
+          { "id": "PC-02", "lines": ["> arranque", "> kernel 6.8", "> estado: ok"], "status": "ok" },
+          { "id": "PC-03", "lines": ["> arranque", "> kernel 6.8", "> estado: ok"], "status": "ok" },
+          { "id": "PC-04", "lines": ["> arranque", "> kernel 6.8", "> estado: ok"], "status": "ok" },
+          { "id": "PC-05", "lines": ["> arranque", "> kernel 6.8", "> estado: ok"], "status": "ok" },
+          { "id": "PC-06", "lines": ["> arranque", "> alerta I/O", "> bloqueado"], "status": "glitch" }
+        ]
+      }
+    },
+    {
+      "id": "scene_usb",
+      "start": 6.0,
+      "end": 9.0,
+      "badge": "Vector Físico",
+      "headline": "Cada vez que conectas",
+      "component": "connector_flow",
+      "transition": "slide_up",
+      "sfx": "whoosh",
+      "sfx_volume": 0.38,
+      "props": {
+        "left_label": "PUERTO USB 2.0",
+        "right_label": "MEMORIA EXTERNA",
+        "status_text": "DISPOSITIVO DETECTADO"
+      }
+    },
+    {
+      "id": "scene_graph",
+      "start": 9.0,
+      "end": 12.0,
+      "badge": "Trazabilidad",
+      "headline": "La red sigue cada salto",
+      "component": "network_graph",
+      "transition": "zoom_in",
+      "sfx": "pop",
+      "sfx_volume": 0.35,
+      "props": {
+        "center_label": "RUTA TRAZADA",
+        "nodes": [
+          { "id": "1", "label": "Usuario A", "x": 160, "y": 130, "alert": false },
+          { "id": "2", "label": "Relay", "x": 440, "y": 230, "alert": false },
+          { "id": "3", "label": "Proxy", "x": 720, "y": 130, "alert": false },
+          { "id": "4", "label": "Nodo B", "x": 650, "y": 460, "alert": true },
+          { "id": "5", "label": "Destino", "x": 230, "y": 460, "alert": true }
+        ],
+        "edges": [
+          { "from": "1", "to": "2", "alert": false },
+          { "from": "2", "to": "3", "alert": false },
+          { "from": "3", "to": "4", "alert": true },
+          { "from": "4", "to": "5", "alert": true }
+        ]
+      }
+    }
+  ]
+}

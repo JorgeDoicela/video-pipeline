@@ -201,6 +201,18 @@ python3 core/pipeline.py produce \
   --auto-render
 ```
 
+### 5.2. Motor Multi-Escena y Mezcla de Audio (`core/scenes.py`, `core/audio_mix.py`)
+
+El subcomando `storyboard` compila un guion declarativo `storyboard.json` en escenas HTML/SVG secuenciadas en GSAP e inyecta una pista maestra `<audio id="master-audio">` mezclada de forma determinista con FFmpeg:
+
+* **Componentes narrativos (`COMPONENT_REGISTRY`):** `phone_mockup`, `network_graph`, `terminal_grid`, `connector_flow`, `stat_callout`.
+* **Atmósfera y transiciones:** Fondo `sunburst` / `grid` / `clean` y cortes `snap`, `zoom_in`, `slide_up`.
+* **Mezcla procedural de SFX (`core/audio_mix.py`):** Posiciona `sub_hit`, `glitch`, `whoosh`, `pop`, `click`, `chime` y `beep` con `adelay` exacto en milisegundos, `amix` y limitación `alimiter=limit=0.95` sobre silencio base o pista de voz (`--audio`).
+
+```bash
+python3 core/pipeline.py storyboard mi-explainer --mix-sfx
+```
+
 ---
 
 ## 6. Enlaces Relacionados

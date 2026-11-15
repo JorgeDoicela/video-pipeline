@@ -24,7 +24,7 @@ python3 core/pipeline.py produce \
 ```
 
 > [!TIP]
-> Puedes elegir cualquiera de los **4 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`, `-d terminal`), cualquiera de las **4 paletas cromáticas** (`-s`) y cualquiera de las **5 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
+> Puedes elegir cualquiera de los **4 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`, `-d terminal`), cualquiera de las **4 paletas cromáticas** (`-s`) y cualquiera de las **6 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
 > `python3 core/pipeline.py style tutorial-kubernetes -d editorial --layout asymmetric_focus --caption-style minimal_clean`
 
 Este comando ejecuta automáticamente:
