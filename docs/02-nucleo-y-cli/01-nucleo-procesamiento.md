@@ -6,7 +6,7 @@ Este documento especifica la implementacion tecnica de los componentes del nucle
 
 ## 1. Modulo de Transcripcion (`core/transcribe.py`)
 
-El script [transcribe.py](../core/transcribe.py) se encarga de procesar la pista de audio del archivo crudo y emitir una representacion estructurada en JSON.
+El script [transcribe.py](../../core/transcribe.py) se encarga de procesar la pista de audio del archivo crudo y emitir una representacion estructurada en JSON.
 
 ### 1.1. Motor de Inferencia
 * **Libreria:** `faster-whisper 1.2.1` sobre `ctranslate2 4.8.5`.
@@ -61,7 +61,7 @@ El archivo JSON generado contiene las coordenadas temporales en segundos redonde
 
 ## 2. Modulo de Recorte de Silencios (`core/cut_silence.py`)
 
-El script [cut_silence.py](../core/cut_silence.py) automatiza la eliminacion de pausas muertas y muletillas prolongadas sin requerir edicion manual en linea de tiempo.
+El script [cut_silence.py](../../core/cut_silence.py) automatiza la eliminacion de pausas muertas y muletillas prolongadas sin requerir edicion manual en linea de tiempo.
 
 ### 2.1. Algoritmo de Deteccion y Concatenacion
 1. **Sondeo con `silencedetect`:**
@@ -87,7 +87,7 @@ El script [cut_silence.py](../core/cut_silence.py) automatiza la eliminacion de 
 
 ## 3. Modulo de Scaffolding de Proyectos (`core/create_project.py`)
 
-El script [create_project.py](../core/create_project.py) genera de manera limpia y automatizada nuevas estructuras de proyectos a partir de plantillas optimizadas, ajustando los metadatos y asegurando el cumplimiento del contrato de HyperFrames.
+El script [create_project.py](../../core/create_project.py) genera de manera limpia y automatizada nuevas estructuras de proyectos a partir de plantillas optimizadas, ajustando los metadatos y asegurando el cumplimiento del contrato de HyperFrames.
 
 ### 3.1. Funcionalidades Principales
 * **Clonacion Segura:** Copia recursivamente la plantilla excluyendo caches temporales (`.hyperframes`, `frames`, `node_modules`).
@@ -115,9 +115,9 @@ El script [create_project.py](../core/create_project.py) genera de manera limpia
 
 ## 3.3. Motor Jerárquico de Sistemas de Diseño en 3 Niveles (`core/styles.py`)
 
-El módulo [styles.py](../core/styles.py) implementa una arquitectura componible en 3 niveles que desacopla los **Diseños Macro**, las **Opciones Internas de cada diseño** y los **Ajustes Puntuales (Overrides)** sin alterar el contenido del proyecto. Para la especificación completa de tokens y tablas de referencia, consulta [06-sistema-de-diseno-y-estilos.md](./06-sistema-de-diseno-y-estilos.md):
+El módulo [styles.py](../../core/styles.py) implementa una arquitectura componible en 3 niveles que desacopla los **Diseños Macro**, las **Opciones Internas de cada diseño** y los **Ajustes Puntuales (Overrides)** sin alterar el contenido del proyecto. Para la especificación completa de tokens y tablas de referencia, consulta [06-sistema-de-diseno-y-estilos.md](../04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md):
 
-1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../core/styles.py)):**
+1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
    * `cyber_glass` *(Defecto)*: Glassmorphism y física de cristal esmerilado (`blur(32px) saturate(190%)`), controles estilo macOS (`macos_dots`), esquinas `24px` y orbes de luz en segundo plano.
    * `clean_studio`: Estilo Apple Keynote / Stripe corporativo en fondo blanco con orbes cálidos, tarjetas blancas puras con bisel sutil, sombras multicapa y chips KPI.
@@ -162,7 +162,7 @@ python3 core/pipeline.py style mi-proyecto --reset-overrides
 
 ## 4. Modulo de Subtítulos Cinéticos (`core/sync_captions.py`)
 
-El script [sync_captions.py](../core/sync_captions.py) convierte el archivo `transcript.json` de Whisper en etiquetas HTML estructuradas y animaciones GSAP sincronizadas palabra por palabra.
+El script [sync_captions.py](../../core/sync_captions.py) convierte el archivo `transcript.json` de Whisper en etiquetas HTML estructuradas y animaciones GSAP sincronizadas palabra por palabra.
 
 ### 4.1. Funcionalidades Principales
 * **Agrupación Inteligente:** Divide el habla en grupos legibles de 3 a 5 palabras, cortando de forma reactiva si detecta pausas naturales superiores a 0.4 segundos.
@@ -184,7 +184,7 @@ El script [sync_captions.py](../core/sync_captions.py) convierte el archivo `tra
 
 ## 5. Orquestador Maestro de Producción (`core/pipeline.py`)
 
-El script [pipeline.py](../core/pipeline.py) centraliza la ejecución de todas las herramientas en un único flujo declarativo.
+El script [pipeline.py](../../core/pipeline.py) centraliza la ejecución de todas las herramientas en un único flujo declarativo.
 
 ### 5.1. Subcomando `produce` (End-to-End)
 Ejecuta de forma secuencial:
@@ -208,5 +208,5 @@ python3 core/pipeline.py produce \
 
 ## 6. Enlaces Relacionados
 
-* Consultar la arquitectura del motor de render en [03-motor-renderizado-hyperframes.md](./03-motor-renderizado-hyperframes.md).
-* Ver la guia operativa para ejecucion de estos scripts en [05-guia-operativa-y-flujos.md](./05-guia-operativa-y-flujos.md).
+* Consultar la arquitectura del motor de render en [03-motor-renderizado-hyperframes.md](../03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md).
+* Ver la guia operativa para ejecucion de estos scripts en [05-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).

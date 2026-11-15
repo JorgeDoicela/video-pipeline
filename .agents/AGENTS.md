@@ -81,7 +81,7 @@ video-pipeline/
 ├── projects/          # Proyectos de video concretos generados a partir de templates
 ├── assets/            # Recursos estáticos globales (audio SFX, fuentes, iconos SVG)
 ├── tests/             # Suite automatizada de pruebas unitarias (pytest)
-├── docs/              # Documentación modular Docs-as-Code (00- a 07-)
+├── docs/              # Documentación modular Docs-as-Code (00- y subcarpetas 01- a 05-)
 ├── .github/workflows/ # Pipeline de integración continua (CI) en GitHub Actions
 ├── package.json       # Dependencias de HyperFrames y scripts de ejecución
 └── pyproject.toml     # Dependencias Python, extras dev, Ruff y pytest

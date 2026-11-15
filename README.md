@@ -177,13 +177,18 @@ video-pipeline/
 │   └── test_sync_captions.py # Pruebas de segmentación de palabras y GSAP
 ├── docs/                   # Biblioteca documental técnica Docs-as-Code
 │   ├── 00-indice-general.md
-│   ├── 01-arquitectura-sistema.md
-│   ├── 02-nucleo-procesamiento.md
-│   ├── 03-motor-renderizado-hyperframes.md
-│   ├── 04-formatos-de-video.md
-│   ├── 05-guia-operativa-y-flujos.md
-│   ├── 06-sistema-de-diseno-y-estilos.md
-│   └── 07-recursos-y-assets.md
+│   ├── 01-arquitectura/
+│   │   └── 01-arquitectura-sistema.md
+│   ├── 02-nucleo-y-cli/
+│   │   └── 01-nucleo-procesamiento.md
+│   ├── 03-renderizado-y-formatos/
+│   │   ├── 01-motor-renderizado-hyperframes.md
+│   │   └── 02-formatos-de-video.md
+│   ├── 04-sistema-de-diseno/
+│   │   ├── 01-sistema-de-diseno-y-estilos.md
+│   │   └── 02-recursos-y-assets.md
+│   └── 05-operacion-y-flujos/
+│       └── 01-guia-operativa-y-flujos.md
 ├── templates/              # Catálogo de 11 plantillas base integradas con Design Tokens
 │   ├── portrait_9_16/     # TikTok, Reels, Shorts (1080x1920 con Safe Zones)
 │   ├── landscape_16_9/    # YouTube y Desktop (1920x1080 Widescreen Split-Stage)
@@ -216,13 +221,13 @@ Consulta el catalogo maestro:
 * [Documentación Técnica Completa](docs/00-indice-general.md)
 
 ### Indice de Modulos Documentales:
-1. [01 — Arquitectura del Sistema](docs/01-arquitectura-sistema.md): Separacion en 3 capas (Debian, Nix, Workspace), filosofia de coste cero y topologia del pipeline.
-2. [02 — Núcleo de Procesamiento de Medios](docs/02-nucleo-procesamiento.md): Especificacion de `faster-whisper`, esquema de `transcript.json`, filtros de corte en FFmpeg y CLI de orquestacion.
-3. [03 — Motor de Renderizado (HyperFrames)](docs/03-motor-renderizado-hyperframes.md): Modelo temporal en segundos, Chromium Headless Shell y aceleracion por hardware GPU.
-4. [04 — Formatos de Video Soportados](docs/04-formatos-de-video.md): Contratos de diseño y catalogo de las 9 plantillas de video.
-5. [05 — Guía Operativa y Flujos de Trabajo](docs/05-guia-operativa-y-flujos.md): Runbooks secuenciales desde la grabacion hasta la exportacion final.
-6. [06 — Sistema de Diseño y Estilos Componibles](docs/06-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (7 Diseños Macro, 8 Temas WCAG AA, Layouts, Chrome, Motion, 6 Estilos de Subtitulos y Overrides `--set`).
-7. [07 — Recursos Estáticos y Assets](docs/07-recursos-y-assets.md): Efectos de sonido WAV, iconografia tecnica SVG y tipografias locales.
+1. [01 — Arquitectura del Sistema](docs/01-arquitectura/01-arquitectura-sistema.md): Separacion en 3 capas (Debian, Nix, Workspace), filosofia de coste cero y topologia del pipeline.
+2. [02 — Núcleo de Procesamiento y CLI](docs/02-nucleo-y-cli/01-nucleo-procesamiento.md): Especificacion de `faster-whisper`, esquema de `transcript.json`, filtros de corte en FFmpeg y CLI de orquestacion.
+3. [03.1 — Motor de Renderizado (HyperFrames)](docs/03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md): Modelo temporal en segundos, Chromium Headless Shell y aceleracion por hardware GPU.
+4. [03.2 — Formatos de Video Soportados](docs/03-renderizado-y-formatos/02-formatos-de-video.md): Contratos de diseño y catalogo de las 11 plantillas de video.
+5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (7 Diseños Macro, 8 Temas WCAG AA, Layouts, Chrome, Motion, 6 Estilos de Subtitulos y Overrides `--set`).
+6. [04.2 — Recursos Estáticos y Assets](docs/04-sistema-de-diseno/02-recursos-y-assets.md): Efectos de sonido WAV, iconografia tecnica SVG y tipografias locales.
+7. [05 — Guía Operativa y Flujos de Trabajo](docs/05-operacion-y-flujos/01-guia-operativa-y-flujos.md): Runbooks secuenciales desde la grabacion hasta la exportacion final.
 
 ---
 

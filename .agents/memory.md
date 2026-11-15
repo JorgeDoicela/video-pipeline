@@ -5,7 +5,7 @@
 * **Catálogo de 11 plantillas multitemáticas:** 9 técnicas/sociales + 2 editoriales/narrativas sin código (`verse_quote_9_16` en 9:16 y `editorial_story` en 16:9), todas compatibles con el sistema de diseño en 3 niveles (`core/styles.py`).
 * **Sistema de diseño componible en 3 niveles (`core/styles.py`):** 7 Diseños Macro (`cyber_glass`, `clean_studio`, `swiss_editorial`, `brutalist_terminal`, `cinematic_studio`, `bento_grid`, `academic_paper`), variantes internas de Nivel 2 y overrides `--set` de Nivel 3 persistidos en `package.json` (`videoDesign`).
 * **Organización del repositorio:**
-  * Documentación técnica centralizada exclusivamente en `docs/` (`00-` a `07-`) y `README.md` raíz.
+  * Documentación técnica centralizada exclusivamente en `docs/` (`00-indice-general.md` y subcarpetas temáticas `01-` a `05-`) y `README.md` raíz.
   * Directrices de agente y memoria persistente en `.agents/` (`AGENTS.md`, `memory.md`).
   * Integración continua activa en `.github/workflows/ci.yml` (sin directorio `ci/` duplicado).
   * `projects/` se mantiene limpio en Git (`projects/.gitkeep`) como espacio de trabajo local.

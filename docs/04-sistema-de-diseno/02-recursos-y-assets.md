@@ -1,12 +1,12 @@
 # 07 — Recursos Estáticos y Assets
 
-Este documento especifica los activos estáticos reutilizables alojados en [`assets/`](../assets/) para las composiciones de HyperFrames y los scripts del núcleo.
+Este documento especifica los activos estáticos reutilizables alojados en [`assets/`](../../assets/) para las composiciones de HyperFrames y los scripts del núcleo.
 
 ---
 
 ## 1. Efectos de Sonido Locales (`assets/audio/`)
 
-Todos los archivos son WAV PCM estéreo a 48,000 Hz, 16 bits, sintetizados matemáticamente mediante [`core/generate_sfx.py`](../core/generate_sfx.py) y libres de derechos (CC0 / Dominio Público).
+Todos los archivos son WAV PCM estéreo a 48,000 Hz, 16 bits, sintetizados matemáticamente mediante [`core/generate_sfx.py`](../../core/generate_sfx.py) y libres de derechos (CC0 / Dominio Público).
 
 | Archivo | Duración | Uso Recomendado en GSAP |
 | :--- | :--- | :--- |
@@ -31,7 +31,7 @@ python3 core/generate_sfx.py
 
 ## 2. Iconografía Técnica Vectorial (`assets/icons/`)
 
-Iconos SVG monocromáticos con `viewBox="0 0 24 24"`, diseñados con `stroke="currentColor"` mediante [`core/generate_icons.py`](../core/generate_icons.py) para adoptar dinámicamente el color del texto o acento CSS circundante.
+Iconos SVG monocromáticos con `viewBox="0 0 24 24"`, diseñados con `stroke="currentColor"` mediante [`core/generate_icons.py`](../../core/generate_icons.py) para adoptar dinámicamente el color del texto o acento CSS circundante.
 
 | Icono | Archivo | Concepto Técnico |
 | :--- | :--- | :--- |
@@ -67,5 +67,5 @@ Directorio destinado a fuentes tipográficas locales en formato WOFF2 o TTF cuan
 
 ## 4. Enlaces Relacionados
 
-* Volver al índice general de la documentación en [00-indice-general.md](./00-indice-general.md).
-* Consultar la guía rápida en el [README.md de la raíz](../README.md).
+* Volver al índice general de la documentación en [00-indice-general.md](../00-indice-general.md).
+* Consultar la guía rápida en el [README.md de la raíz](../../README.md).

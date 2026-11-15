@@ -171,5 +171,5 @@ pnpm exec hyperframes clean
 
 ## 4. Enlaces Relacionados
 
-* Volver al indice general de la documentacion en [00-indice-general.md](./00-indice-general.md).
-* Consultar la guia rapida en el [README.md de la raiz](../README.md).
+* Volver al indice general de la documentacion en [00-indice-general.md](../00-indice-general.md).
+* Consultar la guia rapida en el [README.md de la raiz](../../README.md).

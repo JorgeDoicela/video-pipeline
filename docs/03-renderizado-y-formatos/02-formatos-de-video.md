@@ -160,7 +160,7 @@ El pipeline permite renderizar en cualquier relacion de aspecto ajustando los at
 
 ### 4.1. Catálogo Completo de las 11 Plantillas Disponibles en `templates/`
 
-Para cubrir múltiples tipologías de videos técnicos, educativos, editoriales y de divulgación sin diseñar desde cero, el directorio `templates/` proporciona **11 plantillas especializadas**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../core/styles.py)):
+Para cubrir múltiples tipologías de videos técnicos, educativos, editoriales y de divulgación sin diseñar desde cero, el directorio `templates/` proporciona **11 plantillas especializadas**, todas integradas al 100% con el motor de 3 niveles de diseño ([`core/styles.py`](../../core/styles.py)):
 
 | Plantilla (`-t`) | Resolución / Ratio | Categoría | Componentes y Estructura Visual |
 | :--- | :--- | :--- | :--- |
@@ -180,6 +180,6 @@ Para cubrir múltiples tipologías de videos técnicos, educativos, editoriales 
 
 ## 5. Enlaces Relacionados
 
-* Consultar el catálogo de Diseños Macro y Temas en [06-sistema-de-diseno-y-estilos.md](./06-sistema-de-diseno-y-estilos.md).
-* Consultar los runbooks paso a paso en [05-guia-operativa-y-flujos.md](./05-guia-operativa-y-flujos.md).
-* Volver al indice general en [00-indice-general.md](./00-indice-general.md).
+* Consultar el catálogo de Diseños Macro y Temas en [06-sistema-de-diseno-y-estilos.md](../04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md).
+* Consultar los runbooks paso a paso en [05-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
+* Volver al indice general en [00-indice-general.md](../00-indice-general.md).

@@ -1,6 +1,6 @@
 # 06 — Sistema de Diseño y Estilos Componibles en 3 Niveles
 
-Este documento especifica la arquitectura del motor de sistemas de diseño y temas visuales implementado en [`core/styles.py`](../core/styles.py). El motor permite alternar de manera no destructiva entre diseños estructuralmente distintos, configurar opciones internas de cada diseño y aplicar ajustes granulares por proyecto sin alterar el contenido HTML, los activos multimedia ni las marcas de tiempo de transcripción.
+Este documento especifica la arquitectura del motor de sistemas de diseño y temas visuales implementado en [`core/styles.py`](../../core/styles.py). El motor permite alternar de manera no destructiva entre diseños estructuralmente distintos, configurar opciones internas de cada diseño y aplicar ajustes granulares por proyecto sin alterar el contenido HTML, los activos multimedia ni las marcas de tiempo de transcripción.
 
 ---
 
@@ -48,7 +48,7 @@ flowchart TD
 
 ## 2. Nivel 1: Catálogo de Diseños Macro (`--design` / `-d`)
 
-Un **Diseño Macro** ([`DesignSystem`](../core/styles.py)) transforma la estructura visual completa del video: geometría de esquinas, grosor de bordes, sombras proyectadas, presencia o ausencia de barras de ventana, tipografía base, tema cromático predeterminado y curvas de animación GSAP.
+Un **Diseño Macro** ([`DesignSystem`](../../core/styles.py)) transforma la estructura visual completa del video: geometría de esquinas, grosor de bordes, sombras proyectadas, presencia o ausencia de barras de ventana, tipografía base, tema cromático predeterminado y curvas de animación GSAP.
 
 | Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Layout / Chrome / Motion Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -68,7 +68,7 @@ Cuando seleccionas un Diseño Macro en el Nivel 1, este aplica sus opciones nati
 
 ### 3.1. Temas Cromáticos (`--style` / `-s`)
 
-Cada [`ThemeTokens`](../core/styles.py) define 18 variables CSS semánticas (`--bg`, `--surface`, `--text-primary`, `--accent-primary`, `--caption-bg`, etc.):
+Cada [`ThemeTokens`](../../core/styles.py) define 18 variables CSS semánticas (`--bg`, `--surface`, `--text-primary`, `--accent-primary`, `--caption-bg`, etc.):
 
 | Identificador (`-s`) | Nombre | Fondo Principal (`--bg`) | Acento Primario (`--accent-primary`) | Acento Secundario (`--accent-secondary`) | Naturaleza Cromática |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -194,6 +194,6 @@ python3 core/pipeline.py style mi-proyecto --reset-overrides
 
 ## 6. Enlaces Relacionados
 
-* Ver el catálogo de las 9 plantillas de video en [04-formatos-de-video.md](./04-formatos-de-video.md).
-* Consultar los flujos de trabajo paso a paso en [05-guia-operativa-y-flujos.md](./05-guia-operativa-y-flujos.md).
-* Volver al índice maestro en [00-indice-general.md](./00-indice-general.md).
+* Ver el catálogo de las 9 plantillas de video en [04-formatos-de-video.md](../03-renderizado-y-formatos/02-formatos-de-video.md).
+* Consultar los flujos de trabajo paso a paso en [05-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
+* Volver al índice maestro en [00-indice-general.md](../00-indice-general.md).
