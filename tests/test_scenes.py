@@ -12,6 +12,7 @@ from core.scenes import (
     COMPONENT_REGISTRY,
     SceneSpec,
     StoryboardSpec,
+    align_storyboard_to_transcript,
     attach_audio_track_to_html,
     build_storyboard_html_and_gsap,
     extract_sfx_events,
@@ -155,3 +156,61 @@ def test_attach_audio_track_to_html_is_idempotent(tmp_path: Path):
     content = html_file.read_text(encoding="utf-8")
     assert content.count('src="audio_mix.wav"') == 1
     assert 'data-duration="10.00"' in content
+
+
+def test_component_registry_includes_universal_primitives():
+    expected = {
+        "phone_mockup",
+        "network_graph",
+        "terminal_grid",
+        "connector_flow",
+        "stat_callout",
+        "timeline_steps",
+        "comparison_split",
+        "quote_focus",
+        "bar_chart",
+        "code_spotlight",
+    }
+    assert expected.issubset(set(COMPONENT_REGISTRY.keys()))
+
+
+def test_align_storyboard_to_transcript_resolves_cue_words():
+    sb = StoryboardSpec(
+        title="Cue Test",
+        duration=8.0,
+        scenes=[
+            SceneSpec(
+                id="s1",
+                start=0.0,
+                end=4.0,
+                headline="Intro",
+                component="quote_focus",
+            ),
+            SceneSpec(
+                id="s2",
+                start=4.0,
+                end=8.0,
+                headline="Datos",
+                component="bar_chart",
+                cue_word="Métrica",
+            ),
+        ],
+    )
+    transcript = {
+        "segments": [
+            {
+                "words": [
+                    {"word": "Hoy", "start": 0.1},
+                    {"word": "vemos", "start": 0.6},
+                    {"word": "la", "start": 1.1},
+                    {"word": "metrica!", "start": 2.75},
+                    {"word": "final", "start": 3.5},
+                ]
+            }
+        ]
+    }
+    aligned = align_storyboard_to_transcript(sb, transcript, total_duration=9.5)
+    assert aligned.scenes[0].end == pytest.approx(2.75)
+    assert aligned.scenes[1].start == pytest.approx(2.75)
+    assert aligned.scenes[1].end == pytest.approx(9.5)
+    assert aligned.duration == pytest.approx(9.5)

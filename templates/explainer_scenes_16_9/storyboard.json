@@ -1,0 +1,82 @@
+{
+  "title": "Explainer Multi-Escena 16:9",
+  "duration": 12.0,
+  "aspect_ratio": "16:9",
+  "atmosphere": "sunburst",
+  "scenes": [
+    {
+      "id": "scene_timeline",
+      "start": 0.0,
+      "end": 3.5,
+      "badge": "01 · Evolución",
+      "headline": "De manual a determinista",
+      "component": "timeline_steps",
+      "transition": "snap",
+      "sfx": "sub_hit",
+      "sfx_volume": 0.4,
+      "props": {
+        "steps": [
+          { "tag": "FASE 1", "title": "Voz y guion", "detail": "Transcripción palabra por palabra con Whisper" },
+          { "tag": "FASE 2", "title": "Escenas declarativas", "detail": "Storyboard sincronizado por hitos reales", "highlight": true },
+          { "tag": "FASE 3", "title": "Render 1080p", "detail": "Composición determinista con mezcla SFX" }
+        ]
+      }
+    },
+    {
+      "id": "scene_compare",
+      "start": 3.5,
+      "end": 6.8,
+      "badge": "02 · Comparativa",
+      "headline": "Impacto en producción",
+      "component": "comparison_split",
+      "transition": "zoom_in",
+      "sfx": "whoosh",
+      "sfx_volume": 0.35,
+      "props": {
+        "left": {
+          "title": "Edición manual",
+          "items": ["Horas ajustando keyframes", "Difícil de mantener", "Estilos inconsistentes"]
+        },
+        "right": {
+          "title": "Pipeline declarativo",
+          "items": ["Escenas desde JSON", "WCAG AA validado", "Reutilizable en cualquier tema"],
+          "highlight": true
+        }
+      }
+    },
+    {
+      "id": "scene_bars",
+      "start": 6.8,
+      "end": 9.5,
+      "badge": "03 · Métrica",
+      "headline": "Velocidad de iteración",
+      "component": "bar_chart",
+      "transition": "slide_up",
+      "sfx": "pop",
+      "sfx_volume": 0.35,
+      "props": {
+        "bars": [
+          { "label": "Flujo tradicional", "value": 25, "display": "25%" },
+          { "label": "Plantillas estáticas", "value": 55, "display": "55%" },
+          { "label": "Motor Multi-Escena", "value": 95, "display": "95%", "highlight": true }
+        ]
+      }
+    },
+    {
+      "id": "scene_quote",
+      "start": 9.5,
+      "end": 12.0,
+      "badge": "04 · Principio",
+      "headline": "Diseño sobre estructura",
+      "component": "quote_focus",
+      "transition": "snap",
+      "sfx": "chime",
+      "sfx_volume": 0.3,
+      "props": {
+        "quote": "Cada escena debe servir a una sola idea visual sincronizada con la voz.",
+        "author": "Arquitectura Video Pipeline",
+        "context": "Compatible con 9:16 y 16:9"
+      }
+    }
+  ]
+}

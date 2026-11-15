@@ -9,6 +9,7 @@ import html
 import json
 import math
 import re
+import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -34,6 +35,7 @@ class SceneSpec:
     transition: str = "snap"
     sfx: str = "whoosh"
     sfx_volume: float = 0.35
+    cue_word: str | None = None
 
     @property
     def duration(self) -> float:
@@ -354,6 +356,176 @@ def _render_stat_callout(
     return markup, "\n".join(gsap_lines)
 
 
+def _render_timeline_steps(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Línea de tiempo secuencial para procesos, historia o pasos ordenados."""
+    steps = props.get("steps") or [
+        {"tag": "01", "title": "Contexto inicial", "detail": "Punto de partida del análisis"},
+        {
+            "tag": "02",
+            "title": "Punto de inflexión",
+            "detail": "Evento o cambio estructural",
+            "highlight": True,
+        },
+        {"tag": "03", "title": "Resultado medible", "detail": "Impacto verificable en el sistema"},
+    ]
+    rows_html: list[str] = []
+    for i, step in enumerate(steps[:4]):
+        tag = html.escape(str(step.get("tag", f"0{i + 1}")), quote=False)
+        title = html.escape(str(step.get("title", "")), quote=False)
+        detail = html.escape(str(step.get("detail", "")), quote=False)
+        hl_cls = " ng-tl-highlight" if step.get("highlight") else ""
+        rows_html.append(
+            f'<div id="{scene_id}_step_{i}" class="ng-tl-item{hl_cls}">'
+            f'<div class="ng-tl-marker">{tag}</div>'
+            f'<div class="ng-tl-content">'
+            f'<div class="ng-tl-title">{title}</div>'
+            f'<div class="ng-tl-detail">{detail}</div>'
+            f"</div></div>"
+        )
+    markup = f'<div id="{scene_id}_timeline" class="ng-timeline">{"".join(rows_html)}</div>'
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id} .ng-tl-item", {{ opacity: 0, x: -28 }}, {{ opacity: 1, x: 0, stagger: 0.14, duration: 0.36, ease: "power2.out" }}, {start + 0.12:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_comparison_split(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Comparativa en dos columnas simétricas (Antes/Después, A vs B, Mito/Realidad)."""
+    left = props.get("left") or {
+        "title": "Enfoque tradicional",
+        "items": ["Proceso manual lento", "Sin trazabilidad", "Propenso a errores"],
+    }
+    right = props.get("right") or {
+        "title": "Enfoque automatizado",
+        "items": ["Ejecución determinista", "Auditoría completa", "Cero intervención manual"],
+        "highlight": True,
+    }
+
+    def _col(col_data: dict[str, Any], side: str) -> str:
+        title = html.escape(str(col_data.get("title", "")), quote=False)
+        items = col_data.get("items") or []
+        cls = " ng-cmp-accent" if col_data.get("highlight") else ""
+        lis = "".join(f"<li>{html.escape(str(it), quote=False)}</li>" for it in items[:4])
+        return (
+            f'<div id="{scene_id}_{side}" class="ng-cmp-col{cls}">'
+            f'<div class="ng-cmp-title">{title}</div>'
+            f'<ul class="ng-cmp-list">{lis}</ul>'
+            f"</div>"
+        )
+
+    markup = f'<div id="{scene_id}_compare" class="ng-compare">{_col(left, "left")}{_col(right, "right")}</div>'
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_left", {{ opacity: 0, x: -32 }}, {{ opacity: 1, x: 0, duration: 0.36, ease: "power2.out" }}, {start + 0.10:.3f});',
+            f'tl.fromTo("#{scene_id}_right", {{ opacity: 0, x: 32 }}, {{ opacity: 1, x: 0, duration: 0.36, ease: "power2.out" }}, {start + 0.28:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_quote_focus(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Cita, versículo, ley o tesis central con atribución limpia."""
+    quote = html.escape(
+        str(props.get("quote", "La claridad estructural multiplica la retención del mensaje.")),
+        quote=False,
+    )
+    author = html.escape(str(props.get("author", "Principio de diseño")), quote=False)
+    context = html.escape(str(props.get("context", "")), quote=False)
+    ctx_html = f'<div class="ng-quote-ctx">{context}</div>' if context else ""
+    markup = (
+        f'<div id="{scene_id}_quote_card" class="ng-quote-card">'
+        f'<div class="ng-quote-mark" data-layout-ignore>&ldquo;</div>'
+        f'<blockquote class="ng-quote-text">{quote}</blockquote>'
+        f'<div class="ng-quote-author">{author}</div>'
+        f"{ctx_html}"
+        f"</div>"
+    )
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_quote_card", {{ opacity: 0, y: 28, scale: 0.96 }}, {{ opacity: 1, y: 0, scale: 1, duration: 0.42, ease: "power3.out" }}, {start + 0.10:.3f});',
+            f'tl.fromTo("#{scene_id} .ng-quote-author", {{ opacity: 0 }}, {{ opacity: 1, duration: 0.30 }}, {start + 0.45:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_bar_chart(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Gráfica de barras proporcionales animadas para métricas o comparativas."""
+    bars = props.get("bars") or [
+        {"label": "Manual", "value": 28, "display": "28%"},
+        {"label": "Híbrido", "value": 56, "display": "56%"},
+        {"label": "Pipeline", "value": 94, "display": "94%", "highlight": True},
+    ]
+    max_val = max((float(b.get("value", 1)) for b in bars), default=100.0) or 100.0
+    rows_html: list[str] = []
+    for i, bar in enumerate(bars[:5]):
+        lbl = html.escape(str(bar.get("label", "")), quote=False)
+        val = float(bar.get("value", 0))
+        pct = max(6.0, min(100.0, (val / max_val) * 100.0))
+        disp = html.escape(str(bar.get("display", f"{val:g}")), quote=False)
+        hl_cls = " ng-bar-highlight" if bar.get("highlight") else ""
+        rows_html.append(
+            f'<div class="ng-bar-row{hl_cls}">'
+            f'<div class="ng-bar-head"><span>{lbl}</span><span>{disp}</span></div>'
+            f'<div class="ng-bar-track"><div id="{scene_id}_bar_{i}" class="ng-bar-fill" style="width: {pct:.1f}%; transform-origin: left center;"></div></div>'
+            f"</div>"
+        )
+    markup = f'<div id="{scene_id}_bars" class="ng-bars">{"".join(rows_html)}</div>'
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id} .ng-bar-row", {{ opacity: 0, y: 16 }}, {{ opacity: 1, y: 0, stagger: 0.1, duration: 0.3, ease: "power2.out" }}, {start + 0.08:.3f});',
+            f'tl.fromTo("#{scene_id} .ng-bar-fill", {{ scaleX: 0 }}, {{ scaleX: 1, stagger: 0.12, duration: 0.5, ease: "power3.out" }}, {start + 0.22:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_code_spotlight(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Bloque de código, comando o fórmula con línea destacada."""
+    lang = html.escape(str(props.get("language", "bash")), quote=False)
+    lines = props.get("lines") or [
+        "$ pipeline produce -i voz.wav -p demo",
+        "  transcribing with faster-whisper...",
+        "  mixing 6 SFX events -> audio_mix.wav",
+        "  rendered: video_demo.mp4 (100%)",
+    ]
+    hl_idx = int(props.get("highlight_line", len(lines) - 1))
+    lines_html: list[str] = []
+    for i, line in enumerate(lines[:8]):
+        cls = " ng-code-line-active" if i == hl_idx else ""
+        lines_html.append(
+            f'<div id="{scene_id}_line_{i}" class="ng-code-line{cls}">'
+            f'<span class="ng-code-num">{i + 1}</span>'
+            f"<code>{html.escape(str(line), quote=False)}</code>"
+            f"</div>"
+        )
+    markup = (
+        f'<div id="{scene_id}_code" class="ng-code-card">'
+        f'<div class="ng-code-lang">{lang}</div>'
+        f'<div class="ng-code-body">{"".join(lines_html)}</div>'
+        f"</div>"
+    )
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_code", {{ opacity: 0, y: 24 }}, {{ opacity: 1, y: 0, duration: 0.36, ease: "power2.out" }}, {start + 0.08:.3f});',
+            f'tl.fromTo("#{scene_id} .ng-code-line", {{ opacity: 0, x: -16 }}, {{ opacity: 1, x: 0, stagger: 0.08, duration: 0.28, ease: "power2.out" }}, {start + 0.18:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
 ComponentRenderer = Callable[[str, dict[str, Any], float, float], tuple[str, str]]
 
 COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
@@ -362,6 +534,11 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
     "terminal_grid": _render_terminal_grid,
     "connector_flow": _render_connector_flow,
     "stat_callout": _render_stat_callout,
+    "timeline_steps": _render_timeline_steps,
+    "comparison_split": _render_comparison_split,
+    "quote_focus": _render_quote_focus,
+    "bar_chart": _render_bar_chart,
+    "code_spotlight": _render_code_spotlight,
 }
 
 
@@ -405,6 +582,7 @@ def load_storyboard(path: Path) -> StoryboardSpec:
                 transition=transition,
                 sfx=str(item.get("sfx", "whoosh")),
                 sfx_volume=float(item.get("sfx_volume", 0.35)),
+                cue_word=str(item["cue_word"]).strip() if item.get("cue_word") else None,
             )
         )
 
@@ -422,6 +600,83 @@ def load_storyboard(path: Path) -> StoryboardSpec:
         aspect_ratio=str(raw.get("aspect_ratio", "9:16")),
         atmosphere=atmosphere,
         scenes=scenes,
+    )
+
+
+def _norm_token(text: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", text.lower())
+    ascii_only = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+    return re.sub(r"[^a-z0-9]", "", ascii_only)
+
+
+def align_storyboard_to_transcript(
+    storyboard: StoryboardSpec,
+    transcript: dict[str, Any],
+    total_duration: float | None = None,
+) -> StoryboardSpec:
+    """
+    Sincroniza los tiempos de inicio de escenas que definen 'cue_word' contra
+    las marcas de tiempo palabra por palabra de Whisper y ajusta la duración total.
+    """
+    words: list[tuple[str, float]] = []
+    for seg in transcript.get("segments", []):
+        for w in seg.get("words", []):
+            norm = _norm_token(str(w.get("word", "")))
+            if norm:
+                words.append((norm, float(w.get("start", 0.0))))
+
+    adjusted: list[SceneSpec] = [
+        SceneSpec(
+            id=s.id,
+            start=s.start,
+            end=s.end,
+            headline=s.headline,
+            component=s.component,
+            props=s.props,
+            badge=s.badge,
+            transition=s.transition,
+            sfx=s.sfx,
+            sfx_volume=s.sfx_volume,
+            cue_word=s.cue_word,
+        )
+        for s in storyboard.scenes
+    ]
+
+    last_t = 0.0
+    for idx, scene in enumerate(adjusted):
+        if scene.cue_word:
+            target = _norm_token(scene.cue_word)
+            min_t = 0.0 if idx == 0 else adjusted[idx - 1].start + 0.4
+            matched_t = next((t for tok, t in words if tok == target and t >= min_t), None)
+            if matched_t is not None:
+                matched_t = round(matched_t, 3)
+                if idx > 0:
+                    prev = adjusted[idx - 1]
+                    adjusted[idx - 1] = SceneSpec(
+                        **{**prev.__dict__, "end": max(prev.start + 0.3, matched_t)}
+                    )
+                new_end = max(matched_t + 0.5, scene.end)
+                adjusted[idx] = SceneSpec(**{**scene.__dict__, "start": matched_t, "end": new_end})
+                last_t = matched_t
+                continue
+        last_t = max(last_t, scene.start)
+
+    final_dur = (
+        float(total_duration)
+        if total_duration and total_duration > 0
+        else max(storyboard.duration, adjusted[-1].end)
+    )
+    if adjusted:
+        last_scene = adjusted[-1]
+        if final_dur > last_scene.start + 0.2:
+            adjusted[-1] = SceneSpec(**{**last_scene.__dict__, "end": round(final_dur, 3)})
+
+    return StoryboardSpec(
+        title=storyboard.title,
+        duration=round(final_dur, 3),
+        aspect_ratio=storyboard.aspect_ratio,
+        atmosphere=storyboard.atmosphere,
+        scenes=adjusted,
     )
 
 

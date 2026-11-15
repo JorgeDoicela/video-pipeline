@@ -169,7 +169,8 @@ Para cubrir producción vertical (TikTok/Reels/Shorts) y horizontal (YouTube/Pre
 | `talking_head_9_16` | `1080x1920` (9:16) | Presentador Vertical | Video de presentador vertical para Shorts/Reels/TikTok con insignia superior, tarjeta flotante y subtítulos dentro de zonas seguras. |
 | `editorial_16_9` | `1920x1080` (16:9) | Narrativa Editorial / Historia / Ensayo | Escenario dividido widescreen con crónica principal, referencia temática y panel lateral de puntos clave sin bloques de código. |
 | `talking_head_16_9` | `1920x1080` (16:9) | Presentador Widescreen | Video de cámara o screencast a pantalla completa (`cut.mp4`), tarjeta *lower-third* animada y subtítulos cinéticos sincronizados. |
-| `explainer_scenes_9_16` | `1080x1920` (9:16) | Explainer Multi-Escena Faceless | Orquestación temporal desde `storyboard.json` con atmósfera 2D, 5 componentes vectoriales animados (`phone_mockup`, `network_graph`, `terminal_grid`, `connector_flow`, `stat_callout`) y mezcla de SFX/voz (`audio_mix.wav`). |
+| `explainer_scenes_9_16` | `1080x1920` (9:16) | Explainer Multi-Escena Faceless | Orquestación temporal desde `storyboard.json` con atmósfera 2D, 10 componentes vectoriales animados, sincronización `cue_word` y mezcla de SFX/voz (`audio_mix.wav`). |
+| `explainer_scenes_16_9` | `1920x1080` (16:9) | Explainer Widescreen Faceless | Mismo motor multi-escena en formato horizontal 16:9 para ensayos, tutoriales, historia, comparativas y métricas. |
 
 ---
 

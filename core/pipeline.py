@@ -34,6 +34,7 @@ from core.cut_silence import (  # noqa: E402
     get_media_duration,
 )
 from core.scenes import (  # noqa: E402
+    align_storyboard_to_transcript,
     attach_audio_track_to_html,
     extract_sfx_events,
     inject_storyboard_into_html,
@@ -82,6 +83,9 @@ def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProce
     return subprocess.run(cmd, check=check)
 
 
+AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"}
+
+
 def produce_pipeline(
     input_media: str,
     project_name: str,
@@ -100,6 +104,7 @@ def produce_pipeline(
     min_silence: float = 0.45,
     auto_render: bool = False,
     force: bool = False,
+    storyboard_path: str | None = None,
 ):
     """Ejecuta la tubería de producción completa de extremo a extremo."""
     start_time = time.time()
@@ -142,7 +147,8 @@ def produce_pipeline(
     )
 
     # 2. Recorte Algorítmico de Silencios con FFmpeg
-    cut_video_path = project_dir / "cut.mp4"
+    is_audio_only = input_path.suffix.lower() in AUDIO_EXTENSIONS
+    cut_video_path = project_dir / ("cut.wav" if is_audio_only else "cut.mp4")
     print("\n--> [Paso 2/5] Analizando pausas y recortando silencios...")
     total_dur = get_media_duration(str(input_path))
     silences = detect_silence(str(input_path), noise_db=noise_db, min_duration=min_silence)
@@ -183,6 +189,32 @@ def produce_pipeline(
         print(
             "[Captions] No se detectó habla en la pista de audio; omitiendo subtítulos cinéticos."
         )
+
+    # 4b. Compilación de Storyboard Multi-Escena + Mezcla de Voz y SFX (si aplica)
+    effective_sb_path = (
+        Path(storyboard_path)
+        if storyboard_path
+        else (
+            project_dir / "storyboard.json" if (project_dir / "storyboard.json").exists() else None
+        )
+    )
+    if effective_sb_path is not None:
+        print(
+            f"\n--> [Storyboard] Sincronizando escenas y mezclando voz + SFX ({effective_sb_path.name})..."
+        )
+        sb = load_storyboard(effective_sb_path)
+        sb = align_storyboard_to_transcript(
+            sb, transcript_data, total_duration=cut_dur if cut_dur > 0 else None
+        )
+        inject_storyboard_into_html(project_dir / "index.html", sb)
+        events = extract_sfx_events(sb)
+        mixed_wav = mix_storyboard_audio(
+            project_dir=project_dir,
+            events=events,
+            total_duration=sb.duration,
+            voice_path=cut_video_path,
+        )
+        attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, sb.duration)
 
     # 5. Auditoría de Estándares HyperFrames (WCAG AA, Motion, Layout)
     print("\n--> [Paso 5/5] Auditando estándares con hyperframes check...")
@@ -307,6 +339,10 @@ def main():
     )
     p_produce.add_argument(
         "--min-silence", type=float, default=0.45, help="Duración mínima de silencio (s)"
+    )
+    p_produce.add_argument(
+        "--storyboard",
+        help="Ruta opcional a storyboard.json para sincronizar escenas y mezclar SFX con la voz",
     )
     p_produce.add_argument(
         "--auto-render", action="store_true", help="Compilar MP4 automáticamente al concluir"
@@ -441,6 +477,7 @@ def main():
             min_silence=args.min_silence,
             auto_render=args.auto_render,
             force=args.force,
+            storyboard_path=args.storyboard,
         )
     elif args.subcommand == "cut":
         dur = get_media_duration(args.input)
