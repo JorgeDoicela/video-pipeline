@@ -28,7 +28,7 @@ def load_transcript(json_path: Path) -> dict:
     if not json_path.exists():
         print(f"Error: El archivo de transcripción '{json_path}' no existe.", file=sys.stderr)
         sys.exit(1)
-    with open(json_path, encoding="utf-8") as f:
+    with open(json_path, encoding="utf-8-sig") as f:
         return json.load(f)
 
 

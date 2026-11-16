@@ -150,6 +150,38 @@ def generate_glitch(path: Path) -> None:
     write_wav(path, samples)
 
 
+def generate_scan(path: Path) -> None:
+    """Genera un barrido electrónico limpio para escáneres láser, radares y rayos X."""
+    duration = 0.34
+    num_samples = int(SAMPLE_RATE * duration)
+    samples: list[float] = []
+    phase = 0.0
+    for i in range(num_samples):
+        t = i / SAMPLE_RATE
+        freq = 340.0 + 680.0 * math.sin(math.pi * (t / duration))
+        phase += 2.0 * math.pi * freq / SAMPLE_RATE
+        mod = 0.75 + 0.25 * math.sin(2.0 * math.pi * 28.0 * t)
+        env = math.sin(math.pi * (t / duration)) ** 1.4
+        samples.append(math.sin(phase) * mod * env * 0.48)
+    write_wav(path, samples)
+
+
+def generate_drone(path: Path) -> None:
+    """Genera una cama ambiental grave cinemática (4.0s, ciclo exacto loopable sin clics)."""
+    duration = 4.0
+    num_samples = int(SAMPLE_RATE * duration)
+    samples: list[float] = []
+    for i in range(num_samples):
+        t = i / SAMPLE_RATE
+        # Frecuencias múltiplo exacto de 0.25Hz para fase continua en loop de 4.0s
+        f1 = math.sin(2.0 * math.pi * 55.0 * t) * 0.52
+        f2 = math.sin(2.0 * math.pi * 110.0 * t) * 0.28
+        f3 = math.sin(2.0 * math.pi * 165.0 * t) * 0.12
+        lfo = 0.72 + 0.28 * math.sin(2.0 * math.pi * 0.5 * t)
+        samples.append((f1 + f2 + f3) * lfo * 0.55)
+    write_wav(path, samples)
+
+
 SFX_GENERATORS = {
     "whoosh": generate_whoosh,
     "pop": generate_pop,
@@ -158,6 +190,8 @@ SFX_GENERATORS = {
     "beep": generate_beep,
     "sub_hit": generate_sub_hit,
     "glitch": generate_glitch,
+    "scan": generate_scan,
+    "drone": generate_drone,
 }
 
 

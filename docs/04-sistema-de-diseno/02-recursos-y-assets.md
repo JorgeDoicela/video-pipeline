@@ -17,6 +17,8 @@ Todos los archivos son WAV PCM estéreo a 48,000 Hz, 16 bits, sintetizados matem
 | `beep.wav` | `0.08s` | Logs de terminal, llegada de paquetes de red o comandos CLI. |
 | `sub_hit.wav` | `0.55s` | Impacto sub-grave para apertura de escena, títulos hook o revelaciones. |
 | `glitch.wav` | `0.16s` | Alertas críticas, errores de terminal o cambios bruscos de estado. |
+| `scan.wav` | `0.34s` | Barridos de radar táctico, escáneres láser HUD e inspección de rayos X. |
+| `drone.wav` | `4.00s` | Cama ambiental grave armónica (ciclo exacto loopable con *ducking* automático). |
 
 ### Integración en HyperFrames / Mezcla FFmpeg (`core/audio_mix.py`)
 Además de la vinculación directa como `<audio>` por evento, [`core/audio_mix.py`](../../core/audio_mix.py) invoca `ensure_sfx_assets()` y mezcla la pista de voz con todos los eventos SFX del storyboard en un único archivo maestro `audio_mix.wav` mediante `adelay`, `amix` y limitación de picos `alimiter=limit=0.95`.

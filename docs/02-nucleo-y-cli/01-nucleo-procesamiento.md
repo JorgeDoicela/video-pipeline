@@ -205,12 +205,13 @@ python3 core/pipeline.py produce \
 
 El subcomando `storyboard` compila un guion declarativo `storyboard.json` en escenas HTML/SVG secuenciadas en GSAP e inyecta una pista maestra `<audio id="master-audio">` mezclada de forma determinista con FFmpeg:
 
-* **Componentes narrativos (`COMPONENT_REGISTRY`):** 11 primitivas universales: `timeline_steps`, `comparison_split`, `quote_focus`, `bar_chart`, `code_spotlight`, `icon_spotlight`, `phone_mockup`, `network_graph`, `terminal_grid`, `connector_flow` y `stat_callout`.
+* **Componentes narrativos (`COMPONENT_REGISTRY`):** 16 primitivas universales: `timeline_steps`, `comparison_split`, `quote_focus`, `bar_chart`, `code_spotlight`, `icon_spotlight`, `phone_mockup` (modos `list` y `app_grid`), `network_graph`, `terminal_grid`, `connector_flow`, `stat_callout`, `radar_map`, `xray_scanner`, `system_alert`, `hex_inspector` y `desktop_monitor`.
 * **Sincronización por voz (`align_storyboard_to_transcript`):** Si una escena define `cue_word`, ajusta su inicio automáticamente al instante exacto en que Whisper detecta esa palabra en `transcript.json`.
-* **Generación automática desde transcripción (`build_storyboard_from_transcript`):** Permite construir un `storyboard.json` editable directamente desde los segmentos de `transcript.json` mediante `--auto-storyboard`.
-* **Integración en `produce`:** Acepta tanto video como solo audio (`.wav`, `.mp3`, `.m4a`, `.aac`, `.ogg`, `.flac`), `--storyboard <ruta.json>` o `--auto-storyboard` para producir un video *faceless* completo en un solo comando.
-* **Atmósfera adaptativa y transiciones:** `data-atmosphere` (`sunburst`, `grid`, `clean`) vinculado a los tokens del tema activo y cortes `snap`, `zoom_in`, `slide_up`.
-* **Mezcla procedural de SFX (`core/audio_mix.py`):** Posiciona `sub_hit`, `glitch`, `whoosh`, `pop`, `click`, `chime` y `beep` con `adelay` exacto en milisegundos, `amix` y limitación `alimiter=limit=0.95` sobre silencio base o pista de voz (`--audio`).
+* **Vocabulario técnico y reemplazos (`core/transcribe.py`):** Soporta `--prompt`, `--hotwords` y `--replace ERRONEO=CORRECTO` para garantizar exactitud ortográfica en términos técnicos.
+* **Subtítulos Hero-Top e identidad de marca:** `caption_position: "hero_top"` ubica los subtítulos cinéticos como titular gigante superior (estilo *short explainer*), y `brand` / `category` renderizan la firma tipográfica superior sin cápsulas.
+* **Generación automática semántica (`build_storyboard_from_transcript`):** Construye un `storyboard.json` editable desde los segmentos de `transcript.json` mediante `--auto-storyboard`, eligiendo componentes según el contenido.
+* **Atmósfera y color dinámicos por escena:** Cada escena puede conmutar `atmosphere` (`sunburst`, `grid`, `clean`) y `accent` (`primary`, `danger`, `secondary`, `warning`, `tertiary` o color hex), con cortes `snap`, `zoom_in`, `slide_up`.
+* **Mezcla procedural de SFX, sub-eventos y cama con ducking (`core/audio_mix.py`):** Posiciona `sub_hit`, `glitch`, `whoosh`, `pop`, `click`, `chime`, `beep`, `scan` (incluyendo sub-eventos intra-escena) con `adelay`, y mezcla opcionalmente `--music` o `--ambient-bed` (`drone.wav`) aplicando *ducking* automático con `sidechaincompress` y `alimiter=limit=0.95`.
 
 ```bash
 python3 core/pipeline.py storyboard mi-explainer --mix-sfx

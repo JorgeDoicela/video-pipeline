@@ -66,7 +66,7 @@ from core.sync_captions import (  # noqa: E402
     inject_into_html,
     load_transcript,
 )
-from core.transcribe import transcribe  # noqa: E402
+from core.transcribe import parse_replacements, transcribe  # noqa: E402
 
 
 def resolve_pnpm() -> str:
@@ -108,6 +108,12 @@ def produce_pipeline(
     force: bool = False,
     storyboard_path: str | None = None,
     auto_storyboard: bool = False,
+    whisper_prompt: str | None = None,
+    whisper_hotwords: str | None = None,
+    replacements: dict[str, str] | None = None,
+    music_path: str | None = None,
+    music_volume: float = 0.14,
+    ambient_bed: bool = False,
 ):
     """Ejecuta la tubería de producción completa de extremo a extremo."""
     start_time = time.time()
@@ -171,6 +177,9 @@ def produce_pipeline(
         model_size=whisper_model,
         language=language,
         device="cpu",
+        initial_prompt=whisper_prompt,
+        hotwords=whisper_hotwords,
+        replacements=replacements,
     )
 
     # 4. Sincronización e Inyección de Subtítulos Cinéticos
@@ -218,12 +227,15 @@ def produce_pipeline(
             sb, transcript_data, total_duration=cut_dur if cut_dur > 0 else None
         )
         inject_storyboard_into_html(project_dir / "index.html", sb)
-        events = extract_sfx_events(sb)
+        events = extract_sfx_events(sb, include_sub_events=True)
         mixed_wav = mix_storyboard_audio(
             project_dir=project_dir,
             events=events,
             total_duration=sb.duration,
             voice_path=cut_video_path,
+            music_path=Path(music_path) if music_path else None,
+            music_volume=music_volume,
+            ambient_bed=ambient_bed or sb.ambient_bed,
         )
         attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, sb.duration)
 
@@ -361,6 +373,36 @@ def main():
         help="Generar storyboard.json automáticamente a partir de transcript.json",
     )
     p_produce.add_argument(
+        "--prompt",
+        help="Prompt inicial de vocabulario técnico para guiar a Whisper (ej. 'Redis, Kubernetes')",
+    )
+    p_produce.add_argument(
+        "--hotwords",
+        help="Palabras clave técnicas prioritarias para Whisper separadas por coma",
+    )
+    p_produce.add_argument(
+        "--replace",
+        dest="replacements",
+        action="append",
+        metavar="ERRONEO=CORRECTO",
+        help="Corrección determinista de términos en transcripción (ej. --replace lidis=Redis)",
+    )
+    p_produce.add_argument(
+        "--music",
+        help="Ruta opcional a pista de música/ambiente para mezclar con ducking automático",
+    )
+    p_produce.add_argument(
+        "--music-volume",
+        type=float,
+        default=0.14,
+        help="Volumen base de la pista musical/ambiental (defecto: 0.14)",
+    )
+    p_produce.add_argument(
+        "--ambient-bed",
+        action="store_true",
+        help="Activar cama ambiental sintética grave (drone.wav) con ducking automático",
+    )
+    p_produce.add_argument(
         "--auto-render", action="store_true", help="Compilar MP4 automáticamente al concluir"
     )
     p_produce.add_argument(
@@ -397,6 +439,15 @@ def main():
     p_tr.add_argument("-o", "--output", required=True, help="JSON de salida")
     p_tr.add_argument("-m", "--model", default="base", help="Modelo de Whisper")
     p_tr.add_argument("-l", "--language", default="es", help="Idioma")
+    p_tr.add_argument("--prompt", help="Prompt inicial con vocabulario técnico")
+    p_tr.add_argument("--hotwords", help="Palabras clave prioritarias")
+    p_tr.add_argument(
+        "--replace",
+        dest="replacements",
+        action="append",
+        metavar="ERRONEO=CORRECTO",
+        help="Corrección determinista de términos (ej. --replace lidis=Redis)",
+    )
 
     # Subcomando: scaffold
     p_sc = subparsers.add_parser("scaffold", help="Crear nuevo proyecto desde plantilla")
@@ -466,6 +517,21 @@ def main():
         action="store_true",
         help="Mezclar eventos SFX (y voz si se indica --audio) en audio_mix.wav",
     )
+    p_sb.add_argument(
+        "--music",
+        help="Ruta opcional a pista musical para mezclar con ducking",
+    )
+    p_sb.add_argument(
+        "--music-volume",
+        type=float,
+        default=0.14,
+        help="Volumen base de pista musical (defecto: 0.14)",
+    )
+    p_sb.add_argument(
+        "--ambient-bed",
+        action="store_true",
+        help="Activar cama ambiental sintética (drone.wav) con ducking",
+    )
 
     args = parser.parse_args()
 
@@ -475,6 +541,7 @@ def main():
 
     if args.subcommand == "produce":
         parsed_overrides = parse_set_overrides(args.overrides)
+        parsed_replacements = parse_replacements(args.replacements)
         produce_pipeline(
             input_media=args.input,
             project_name=args.project,
@@ -495,6 +562,12 @@ def main():
             force=args.force,
             storyboard_path=args.storyboard,
             auto_storyboard=args.auto_storyboard,
+            whisper_prompt=args.prompt,
+            whisper_hotwords=args.hotwords,
+            replacements=parsed_replacements,
+            music_path=args.music,
+            music_volume=args.music_volume,
+            ambient_bed=args.ambient_bed,
         )
     elif args.subcommand == "cut":
         dur = get_media_duration(args.input)
@@ -502,7 +575,15 @@ def main():
         keep = compute_keep_intervals(dur, sil)
         cut_and_concat(args.input, args.output, keep)
     elif args.subcommand == "transcribe":
-        transcribe(args.input, args.output, args.model, args.language)
+        transcribe(
+            args.input,
+            args.output,
+            args.model,
+            args.language,
+            initial_prompt=args.prompt,
+            hotwords=args.hotwords,
+            replacements=parse_replacements(args.replacements),
+        )
     elif args.subcommand == "captions":
         t_data = load_transcript(Path(args.input))
         w_list = extract_word_list(t_data)
@@ -583,13 +664,16 @@ def main():
         inject_storyboard_into_html(html_path, sb)
         print(f"Storyboard inyectado en {html_path} ({len(sb.scenes)} escenas)")
         if args.mix_sfx:
-            events = extract_sfx_events(sb)
+            events = extract_sfx_events(sb, include_sub_events=True)
             voice_path = Path(args.audio) if args.audio else None
             mixed_wav = mix_storyboard_audio(
                 project_dir=p_dir,
                 events=events,
                 total_duration=sb.duration,
                 voice_path=voice_path,
+                music_path=Path(args.music) if args.music else None,
+                music_volume=args.music_volume,
+                ambient_bed=args.ambient_bed or sb.ambient_bed,
             )
             attach_audio_track_to_html(html_path, mixed_wav.name, sb.duration)
             print(f"Audio mezclado en {mixed_wav} ({len(events)} eventos SFX)")

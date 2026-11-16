@@ -173,8 +173,81 @@ def test_component_registry_includes_universal_primitives():
         "bar_chart",
         "code_spotlight",
         "icon_spotlight",
+        "radar_map",
+        "xray_scanner",
+        "system_alert",
+        "hex_inspector",
+        "desktop_monitor",
     }
-    assert expected.issubset(set(COMPONENT_REGISTRY.keys()))
+    assert expected == set(COMPONENT_REGISTRY.keys())
+
+
+def test_stat_callout_and_phone_app_grid_and_hero_top_render():
+    s1 = SceneSpec(
+        id="s_grid",
+        start=0.0,
+        end=3.0,
+        headline="",
+        component="phone_mockup",
+        accent="danger",
+        atmosphere="sunburst",
+        props={"mode": "app_grid", "alert_text": "PRÓXIMA CAPTURA 00:02"},
+    )
+    s2 = SceneSpec(
+        id="s_stat",
+        start=3.0,
+        end=6.0,
+        headline="Disponibilidad",
+        component="stat_callout",
+        accent="secondary",
+        atmosphere="grid",
+        props={"value": "99.9%", "label": "SLA Producción", "note": "Cero caídas"},
+    )
+    sb = StoryboardSpec(
+        title="Hero Test",
+        duration=6.0,
+        caption_position="hero_top",
+        brand="hack4u.io",
+        category="CIBERSEGURIDAD",
+        ambient_bed=True,
+        scenes=[s1, s2],
+    )
+    markup, js_code = build_storyboard_html_and_gsap(sb)
+    assert "99.9%" in markup
+    assert "SLA Producción" in markup
+    assert "PRÓXIMA CAPTURA 00:02" in markup
+    assert 'id="brand-bar"' in markup
+    assert "hack4u.io" in markup
+    assert "CIBERSEGURIDAD" in markup
+    assert "--scene-accent: var(--accent-danger);" in markup
+    assert "#atmosphere-grid" in js_code
+
+    sub_events = extract_sfx_events(sb, include_sub_events=True)
+    assert len(sub_events) > 2
+
+
+def test_vocabulary_replacements_in_transcribe():
+    from core.transcribe import apply_vocabulary_replacements, parse_replacements
+
+    rep = parse_replacements(["lidis=Redis", "kubernets=Kubernetes"])
+    sample = {
+        "segments": [
+            {
+                "text": "Escalamos con lidis, y kubernets.",
+                "words": [
+                    {"word": "Escalamos", "start": 0.0, "end": 0.4},
+                    {"word": "con", "start": 0.4, "end": 0.6},
+                    {"word": "lidis,", "start": 0.6, "end": 1.0},
+                    {"word": "y", "start": 1.0, "end": 1.1},
+                    {"word": "kubernets.", "start": 1.1, "end": 1.6},
+                ],
+            }
+        ]
+    }
+    updated = apply_vocabulary_replacements(sample, rep)
+    assert updated["segments"][0]["text"] == "Escalamos con Redis, y Kubernetes."
+    assert updated["segments"][0]["words"][2]["word"] == "Redis,"
+    assert updated["segments"][0]["words"][4]["word"] == "Kubernetes."
 
 
 def test_align_storyboard_to_transcript_resolves_cue_words():

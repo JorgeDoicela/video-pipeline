@@ -99,7 +99,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
-  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D, 11 componentes vectoriales animados, subtítulos cinéticos y mezcla SFX/voz.
+  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, 16 componentes vectoriales animados, subtítulos `hero_top` o inferiores, y mezcla de voz + cama con *ducking* + SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y terminal vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
@@ -148,15 +148,15 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 ```text
 video-pipeline/
 ├── assets/                 # Recursos locales reutilizables (audio SFX, fuentes, iconos SVG)
-│   ├── audio/             # Efectos de sonido libres (whoosh, pop, click, chime, beep, sub_hit, glitch WAV)
+│   ├── audio/             # Efectos de sonido libres (whoosh, pop, click, chime, beep, sub_hit, glitch, scan, drone WAV)
 │   ├── fonts/             # Tipografías del sistema
 │   └── icons/             # Iconografía técnica vectorial (Docker, K8s, Kafka, Redis SVG)
 ├── core/                   # Herramientas del motor compartido
 │   ├── __init__.py        # Módulo Python del núcleo
 │   ├── _runtime.py        # Inicialización de rutas y entorno virtual local
 │   ├── pipeline.py        # Orquestador maestro de producción end-to-end
-│   ├── scenes.py          # Motor multi-escena (11 primitivas SVG/HTML, cue_word y auto-storyboard)
-│   ├── audio_mix.py       # Mezclador determinista de voz y SFX con FFmpeg (adelay + alimiter)
+│   ├── scenes.py          # Motor multi-escena (16 primitivas SVG/HTML, cue_word, hero_top y auto-storyboard)
+│   ├── audio_mix.py       # Mezclador determinista de voz, cama con ducking y SFX (adelay + sidechaincompress + alimiter)
 │   ├── styles.py          # Fachada CLI y API del motor de diseño en 3 niveles
 │   ├── _styles_catalog.py # Catálogo declarativo de diseños, temas, layouts y tokens
 │   ├── _styles_renderer.py# Compilador CSS, mutación HTML y persistencia
