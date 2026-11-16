@@ -7,6 +7,7 @@ auditoría de estándares y renderizado con un único comando.
 """
 
 import argparse
+import json
 import shutil
 import subprocess
 import sys
@@ -36,6 +37,7 @@ from core.cut_silence import (  # noqa: E402
 from core.scenes import (  # noqa: E402
     align_storyboard_to_transcript,
     attach_audio_track_to_html,
+    build_storyboard_from_transcript,
     extract_sfx_events,
     inject_storyboard_into_html,
     load_storyboard,
@@ -105,6 +107,7 @@ def produce_pipeline(
     auto_render: bool = False,
     force: bool = False,
     storyboard_path: str | None = None,
+    auto_storyboard: bool = False,
 ):
     """Ejecuta la tubería de producción completa de extremo a extremo."""
     start_time = time.time()
@@ -191,13 +194,21 @@ def produce_pipeline(
         )
 
     # 4b. Compilación de Storyboard Multi-Escena + Mezcla de Voz y SFX (si aplica)
-    effective_sb_path = (
-        Path(storyboard_path)
-        if storyboard_path
-        else (
-            project_dir / "storyboard.json" if (project_dir / "storyboard.json").exists() else None
+    effective_sb_path: Path | None = None
+    if storyboard_path:
+        effective_sb_path = Path(storyboard_path)
+    elif auto_storyboard:
+        generated_sb = build_storyboard_from_transcript(
+            transcript_data,
+            title=title or project_name,
+            aspect_ratio="16:9" if "16_9" in template else "9:16",
         )
-    )
+        effective_sb_path = project_dir / "storyboard.json"
+        effective_sb_path.write_text(
+            json.dumps(generated_sb, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+    elif (project_dir / "storyboard.json").exists():
+        effective_sb_path = project_dir / "storyboard.json"
     if effective_sb_path is not None:
         print(
             f"\n--> [Storyboard] Sincronizando escenas y mezclando voz + SFX ({effective_sb_path.name})..."
@@ -345,6 +356,11 @@ def main():
         help="Ruta opcional a storyboard.json para sincronizar escenas y mezclar SFX con la voz",
     )
     p_produce.add_argument(
+        "--auto-storyboard",
+        action="store_true",
+        help="Generar storyboard.json automáticamente a partir de transcript.json",
+    )
+    p_produce.add_argument(
         "--auto-render", action="store_true", help="Compilar MP4 automáticamente al concluir"
     )
     p_produce.add_argument(
@@ -478,6 +494,7 @@ def main():
             auto_render=args.auto_render,
             force=args.force,
             storyboard_path=args.storyboard,
+            auto_storyboard=args.auto_storyboard,
         )
     elif args.subcommand == "cut":
         dur = get_media_duration(args.input)

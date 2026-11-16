@@ -526,6 +526,60 @@ def _render_code_spotlight(
     return markup, gsap
 
 
+def _render_icon_spotlight(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Foco visual con icono SVG limpio (sin cápsula) y anillo de progreso radial opcional."""
+    label = html.escape(str(props.get("label", "Concepto clave")), quote=False)
+    sublabel = html.escape(str(props.get("sublabel", "")), quote=False)
+    icon_name = str(props.get("icon", "shield")).strip()
+    ring_progress = float(props.get("ring_progress", 0.75))
+    ring_progress = max(0.0, min(1.0, ring_progress))
+
+    # Intentar cargar SVG desde assets/icons/<icon_name>.svg si existe; si no, usar SVG geométrico limpio
+    icon_svg = (
+        '<svg class="ng-bare-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" '
+        'stroke="var(--accent-primary)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
+    )
+    candidate = Path(__file__).resolve().parent.parent / "assets" / "icons" / f"{icon_name}.svg"
+    if candidate.exists():
+        raw_svg = candidate.read_text(encoding="utf-8")
+        # Normalizar tamaño sin envolver en cápsulas
+        raw_svg = re.sub(r'\swidth="[^"]*"', "", raw_svg, count=1)
+        raw_svg = re.sub(r'\sheight="[^"]*"', "", raw_svg, count=1)
+        icon_svg = raw_svg.replace("<svg", '<svg class="ng-bare-icon" width="120" height="120"', 1)
+
+    radius = 128.0
+    circumference = 2.0 * math.pi * radius
+    target_offset = circumference * (1.0 - ring_progress)
+    sub_html = f'<div class="ng-spot-sub">{sublabel}</div>' if sublabel else ""
+
+    markup = (
+        f'<div id="{scene_id}_spotlight" class="ng-spotlight">'
+        f'  <div class="ng-spot-ring">'
+        f'    <svg class="ng-ring-svg" width="300" height="300" viewBox="0 0 300 300">'
+        f'      <circle cx="150" cy="150" r="{radius:.0f}" fill="none" stroke="var(--border)" stroke-width="6" />'
+        f'      <circle id="{scene_id}_ring_arc" cx="150" cy="150" r="{radius:.0f}" fill="none" '
+        f'        stroke="var(--accent-primary)" stroke-width="8" stroke-linecap="round" '
+        f'        stroke-dasharray="{circumference:.1f}" stroke-dashoffset="{circumference:.1f}" '
+        f'        transform="rotate(-90 150 150)" />'
+        f"    </svg>"
+        f'    <div class="ng-spot-icon">{icon_svg}</div>'
+        f"  </div>"
+        f'  <div class="ng-spot-label">{label}</div>'
+        f"  {sub_html}"
+        f"</div>"
+    )
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_spotlight", {{ opacity: 0, scale: 0.92 }}, {{ opacity: 1, scale: 1, duration: 0.38, ease: "power3.out" }}, {start + 0.08:.3f});',
+            f'tl.to("#{scene_id}_ring_arc", {{ strokeDashoffset: {target_offset:.1f}, duration: 0.85, ease: "power2.out" }}, {start + 0.18:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
 ComponentRenderer = Callable[[str, dict[str, Any], float, float], tuple[str, str]]
 
 COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
@@ -539,6 +593,7 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
     "quote_focus": _render_quote_focus,
     "bar_chart": _render_bar_chart,
     "code_spotlight": _render_code_spotlight,
+    "icon_spotlight": _render_icon_spotlight,
 }
 
 
@@ -779,15 +834,149 @@ def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> 
             "El archivo HTML no contiene los marcadores // @scenes-gsap:start/end compatibles con multi-escena."
         )
 
-    # 3. Actualizar data-duration en #root
+    # 3. Actualizar data-duration y data-atmosphere en #root
     content = re.sub(
         r'data-duration="[^"]*"',
         f'data-duration="{storyboard.duration:.2f}"',
         content,
         count=1,
     )
+    if re.search(r'data-atmosphere="[^"]*"', content):
+        content = re.sub(
+            r'data-atmosphere="[^"]*"',
+            f'data-atmosphere="{storyboard.atmosphere}"',
+            content,
+            count=1,
+        )
+    else:
+        content = re.sub(
+            r'(<div[^>]*data-composition-id="main"[^>]*)(>)',
+            lambda m: f'{m.group(1)} data-atmosphere="{storyboard.atmosphere}"{m.group(2)}',
+            content,
+            count=1,
+        )
 
     html_path.write_text(content, encoding="utf-8")
+
+
+def build_storyboard_from_transcript(
+    transcript: dict[str, Any],
+    title: str = "Explainer",
+    aspect_ratio: str = "9:16",
+    atmosphere: str = "sunburst",
+) -> dict[str, Any]:
+    """
+    Genera automáticamente una estructura storyboard.json editable a partir de
+    segmentos reales de Whisper, rotando componentes narrativos universales.
+    """
+    segments = transcript.get("segments", [])
+    total_dur = float(transcript.get("duration", 0.0))
+    if not segments:
+        dur = total_dur if total_dur > 0 else 5.0
+        return {
+            "title": title,
+            "duration": round(dur, 2),
+            "aspect_ratio": aspect_ratio,
+            "atmosphere": atmosphere if atmosphere in VALID_ATMOSPHERES else "sunburst",
+            "scenes": [
+                {
+                    "id": "scene_1",
+                    "start": 0.0,
+                    "end": round(dur, 2),
+                    "badge": "01 · Idea Central",
+                    "headline": title,
+                    "component": "quote_focus",
+                    "transition": "snap",
+                    "sfx": "sub_hit",
+                    "props": {"quote": title, "author": "Narración"},
+                }
+            ],
+        }
+
+    # Agrupar segmentos en bloques de al menos ~3.2s para ritmo visual legible
+    chunks: list[dict[str, Any]] = []
+    for seg in segments:
+        s_start = float(seg.get("start", 0.0))
+        s_end = float(seg.get("end", s_start + 2.0))
+        s_text = str(seg.get("text", "")).strip()
+        if not s_text:
+            continue
+        if not chunks or (chunks[-1]["end"] - chunks[-1]["start"] >= 3.2 and len(chunks) < 8):
+            chunks.append({"start": s_start, "end": s_end, "texts": [s_text]})
+        else:
+            chunks[-1]["end"] = s_end
+            chunks[-1]["texts"].append(s_text)
+
+    if not chunks:
+        chunks = [{"start": 0.0, "end": total_dur or 5.0, "texts": [title]}]
+
+    chunks[0]["start"] = 0.0
+    final_dur = max(total_dur, float(chunks[-1]["end"]))
+    chunks[-1]["end"] = final_dur
+
+    scenes: list[dict[str, Any]] = []
+    sfx_cycle = ["sub_hit", "whoosh", "pop", "chime"]
+    trans_cycle = ["snap", "zoom_in", "slide_up"]
+    comp_cycle = ["icon_spotlight", "quote_focus", "stat_callout", "timeline_steps"]
+
+    for i, chunk in enumerate(chunks):
+        c_start = round(float(chunk["start"]), 3)
+        c_end = round(float(chunks[i + 1]["start"]) if i + 1 < len(chunks) else final_dur, 3)
+        if c_end <= c_start:
+            c_end = round(c_start + 1.0, 3)
+        full_text = " ".join(chunk["texts"]).strip()
+        words = full_text.split()
+        headline = " ".join(words[:5]) + ("..." if len(words) > 5 else "")
+        comp = comp_cycle[i % len(comp_cycle)]
+
+        props: dict[str, Any]
+        if comp == "icon_spotlight":
+            props = {
+                "icon": "shield",
+                "label": headline,
+                "sublabel": full_text[:90],
+                "ring_progress": 0.8,
+            }
+        elif comp == "quote_focus":
+            props = {"quote": full_text[:140], "author": f"Punto {i + 1:02d}"}
+        elif comp == "stat_callout":
+            props = {"value": f"{i + 1:02d}", "label": headline, "note": full_text[:90]}
+        else:
+            parts = [w for w in chunk["texts"] if w][:3]
+            props = {
+                "steps": [
+                    {
+                        "tag": f"0{k + 1}",
+                        "title": p[:42],
+                        "detail": "",
+                        "highlight": k == len(parts) - 1,
+                    }
+                    for k, p in enumerate(parts)
+                ]
+            }
+
+        scenes.append(
+            {
+                "id": f"scene_{i + 1}",
+                "start": c_start,
+                "end": c_end,
+                "badge": f"{i + 1:02d} · Clave",
+                "headline": headline,
+                "component": comp,
+                "transition": trans_cycle[i % len(trans_cycle)],
+                "sfx": sfx_cycle[i % len(sfx_cycle)],
+                "sfx_volume": 0.35,
+                "props": props,
+            }
+        )
+
+    return {
+        "title": title,
+        "duration": round(final_dur, 3),
+        "aspect_ratio": aspect_ratio,
+        "atmosphere": atmosphere if atmosphere in VALID_ATMOSPHERES else "sunburst",
+        "scenes": scenes,
+    }
 
 
 def attach_audio_track_to_html(html_path: Path, audio_filename: str, duration: float) -> None:

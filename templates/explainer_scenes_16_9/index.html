@@ -98,10 +98,29 @@
         margin-top: -1200px;
         background: repeating-conic-gradient(
           from 0deg,
-          rgba(255, 255, 255, 0.025) 0deg 10deg,
+          var(--accent-primary-soft) 0deg 10deg,
           transparent 10deg 24deg
         );
+        opacity: 0.28;
         pointer-events: none;
+        display: none;
+      }
+      #atmosphere-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(to right, var(--divider) 1px, transparent 1px),
+          linear-gradient(to bottom, var(--divider) 1px, transparent 1px);
+        background-size: 72px 72px;
+        pointer-events: none;
+        display: none;
+      }
+      #root[data-atmosphere="sunburst"] #atmosphere-rays,
+      #root:not([data-atmosphere]) #atmosphere-rays {
+        display: block;
+      }
+      #root[data-atmosphere="grid"] #atmosphere-grid {
+        display: block;
       }
 
       #progress-bar {
@@ -374,6 +393,25 @@
       .ng-stat-val { font-size: 112px; font-weight: 900; color: var(--accent-primary); line-height: 1; }
       .ng-stat-lbl { font-size: 38px; font-weight: 800; color: var(--text-primary); }
       .ng-stat-note { font-size: 28px; color: var(--text-muted); }
+      .ng-spotlight {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        text-align: center;
+      }
+      .ng-spot-ring {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ng-ring-svg { position: absolute; inset: 0; }
+      .ng-spot-icon { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
+      .ng-spot-label { font-size: 40px; font-weight: 900; color: var(--text-primary); }
+      .ng-spot-sub { font-size: 28px; color: var(--text-muted); max-width: 820px; }
 
       /* Subtítulos Cinéticos */
       #caption-zone {
@@ -456,6 +494,7 @@
     >
       <div class="atmosphere-bg" data-layout-ignore></div>
       <div id="atmosphere-rays" data-layout-ignore></div>
+      <div id="atmosphere-grid" data-layout-ignore></div>
       <div id="progress-bar" data-layout-ignore></div>
 
       <!-- @scenes:start -->

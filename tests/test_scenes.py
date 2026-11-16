@@ -14,11 +14,13 @@ from core.scenes import (
     StoryboardSpec,
     align_storyboard_to_transcript,
     attach_audio_track_to_html,
+    build_storyboard_from_transcript,
     build_storyboard_html_and_gsap,
     extract_sfx_events,
     inject_storyboard_into_html,
     load_storyboard,
 )
+from core.styles import DESIGN_SYSTEMS, apply_style_to_project
 
 
 def _sample_storyboard_dict() -> dict:
@@ -170,6 +172,7 @@ def test_component_registry_includes_universal_primitives():
         "quote_focus",
         "bar_chart",
         "code_spotlight",
+        "icon_spotlight",
     }
     assert expected.issubset(set(COMPONENT_REGISTRY.keys()))
 
@@ -214,3 +217,49 @@ def test_align_storyboard_to_transcript_resolves_cue_words():
     assert aligned.scenes[1].start == pytest.approx(2.75)
     assert aligned.scenes[1].end == pytest.approx(9.5)
     assert aligned.duration == pytest.approx(9.5)
+
+
+def test_build_storyboard_from_transcript_generates_valid_spec(tmp_path: Path):
+    transcript = {
+        "duration": 10.5,
+        "segments": [
+            {"start": 0.0, "end": 3.5, "text": "Primer concepto clave del video"},
+            {"start": 3.6, "end": 7.0, "text": "Segundo punto con datos reales"},
+            {"start": 7.1, "end": 10.5, "text": "Conclusión práctica y cierre"},
+        ],
+    }
+    raw_spec = build_storyboard_from_transcript(
+        transcript, title="Mi Video", aspect_ratio="16:9", atmosphere="grid"
+    )
+    spec_path = tmp_path / "storyboard.json"
+    spec_path.write_text(json.dumps(raw_spec), encoding="utf-8")
+
+    sb = load_storyboard(spec_path)
+    assert sb.title == "Mi Video"
+    assert sb.aspect_ratio == "16:9"
+    assert sb.atmosphere == "grid"
+    assert len(sb.scenes) == 3
+
+
+def test_explainer_project_supports_switching_all_macro_designs(tmp_path: Path):
+    proj_dir = tmp_path / "explainer-demo"
+    proj_dir.mkdir()
+    src_html = (
+        Path(__file__).resolve().parent.parent
+        / "templates"
+        / "explainer_scenes_9_16"
+        / "index.html"
+    )
+    html_file = proj_dir / "index.html"
+    html_file.write_text(src_html.read_text(encoding="utf-8"), encoding="utf-8")
+    (proj_dir / "package.json").write_text('{"name": "explainer-demo"}', encoding="utf-8")
+
+    for design_slug in DESIGN_SYSTEMS:
+        apply_style_to_project(proj_dir, design_slug=design_slug)
+        content = html_file.read_text(encoding="utf-8")
+        assert f'data-design="{design_slug}"' in content
+        assert "<!-- @scenes:start -->" in content
+        assert "<!-- @captions:start -->" in content
+        assert ".ng-quote-text" in content
+        assert ".ng-timeline" in content
+        assert ".ng-spotlight" in content

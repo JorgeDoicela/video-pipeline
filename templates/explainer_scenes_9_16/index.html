@@ -98,7 +98,7 @@
         overflow: hidden;
       }
 
-      /* Atmósfera 2D: rayos radiales sutiles en rotación lenta */
+      /* Atmósfera 2D adaptativa a temas claros/oscuros */
       #atmosphere-rays {
         position: absolute;
         top: -420px;
@@ -112,6 +112,24 @@
         );
         opacity: 0.28;
         pointer-events: none;
+        display: none;
+      }
+      #atmosphere-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(to right, var(--divider) 1px, transparent 1px),
+          linear-gradient(to bottom, var(--divider) 1px, transparent 1px);
+        background-size: 72px 72px;
+        pointer-events: none;
+        display: none;
+      }
+      #root[data-atmosphere="sunburst"] #atmosphere-rays,
+      #root:not([data-atmosphere]) #atmosphere-rays {
+        display: block;
+      }
+      #root[data-atmosphere="grid"] #atmosphere-grid {
+        display: block;
       }
 
       #progress-bar {
@@ -549,6 +567,7 @@
       .window-header {
         display: none;
       }
+      /* @design-system:end */
       /* --- Componentes Universales (Timeline, Comparativa, Cita, Barras, Código) --- */
       .ng-timeline {
         width: 100%;
@@ -736,7 +755,42 @@
         color: var(--text-muted);
         min-width: 32px;
       }
-      /* @design-system:end */
+      .ng-spotlight {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        text-align: center;
+      }
+      .ng-spot-ring {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ng-ring-svg {
+        position: absolute;
+        inset: 0;
+      }
+      .ng-spot-icon {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ng-spot-label {
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-primary);
+      }
+      .ng-spot-sub {
+        font-size: 28px;
+        color: var(--text-muted);
+        max-width: 760px;
+      }
     </style>
   </head>
   <body>
@@ -754,6 +808,7 @@
       data-height="1920"
     >
       <div id="atmosphere-rays" data-layout-ignore></div>
+      <div id="atmosphere-grid" data-layout-ignore></div>
       <div id="progress-bar" data-layout-ignore></div>
 
       <!-- @scenes:start -->
