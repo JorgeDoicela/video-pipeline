@@ -69,14 +69,20 @@ video-pipeline/
 │       └── diseno-video/ # Estándares visuales limpios, tipografía y HyperFrames
 ├── core/              # Scripts CLI de procesamiento y orquestación
 │   ├── pipeline.py       # Orquestador maestro end-to-end
-│   ├── styles.py         # Motor de temas visuales (Design Tokens) y estilos de subtítulos
+│   ├── scenes.py         # Motor multi-escena (20 componentes SVG/HTML + custom_scene, cue_word, hero_top)
+│   ├── audio_mix.py      # Mezclador determinista de voz, cama con ducking y SFX (FFmpeg)
+│   ├── styles.py         # Fachada del motor de diseño en 3 niveles y estilos de subtítulos
+│   ├── _styles_catalog.py# Catálogo declarativo de diseños, temas, layouts y tokens
+│   ├── _styles_renderer.py# Compilador CSS, inyección idempotente y persistencia
 │   ├── sync_captions.py  # Generador de subtítulos cinéticos (HTML, GSAP, SRT, VTT)
 │   ├── cut_silence.py    # Recorte algorítmico de pausas (FFmpeg)
-│   ├── transcribe.py     # Transcripción con word timestamps (faster-whisper)
+│   ├── transcribe.py     # Transcripción con word timestamps y reemplazo de vocabulario (faster-whisper)
 │   ├── create_project.py # Scaffolding automatizado de proyectos
-│   ├── generate_sfx.py   # Síntesis matemática de efectos de sonido WAV
+│   ├── generate_sfx.py   # Síntesis matemática de 9 efectos de sonido WAV (incl. scan y drone)
 │   └── generate_icons.py # Generador de iconografía técnica vectorial SVG
-├── templates/         # Catálogo de 5 plantillas esenciales (9:16 y 16:9)
+├── templates/         # Catálogo de 7 plantillas esenciales (9:16 y 16:9)
+│   ├── explainer_scenes_9_16/ # Explainer faceless multi-escena vertical 9:16 (1080x1920)
+│   ├── explainer_scenes_16_9/ # Explainer faceless multi-escena horizontal 16:9 (1920x1080)
 │   ├── short_quote_9_16/ # Citas, versículos y reflexiones en formato vertical 9:16
 │   ├── short_tech_9_16/  # Shorts/Reels/TikTok código y subtítulos (1080x1920)
 │   ├── talking_head_9_16/# Presentador vertical 9:16 para Shorts/Reels/TikTok
@@ -97,9 +103,13 @@ video-pipeline/
 
 Antes de dar por concluida cualquier modificación o creación de proyecto:
 
-1. **Flujo de Producción Rápido Unificado:**
+1. **Flujo de Producción Rápido Unificado (Presentador o Faceless Multi-Escena):**
    ```bash
-   python3 core/pipeline.py produce -i ruta/grabacion.mp4 -p nombre-proyecto -t talking_head_16_9 --auto-render
+   # Presentador a cámara / pantalla
+   uv run python core/pipeline.py produce -i ruta/grabacion.mp4 -p nombre-proyecto -t talking_head_16_9 --auto-render
+
+   # Explainer faceless multi-escena desde solo voz con storyboard, ducking y vocabulario técnico
+   uv run python core/pipeline.py produce -i mi_voz.wav -p mi-explainer -t explainer_scenes_9_16 -d cinematic -s dark_violet --storyboard guion.json --replace lidis=Redis --ambient-bed --auto-render
    ```
 2. **Validación de Estándares HyperFrames:**
    ```bash
