@@ -162,26 +162,28 @@ uv run python core/pipeline.py produce \
   --auto-render
 ```
 
-### 3.2. Guion Visual Declarativo (`--storyboard` y `cue_word`)
-Permite definir cada escena con su componente narrativo, transición (`snap`, `zoom_in`, `slide_up`), atmósfera (`sunburst`, `grid`, `clean`), SFX y palabra clave de sincronización (`cue_word`):
+### 3.2. Guion Visual Declarativo (`--storyboard`, `cue_word`, `hero_top` y `custom_scene`)
+Permite definir cada escena con su componente narrativo, transición (`snap`, `zoom_in`, `slide_up`), atmósfera por escena (`sunburst`, `grid`, `clean`), color de acento (`primary`, `danger`, `secondary`, `warning`, `tertiary` o color hex), SFX primario + sub-eventos, cama ambiental con *ducking* (`--ambient-bed` o `--music`), corrección de términos en Whisper (`--replace`) y palabra clave de sincronización (`cue_word`):
 
 ```bash
 uv run python core/pipeline.py produce \
   -i mi_voz.wav \
   -p mi-explainer \
-  -t explainer_scenes_16_9 \
+  -t explainer_scenes_9_16 \
   -d cinematic \
   -s dark_violet \
   --storyboard guion.json \
+  --replace lidis=Redis \
+  --ambient-bed \
   --auto-render
 ```
 
-Para recompilar únicamente el storyboard y mezclar SFX tras editar `storyboard.json`:
+Para recompilar únicamente el storyboard y mezclar SFX + cama con *ducking* tras editar `storyboard.json`:
 ```bash
-uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav
+uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav --ambient-bed
 ```
 
-### 3.3. Catálogo de Componentes Narrativos (`COMPONENT_REGISTRY`)
+### 3.3. Catálogo de los 20 Componentes Narrativos (`COMPONENT_REGISTRY`)
 
 | Componente | Uso Principal | Propiedades Clave (`props`) |
 | :--- | :--- | :--- |
@@ -191,11 +193,42 @@ uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio project
 | `bar_chart` | Métricas proporcionales, porcentajes, rankings | `bars: [{label, value, display, highlight}]` |
 | `code_spotlight` | Bloques de código o CLI con línea resaltada | `language`, `lines`, `highlight_line` |
 | `icon_spotlight` | Icono SVG de `assets/icons/` + anillo radial | `icon`, `label`, `sublabel`, `ring_progress` |
-| `stat_callout` | Dato único de alto impacto | `value`, `label`, `note` |
-| `phone_mockup` | Interfaz móvil y listado de elementos | `app`, `items`, `alert_index` |
-| `network_graph` | Topología de nodos y trazado de rutas | `nodes`, `edges`, `footer` |
-| `terminal_grid` | Múltiples nodos o consolas en paralelo | `nodes: [{label, lines, alert}]` |
-| `connector_flow` | Conexión física o lógica entre dos entidades | `host_label`, `device_title`, `status` |
+| `stat_callout` | Dato único de alto impacto + barras opcionales | `value` (o `primary_text`), `label` (o `secondary_text`), `note`, `bars` |
+| `phone_mockup` | Smartphone en modo lista (`list`) o pantalla de apps (`app_grid`) con anillo HUD | `mode` (`list` \| `app_grid`), `app_title`, `items`, `clock_start`, `clock_end`, `alert_text` |
+| `network_graph` | Topología de nodos y trazado de rutas | `nodes: [{id, label, x, y, alert}]`, `edges`, `center_label` |
+| `terminal_grid` | Matriz de 6 terminales con LEDs y vibración de alerta | `screens: [{id, lines, status}]` |
+| `connector_flow` | Conexión física o lógica entre puerto host y dispositivo | `left_label`, `right_label`, `status_text` |
+| `radar_map` | Mapa vectorial y radar táctico con barrido cónico 360° | `region`, `targets: [{label, sublabel, x, y, alert}]` |
+| `xray_scanner` | Marco HUD con barrido láser horizontal y tarjetas laterales | `subject`, `footer_tag`, `callouts: [{title, detail, side}]` |
+| `system_alert` | Modal de advertencia del sistema con efecto máquina de escribir (`typewriter`) | `title`, `message`, `subtext` |
+| `hex_inspector` | Volcado hexadecimal de memoria con fila activa y hallazgo | `target_addr`, `tag`, `finding` |
+| `desktop_monitor` | Monitor panorámico de sistema operativo con barra de tareas e iconos | `os_name`, `subtitle` |
+| `keyboard_type` | Teclado QWERTY interactivo con teclas activas, caja de texto y sugerencias | `typed_text`, `active_keys`, `suggestions` |
+| `padlock_denied` | Candado vectorial encadenado con sello de bloqueo (`ACCESO DENEGADO`) | `stamp`, `detail` |
+| `file_cards` | Tarjetas de archivos marcados con número de serie / huella criptográfica | `serial_code`, `files`, `caption` |
+| `custom_scene` | Escena abierta para inyectar cualquier composición SVG/HTML y coreografía GSAP a medida | `html` (con marcador `{scene_id}`), `gsap` (con `{scene_id}` y `{start}`) |
+
+### 3.4. Ejemplo de Escena a Medida con `custom_scene`
+Cuando una frase del guion requiere una metáfora visual única (por ejemplo, una lupa inspeccionando paquetes, una fábrica en serie o un diagrama bespoke), se define directamente en `storyboard.json` usando `custom_scene`:
+
+```json
+{
+  "id": "sc_bespoke",
+  "start": 4.0,
+  "end": 7.5,
+  "cue_word": "auditoría",
+  "headline": "",
+  "component": "custom_scene",
+  "transition": "zoom_in",
+  "sfx": "scan",
+  "accent": "secondary",
+  "atmosphere": "grid",
+  "props": {
+    "html": "<svg width='760' height='520' viewBox='0 0 760 520'><circle id='{scene_id}_lens' cx='380' cy='260' r='140' fill='none' stroke='var(--accent-secondary)' stroke-width='6'/></svg>",
+    "gsap": "tl.fromTo('#{scene_id}_lens', { scale: 0.7, opacity: 0, svgOrigin: '380 260' }, { scale: 1, opacity: 1, duration: 0.45, ease: 'back.out(1.8)' }, {start});"
+  }
+}
+```
 
 ---
 

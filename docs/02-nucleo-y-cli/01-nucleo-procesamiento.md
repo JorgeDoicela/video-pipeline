@@ -205,7 +205,7 @@ python3 core/pipeline.py produce \
 
 El subcomando `storyboard` compila un guion declarativo `storyboard.json` en escenas HTML/SVG secuenciadas en GSAP e inyecta una pista maestra `<audio id="master-audio">` mezclada de forma determinista con FFmpeg:
 
-* **Componentes narrativos (`COMPONENT_REGISTRY`):** 16 primitivas universales: `timeline_steps`, `comparison_split`, `quote_focus`, `bar_chart`, `code_spotlight`, `icon_spotlight`, `phone_mockup` (modos `list` y `app_grid`), `network_graph`, `terminal_grid`, `connector_flow`, `stat_callout`, `radar_map`, `xray_scanner`, `system_alert`, `hex_inspector` y `desktop_monitor`.
+* **Componentes narrativos (`COMPONENT_REGISTRY`):** 20 primitivas universales: `timeline_steps`, `comparison_split`, `quote_focus`, `bar_chart`, `code_spotlight`, `icon_spotlight`, `phone_mockup` (modos `list` y `app_grid`), `network_graph`, `terminal_grid`, `connector_flow`, `stat_callout`, `radar_map`, `xray_scanner`, `system_alert`, `hex_inspector`, `desktop_monitor`, `keyboard_type`, `padlock_denied`, `file_cards` y `custom_scene` (inyección abierta de SVG/HTML y GSAP a medida por escena).
 * **Sincronización por voz (`align_storyboard_to_transcript`):** Si una escena define `cue_word`, ajusta su inicio automáticamente al instante exacto en que Whisper detecta esa palabra en `transcript.json`.
 * **Vocabulario técnico y reemplazos (`core/transcribe.py`):** Soporta `--prompt`, `--hotwords` y `--replace ERRONEO=CORRECTO` para garantizar exactitud ortográfica en términos técnicos.
 * **Subtítulos Hero-Top e identidad de marca:** `caption_position: "hero_top"` ubica los subtítulos cinéticos como titular gigante superior (estilo *short explainer*), y `brand` / `category` renderizan la firma tipográfica superior sin cápsulas.

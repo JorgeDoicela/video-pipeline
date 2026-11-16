@@ -99,7 +99,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
-  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, 16 componentes vectoriales animados, subtítulos `hero_top` o inferiores, y mezcla de voz + cama con *ducking* + SFX.
+  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, 20 componentes vectoriales animados (incluido `custom_scene`), subtítulos `hero_top` o inferiores, y mezcla de voz + cama con *ducking* + SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y terminal vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
@@ -155,7 +155,7 @@ video-pipeline/
 │   ├── __init__.py        # Módulo Python del núcleo
 │   ├── _runtime.py        # Inicialización de rutas y entorno virtual local
 │   ├── pipeline.py        # Orquestador maestro de producción end-to-end
-│   ├── scenes.py          # Motor multi-escena (16 primitivas SVG/HTML, cue_word, hero_top y auto-storyboard)
+│   ├── scenes.py          # Motor multi-escena (20 primitivas SVG/HTML + custom_scene, cue_word, hero_top y auto-storyboard)
 │   ├── audio_mix.py       # Mezclador determinista de voz, cama con ducking y SFX (adelay + sidechaincompress + alimiter)
 │   ├── styles.py          # Fachada CLI y API del motor de diseño en 3 niveles
 │   ├── _styles_catalog.py # Catálogo declarativo de diseños, temas, layouts y tokens
