@@ -95,14 +95,16 @@ El video final quedará disponible en `projects/mi-primer-video/video_mi-primer-
 
 ## 3. Modelos de Video, Plantillas y Sistemas de Diseño
 
-El sistema cuenta con **5 plantillas esenciales** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--chrome`, `--motion`, `--caption-style`, `--set`):
+El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--chrome`, `--motion`, `--caption-style`, `--set`):
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
+  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D, 11 componentes vectoriales animados, subtítulos cinéticos y mezcla SFX/voz.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y terminal vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
 * **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
+  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena para ensayos, tutoriales, historia, comparativas y métricas.
   * `editorial_16_9`: Narrativa widescreen para ensayos, historia, teología o divulgación con puntos clave.
   * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 
@@ -122,7 +124,8 @@ El sistema cuenta con **5 plantillas esenciales** (`-t`) y una **arquitectura de
 
 | Tarea | Comando | Descripcion Tecnica |
 | :--- | :--- | :--- |
-| **Pipeline Completo** | `python3 core/pipeline.py produce -i <raw> -p <slug> -t <tpl> -d <diseño> -s <estilo> --auto-render` | Ejecuta corte, transcripción, diseño macro, subtitulado, auditoría y renderizado. |
+| **Pipeline Completo** | `python3 core/pipeline.py produce -i <raw> -p <slug> -t <tpl> -d <diseño> -s <estilo> --auto-render` | Ejecuta corte (audio o video), transcripción, diseño macro, subtitulado, storyboard (`--storyboard` o `--auto-storyboard`), mezcla SFX, auditoría y renderizado. |
+| **Compilar Storyboard** | `python3 core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
 | **Catálogo de Diseños** | `python3 core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--chrome`, `--motion`) y Overrides (`--set`). |
 | **Cambiar Diseño/Opciones** | `python3 core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
 | **Inspeccionar Diseño** | `python3 core/pipeline.py style <slug> --inspect` | Muestra la configuración efectiva de los 3 niveles aplicada sobre un proyecto. |
@@ -145,13 +148,15 @@ El sistema cuenta con **5 plantillas esenciales** (`-t`) y una **arquitectura de
 ```text
 video-pipeline/
 ├── assets/                 # Recursos locales reutilizables (audio SFX, fuentes, iconos SVG)
-│   ├── audio/             # Efectos de sonido libres (whoosh, pop, click, chime, beep WAV)
+│   ├── audio/             # Efectos de sonido libres (whoosh, pop, click, chime, beep, sub_hit, glitch WAV)
 │   ├── fonts/             # Tipografías del sistema
 │   └── icons/             # Iconografía técnica vectorial (Docker, K8s, Kafka, Redis SVG)
 ├── core/                   # Herramientas del motor compartido
 │   ├── __init__.py        # Módulo Python del núcleo
 │   ├── _runtime.py        # Inicialización de rutas y entorno virtual local
 │   ├── pipeline.py        # Orquestador maestro de producción end-to-end
+│   ├── scenes.py          # Motor multi-escena (11 primitivas SVG/HTML, cue_word y auto-storyboard)
+│   ├── audio_mix.py       # Mezclador determinista de voz y SFX con FFmpeg (adelay + alimiter)
 │   ├── styles.py          # Fachada CLI y API del motor de diseño en 3 niveles
 │   ├── _styles_catalog.py # Catálogo declarativo de diseños, temas, layouts y tokens
 │   ├── _styles_renderer.py# Compilador CSS, mutación HTML y persistencia
@@ -162,8 +167,10 @@ video-pipeline/
 │   ├── generate_sfx.py    # Síntesis matemática de efectos de sonido
 │   └── generate_icons.py  # Generador de iconos SVG vectoriales
 ├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)
+│   ├── test_audio_mix.py  # Pruebas de síntesis SFX y construcción de filter_complex
 │   ├── test_pipeline.py   # Verificación de interfaces CLI del pipeline
 │   ├── test_scaffold.py   # Pruebas de sanitización y scaffolding
+│   ├── test_scenes.py     # Pruebas de storyboard, cue_word, componentes y conmutación de diseños
 │   ├── test_silence.py    # Pruebas de cálculo de intervalos de silencios
 │   ├── test_styles.py     # Pruebas de temas visuales y conmutación no destructiva
 │   └── test_sync_captions.py # Pruebas de segmentación de palabras y GSAP
@@ -181,7 +188,9 @@ video-pipeline/
 │   │   └── 02-recursos-y-assets.md
 │   └── 05-operacion-y-flujos/
 │       └── 01-guia-operativa-y-flujos.md
-├── templates/              # Catálogo de 5 plantillas esenciales integradas con Design Tokens
+├── templates/              # Catálogo de 7 plantillas esenciales integradas con Design Tokens
+│   ├── explainer_scenes_9_16/  # Explainer faceless multi-escena vertical 9:16 (1080x1920)
+│   ├── explainer_scenes_16_9/  # Explainer faceless multi-escena horizontal 16:9 (1920x1080)
 │   ├── short_quote_9_16/  # TikTok/Reels/Shorts citas, versículos y reflexiones (1080x1920)
 │   ├── short_tech_9_16/   # TikTok/Reels/Shorts código y tecnología (1080x1920)
 │   ├── talking_head_9_16/ # Presentador vertical 9:16 para Shorts/Reels/TikTok (1080x1920)
@@ -210,7 +219,7 @@ Consulta el catalogo maestro:
 1. [01 — Arquitectura del Sistema](docs/01-arquitectura/01-arquitectura-sistema.md): Separacion en 3 capas (Debian, Nix, Workspace), filosofia de coste cero y topologia del pipeline.
 2. [02 — Núcleo de Procesamiento y CLI](docs/02-nucleo-y-cli/01-nucleo-procesamiento.md): Especificacion de `faster-whisper`, esquema de `transcript.json`, filtros de corte en FFmpeg y CLI de orquestacion.
 3. [03.1 — Motor de Renderizado (HyperFrames)](docs/03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md): Modelo temporal en segundos, Chromium Headless Shell y aceleracion por hardware GPU.
-4. [03.2 — Formatos de Video Soportados](docs/03-renderizado-y-formatos/02-formatos-de-video.md): Contratos de diseño y catalogo de las 5 plantillas esenciales (9:16 y 16:9).
+4. [03.2 — Formatos de Video Soportados](docs/03-renderizado-y-formatos/02-formatos-de-video.md): Contratos de diseño y catalogo de las 7 plantillas esenciales (9:16 y 16:9).
 5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (4 Diseños Macro, 4 Temas WCAG AA, 3 Layouts, 4 Marcos, 3 Perfiles Motion, 2 Estilos de Subtítulos y Overrides `--set`).
 6. [04.2 — Recursos Estáticos y Assets](docs/04-sistema-de-diseno/02-recursos-y-assets.md): Efectos de sonido WAV, iconografia tecnica SVG y tipografias locales.
 7. [05 — Guía Operativa y Flujos de Trabajo](docs/05-operacion-y-flujos/01-guia-operativa-y-flujos.md): Runbooks secuenciales desde la grabacion hasta la exportacion final.

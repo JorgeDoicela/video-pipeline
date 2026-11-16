@@ -15,11 +15,15 @@ Todos los archivos son WAV PCM estéreo a 48,000 Hz, 16 bits, sintetizados matem
 | `click.wav` | `0.03s` | Clicks táctiles de botones, toggles o selección de pestañas. |
 | `chime.wav` | `0.85s` | Conclusión de procesos, transacciones exitosas o métricas clave. |
 | `beep.wav` | `0.08s` | Logs de terminal, llegada de paquetes de red o comandos CLI. |
+| `sub_hit.wav` | `0.55s` | Impacto sub-grave para apertura de escena, títulos hook o revelaciones. |
+| `glitch.wav` | `0.16s` | Alertas críticas, errores de terminal o cambios bruscos de estado. |
 
-### Integración en HyperFrames / GSAP
+### Integración en HyperFrames / Mezcla FFmpeg (`core/audio_mix.py`)
+Además de la vinculación directa como `<audio>` por evento, [`core/audio_mix.py`](../../core/audio_mix.py) invoca `ensure_sfx_assets()` y mezcla la pista de voz con todos los eventos SFX del storyboard en un único archivo maestro `audio_mix.wav` mediante `adelay`, `amix` y limitación de picos `alimiter=limit=0.95`.
+
 ```html
-<!-- En el HTML del proyecto (con data-start para renderizado determinista) -->
-<audio id="sfx-pop" src="../../assets/audio/pop.wav" data-start="1.5" data-duration="0.09"></audio>
+<!-- Pista maestra compilada por core/audio_mix.py -->
+<audio id="master-audio" src="audio_mix.wav" data-start="0" data-duration="12.00" data-track-index="0" data-volume="1"></audio>
 ```
 
 Para regenerar o ajustar los efectos de sonido:

@@ -205,10 +205,11 @@ python3 core/pipeline.py produce \
 
 El subcomando `storyboard` compila un guion declarativo `storyboard.json` en escenas HTML/SVG secuenciadas en GSAP e inyecta una pista maestra `<audio id="master-audio">` mezclada de forma determinista con FFmpeg:
 
-* **Componentes narrativos (`COMPONENT_REGISTRY`):** 10 primitivas universales: `timeline_steps`, `comparison_split`, `quote_focus`, `bar_chart`, `code_spotlight`, `phone_mockup`, `network_graph`, `terminal_grid`, `connector_flow` y `stat_callout`.
+* **Componentes narrativos (`COMPONENT_REGISTRY`):** 11 primitivas universales: `timeline_steps`, `comparison_split`, `quote_focus`, `bar_chart`, `code_spotlight`, `icon_spotlight`, `phone_mockup`, `network_graph`, `terminal_grid`, `connector_flow` y `stat_callout`.
 * **Sincronización por voz (`align_storyboard_to_transcript`):** Si una escena define `cue_word`, ajusta su inicio automáticamente al instante exacto en que Whisper detecta esa palabra en `transcript.json`.
-* **Integración en `produce`:** Acepta tanto video como solo audio (`.wav`, `.mp3`, `.m4a`, `.ogg`, `.flac`) y `--storyboard <ruta.json>` para producir un video *faceless* completo en un solo comando.
-* **Atmósfera y transiciones:** Fondo `sunburst` / `grid` / `clean` y cortes `snap`, `zoom_in`, `slide_up`.
+* **Generación automática desde transcripción (`build_storyboard_from_transcript`):** Permite construir un `storyboard.json` editable directamente desde los segmentos de `transcript.json` mediante `--auto-storyboard`.
+* **Integración en `produce`:** Acepta tanto video como solo audio (`.wav`, `.mp3`, `.m4a`, `.aac`, `.ogg`, `.flac`), `--storyboard <ruta.json>` o `--auto-storyboard` para producir un video *faceless* completo en un solo comando.
+* **Atmósfera adaptativa y transiciones:** `data-atmosphere` (`sunburst`, `grid`, `clean`) vinculado a los tokens del tema activo y cortes `snap`, `zoom_in`, `slide_up`.
 * **Mezcla procedural de SFX (`core/audio_mix.py`):** Posiciona `sub_hit`, `glitch`, `whoosh`, `pop`, `click`, `chime` y `beep` con `adelay` exacto en milisegundos, `amix` y limitación `alimiter=limit=0.95` sobre silencio base o pista de voz (`--audio`).
 
 ```bash

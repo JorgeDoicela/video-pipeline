@@ -146,7 +146,60 @@ El video final quedara disponible en `projects/mi-video/video_mi-video.mp4`.
 
 ---
 
-## 3. Diagnostico y Resolucion de Incidencias
+## 3. Flujo Faceless Multi-Escena (`storyboard.json` y `--auto-storyboard`)
+
+Para producir videos explicativos sin presentador a cámara en `9:16` (`explainer_scenes_9_16`) o `16:9` (`explainer_scenes_16_9`), existen dos vías operativas:
+
+### 3.1. Generación Automática desde Voz (`--auto-storyboard`)
+```bash
+uv run python core/pipeline.py produce \
+  -i mi_voz.wav \
+  -p mi-explainer \
+  -t explainer_scenes_9_16 \
+  -d editorial \
+  -s paper_warm \
+  --auto-storyboard \
+  --auto-render
+```
+
+### 3.2. Guion Visual Declarativo (`--storyboard` y `cue_word`)
+Permite definir cada escena con su componente narrativo, transición (`snap`, `zoom_in`, `slide_up`), atmósfera (`sunburst`, `grid`, `clean`), SFX y palabra clave de sincronización (`cue_word`):
+
+```bash
+uv run python core/pipeline.py produce \
+  -i mi_voz.wav \
+  -p mi-explainer \
+  -t explainer_scenes_16_9 \
+  -d cinematic \
+  -s dark_violet \
+  --storyboard guion.json \
+  --auto-render
+```
+
+Para recompilar únicamente el storyboard y mezclar SFX tras editar `storyboard.json`:
+```bash
+uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav
+```
+
+### 3.3. Catálogo de Componentes Narrativos (`COMPONENT_REGISTRY`)
+
+| Componente | Uso Principal | Propiedades Clave (`props`) |
+| :--- | :--- | :--- |
+| `timeline_steps` | Procesos, historia, secuencias paso a paso | `steps: [{tag, title, detail, highlight}]` |
+| `comparison_split` | Comparativas Antes/Después, A vs B | `left: {title, items}`, `right: {title, items, highlight}` |
+| `quote_focus` | Citas, versículos, leyes o tesis centrales | `quote`, `author`, `context` |
+| `bar_chart` | Métricas proporcionales, porcentajes, rankings | `bars: [{label, value, display, highlight}]` |
+| `code_spotlight` | Bloques de código o CLI con línea resaltada | `language`, `lines`, `highlight_line` |
+| `icon_spotlight` | Icono SVG de `assets/icons/` + anillo radial | `icon`, `label`, `sublabel`, `ring_progress` |
+| `stat_callout` | Dato único de alto impacto | `value`, `label`, `note` |
+| `phone_mockup` | Interfaz móvil y listado de elementos | `app`, `items`, `alert_index` |
+| `network_graph` | Topología de nodos y trazado de rutas | `nodes`, `edges`, `footer` |
+| `terminal_grid` | Múltiples nodos o consolas en paralelo | `nodes: [{label, lines, alert}]` |
+| `connector_flow` | Conexión física o lógica entre dos entidades | `host_label`, `device_title`, `status` |
+
+---
+
+## 4. Diagnostico y Resolucion de Incidencias
 
 ### 2.1. Verificacion de Salud del Entorno
 Si el renderizador experimenta problemas o no detecta la GPU:

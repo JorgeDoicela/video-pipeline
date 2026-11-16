@@ -15,21 +15,22 @@ flowchart TD
         B --> C["transcript.json (Word-Level Timestamps)"]
     end
 
-    subgraph Edicion ["2. Procesamiento de Medios"]
+    subgraph Edicion ["2. Procesamiento de Medios y Audio"]
         A --> D["cut_silence.py (FFmpeg)"]
-        D --> E["cut.mp4 (Tomas continuas sin pausas)"]
+        D --> E["cut.mp4 / cut.wav (Tomas continuas)"]
+        E --> M["audio_mix.py (Voz + SFX adelay/alimiter)"]
     end
 
-    subgraph Generacion ["3. Orquestacion por Agente"]
-        C --> F["Agente LLM (Tokens existentes)"]
+    subgraph Generacion ["3. Orquestacion Multi-Escena y Diseño"]
+        C --> F["scenes.py (11 Primitivas + cue_word) / styles.py"]
         F --> G["index.html (Composicion GSAP / SVG)"]
     end
 
     subgraph Render ["4. Compilacion y Renderizado"]
-        E --> H["HyperFrames Engine (Chromium Headless)"]
+        M --> H["HyperFrames Engine (Chromium Headless)"]
         G --> H
-        H --> I["FFmpeg (Aceleracion GPU VA-API)"]
-        I --> J["Video Final MP4 (1080p60)"]
+        H --> I["FFmpeg (Aceleracion GPU VA-API / AMF)"]
+        I --> J["Video Final MP4 (1080p)"]
     end
 ```
 
