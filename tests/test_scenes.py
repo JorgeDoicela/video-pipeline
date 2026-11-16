@@ -178,6 +178,10 @@ def test_component_registry_includes_universal_primitives():
         "system_alert",
         "hex_inspector",
         "desktop_monitor",
+        "keyboard_type",
+        "padlock_denied",
+        "file_cards",
+        "custom_scene",
     }
     assert expected == set(COMPONENT_REGISTRY.keys())
 

@@ -907,6 +907,151 @@
         background: var(--border-strong);
         border-radius: 9px;
       }
+      .ng-kb-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .ng-kb-input {
+        width: 100%;
+        max-width: 780px;
+        padding: 24px 32px;
+        background: var(--surface);
+        border: 2px solid var(--scene-accent, var(--accent-primary));
+        border-radius: 20px;
+        font-family: var(--font-mono);
+        font-size: 40px;
+        font-weight: 800;
+        color: var(--text-primary);
+        text-align: left;
+      }
+      .ng-kb-sug-bar {
+        display: flex;
+        gap: 20px;
+      }
+      .ng-kb-sug {
+        padding: 12px 26px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+      .ng-kb-sug-hl {
+        border: 2px solid var(--scene-accent, var(--accent-danger));
+        color: var(--text-primary);
+      }
+      .ng-kb-board {
+        width: 100%;
+        max-width: 840px;
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        border-radius: 24px;
+        padding: 24px 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .ng-kb-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .ng-kb-key {
+        width: 68px;
+        height: 68px;
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .ng-kb-key-active {
+        background: var(--scene-accent, var(--accent-danger));
+        color: var(--bg);
+      }
+      .ng-kb-space {
+        width: 420px;
+        height: 52px;
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+      .ng-lock-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        text-align: center;
+      }
+      .ng-lock-stamp {
+        padding: 16px 36px;
+        background: var(--surface);
+        border: 3px solid var(--accent-danger);
+        border-radius: 14px;
+        font-size: 40px;
+        font-weight: 900;
+        color: var(--accent-danger);
+        letter-spacing: 0.08em;
+      }
+      .ng-fcards-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+        text-align: center;
+      }
+      .ng-fcards-serial {
+        font-family: var(--font-mono);
+        font-size: 48px;
+        font-weight: 900;
+        color: var(--text-primary);
+        letter-spacing: 0.08em;
+      }
+      .ng-fcards-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .ng-fcard {
+        background: var(--surface);
+        border: 2px solid var(--scene-accent, var(--accent-primary));
+        border-radius: 20px;
+        padding: 32px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .ng-fcard-name {
+        font-family: var(--font-mono);
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .ng-fcard-hash {
+        font-family: var(--font-mono);
+        font-size: 22px;
+        color: var(--accent-danger);
+      }
+      .ng-custom-stage {
+        width: 100%;
+        display: flex;
+         flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
       /* @scenes-css:end */
     </style>
   </head>

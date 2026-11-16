@@ -941,6 +941,145 @@ def _render_desktop_monitor(
     return markup, gsap
 
 
+def _render_keyboard_type(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Teclado interactivo + caja de escritura con teclas iluminadas y sugerencias."""
+    typed_text = html.escape(str(props.get("typed_text", "corea del norte")), quote=False)
+    active_keys = {str(k).upper() for k in props.get("active_keys", ["C", "O", "R", "E", "A"])}
+    suggestions = props.get("suggestions") or ["oppa", "camarada", "sistema"]
+
+    rows = [
+        ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+        ["A", "S", "D", "F", "G", "H", "J", "K", "L", "Ñ"],
+        ["Z", "X", "C", "V", "B", "N", "M"],
+    ]
+    kb_rows_html: list[str] = []
+    for r in rows:
+        keys_html = "".join(
+            f'<span class="ng-kb-key{" ng-kb-key-active" if k in active_keys else ""}">{k}</span>'
+            for k in r
+        )
+        kb_rows_html.append(f'<div class="ng-kb-row" data-layout-ignore>{keys_html}</div>')
+
+    sug_html = "".join(
+        f'<span class="ng-kb-sug{" ng-kb-sug-hl" if i == 1 else ""}">{html.escape(str(s), quote=False)}</span>'
+        for i, s in enumerate(suggestions[:3])
+    )
+
+    markup = f"""
+    <div id="{scene_id}_kb" class="ng-kb-wrap">
+      <div class="ng-kb-input">
+        <span id="{scene_id}_kb_txt">{typed_text}</span><span class="ng-tw-cursor" data-layout-ignore>|</span>
+      </div>
+      <div class="ng-kb-sug-bar">{sug_html}</div>
+      <div class="ng-kb-board">
+        {"".join(kb_rows_html)}
+        <div class="ng-kb-space" data-layout-ignore></div>
+      </div>
+    </div>"""
+
+    t_in = start + 0.08
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_kb", {{ opacity: 0, y: 36 }}, {{ opacity: 1, y: 0, duration: 0.36, ease: "power3.out" }}, {t_in:.3f});',
+            f'tl.fromTo("#{scene_id} .ng-kb-key-active", {{ scale: 0.82 }}, {{ scale: 1.08, stagger: 0.07, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }}, {t_in + 0.18:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_padlock_denied(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Candado vectorial de seguridad con sello de bloqueo / acceso denegado."""
+    stamp = html.escape(str(props.get("stamp", "ACCESO DENEGADO")), quote=False)
+    detail = html.escape(str(props.get("detail", "ARCHIVO PROTEGIDO POR EL SISTEMA")), quote=False)
+
+    markup = f"""
+    <div id="{scene_id}_lock" class="ng-lock-wrap">
+      <svg class="ng-bare-icon" width="240" height="240" viewBox="0 0 120 120">
+        <line x1="8" y1="20" x2="112" y2="104" stroke="var(--text-muted)" stroke-width="5" stroke-dasharray="10 6" opacity="0.6" />
+        <line x1="112" y1="20" x2="8" y2="104" stroke="var(--text-muted)" stroke-width="5" stroke-dasharray="10 6" opacity="0.6" />
+        <path d="M 38 54 V 38 A 22 22 0 0 1 82 38 V 54" fill="none" stroke="var(--text-primary)" stroke-width="7" stroke-linecap="round" />
+        <rect x="28" y="54" width="64" height="50" rx="10" fill="var(--surface)" stroke="var(--scene-accent, var(--accent-danger))" stroke-width="6" />
+        <circle cx="60" cy="76" r="7" fill="var(--scene-accent, var(--accent-danger))" />
+      </svg>
+      <div id="{scene_id}_stamp" class="ng-lock-stamp">{stamp}</div>
+      <div class="ng-spot-sub">{detail}</div>
+    </div>"""
+
+    t_in = start + 0.08
+    t_stamp = min(start + max(0.38, dur * 0.30), start + dur - 0.25)
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_lock", {{ opacity: 0, scale: 0.90 }}, {{ opacity: 1, scale: 1, duration: 0.34, ease: "power3.out" }}, {t_in:.3f});',
+            f'tl.fromTo("#{scene_id}_stamp", {{ opacity: 0, scale: 1.45, rotation: -6 }}, {{ opacity: 1, scale: 1, rotation: -4, duration: 0.28, ease: "back.out(2.2)" }}, {t_stamp:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_file_cards(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Tarjetas de archivos marcados con código de serie / huella criptográfica."""
+    serial_code = html.escape(str(props.get("serial_code", "I2 · 278D · C274")), quote=False)
+    caption = html.escape(str(props.get("caption", "TRAZABILIDAD DE ARCHIVOS ACTIVA")), quote=False)
+    files = props.get("files") or ["FOTO.JPG", "VIDEO.AVI", "DOC.DOCX"]
+
+    cards_html = "".join(
+        f'<div class="ng-fcard">'
+        f'  <div class="ng-fcard-name">{html.escape(str(f), quote=False)}</div>'
+        f'  <div class="ng-fcard-hash" data-layout-ignore>ID: 4F7A-91C2</div>'
+        f"</div>"
+        for f in files[:3]
+    )
+
+    markup = f"""
+    <div id="{scene_id}_files" class="ng-fcards-wrap">
+      <div id="{scene_id}_serial" class="ng-fcards-serial">{serial_code}</div>
+      <div class="ng-fcards-grid">{cards_html}</div>
+      <div class="ng-spot-sub">{caption}</div>
+    </div>"""
+
+    t_in = start + 0.08
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_serial", {{ opacity: 0, y: -18 }}, {{ opacity: 1, y: 0, duration: 0.30, ease: "power2.out" }}, {t_in:.3f});',
+            f'tl.fromTo("#{scene_id} .ng-fcard", {{ opacity: 0, y: 26, scale: 0.92 }}, {{ opacity: 1, y: 0, scale: 1, stagger: 0.12, duration: 0.34, ease: "back.out(1.6)" }}, {t_in + 0.14:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_custom_scene(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Escena abierta para inyectar cualquier composición SVG/HTML y coreografía GSAP a medida
+    sin tocar el código del núcleo. Permite reemplazar el marcador {scene_id} y {start}.
+    """
+    raw_html = str(
+        props.get(
+            "html",
+            '<div class="ng-spot-label">ESCENA PERSONALIZADA</div>',
+        )
+    )
+    raw_gsap = str(props.get("gsap", ""))
+    rendered_html = raw_html.replace("{scene_id}", scene_id)
+    rendered_gsap = raw_gsap.replace("{scene_id}", scene_id).replace("{start}", f"{start:.3f}")
+    if not rendered_gsap.strip():
+        rendered_gsap = (
+            f'tl.fromTo("#{scene_id}_custom", {{ opacity: 0, y: 20 }}, '
+            f'{{ opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }}, {start + 0.08:.3f});'
+        )
+    return (
+        f'<div id="{scene_id}_custom" class="ng-custom-stage">{rendered_html}</div>',
+        rendered_gsap,
+    )
+
+
 ComponentRenderer = Callable[[str, dict[str, Any], float, float], tuple[str, str]]
 
 COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
@@ -960,6 +1099,10 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
     "system_alert": _render_system_alert,
     "hex_inspector": _render_hex_inspector,
     "desktop_monitor": _render_desktop_monitor,
+    "keyboard_type": _render_keyboard_type,
+    "padlock_denied": _render_padlock_denied,
+    "file_cards": _render_file_cards,
+    "custom_scene": _render_custom_scene,
 }
 
 
@@ -1344,6 +1487,151 @@ def build_scenes_css() -> str:
         height: 18px;
         background: var(--border-strong);
         border-radius: 9px;
+      }
+      .ng-kb-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+      }
+      .ng-kb-input {
+        width: 100%;
+        max-width: 780px;
+        padding: 24px 32px;
+        background: var(--surface);
+        border: 2px solid var(--scene-accent, var(--accent-primary));
+        border-radius: 20px;
+        font-family: var(--font-mono);
+        font-size: 40px;
+        font-weight: 800;
+        color: var(--text-primary);
+        text-align: left;
+      }
+      .ng-kb-sug-bar {
+        display: flex;
+        gap: 20px;
+      }
+      .ng-kb-sug {
+        padding: 12px 26px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+      .ng-kb-sug-hl {
+        border: 2px solid var(--scene-accent, var(--accent-danger));
+        color: var(--text-primary);
+      }
+      .ng-kb-board {
+        width: 100%;
+        max-width: 840px;
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        border-radius: 24px;
+        padding: 24px 18px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .ng-kb-row {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .ng-kb-key {
+        width: 68px;
+        height: 68px;
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .ng-kb-key-active {
+        background: var(--scene-accent, var(--accent-danger));
+        color: var(--bg);
+      }
+      .ng-kb-space {
+        width: 420px;
+        height: 52px;
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+      .ng-lock-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        text-align: center;
+      }
+      .ng-lock-stamp {
+        padding: 16px 36px;
+        background: var(--surface);
+        border: 3px solid var(--accent-danger);
+        border-radius: 14px;
+        font-size: 40px;
+        font-weight: 900;
+        color: var(--accent-danger);
+        letter-spacing: 0.08em;
+      }
+      .ng-fcards-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+        text-align: center;
+      }
+      .ng-fcards-serial {
+        font-family: var(--font-mono);
+        font-size: 48px;
+        font-weight: 900;
+        color: var(--text-primary);
+        letter-spacing: 0.08em;
+      }
+      .ng-fcards-grid {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .ng-fcard {
+        background: var(--surface);
+        border: 2px solid var(--scene-accent, var(--accent-primary));
+        border-radius: 20px;
+        padding: 32px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .ng-fcard-name {
+        font-family: var(--font-mono);
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .ng-fcard-hash {
+        font-family: var(--font-mono);
+        font-size: 22px;
+        color: var(--accent-danger);
+      }
+      .ng-custom-stage {
+        width: 100%;
+        display: flex;
+         flex-direction: column;
+        align-items: center;
+        justify-content: center;
       }
       /* @scenes-css:end */"""
 
