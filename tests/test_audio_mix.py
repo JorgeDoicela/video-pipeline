@@ -5,7 +5,13 @@ Pruebas unitarias para generación procedural de SFX y mezcla de audio con FFmpe
 from pathlib import Path
 
 from core.audio_mix import build_sfx_mix_command
-from core.generate_sfx import SFX_GENERATORS, ensure_sfx_assets
+from core.generate_sfx import (
+    MUSIC_GENERATORS,
+    SFX_GENERATORS,
+    ensure_music_assets,
+    ensure_sfx_assets,
+    resolve_music_source,
+)
 
 
 def test_ensure_sfx_assets_generates_all_wavs(tmp_path: Path):
@@ -20,6 +26,12 @@ def test_ensure_sfx_assets_generates_all_wavs(tmp_path: Path):
         "glitch",
         "scan",
         "drone",
+        "shutter",
+        "riser",
+        "boom",
+        "keyclick",
+        "powerdown",
+        "alarm",
     }
     assert set(assets.keys()) == expected_keys
     assert set(SFX_GENERATORS.keys()) == expected_keys
@@ -27,6 +39,20 @@ def test_ensure_sfx_assets_generates_all_wavs(tmp_path: Path):
     for name, wav_path in assets.items():
         assert wav_path.exists(), f"Falta archivo WAV para {name}"
         assert wav_path.stat().st_size > 1000
+
+
+def test_ensure_music_assets_and_resolve_music_source(tmp_path: Path):
+    music = ensure_music_assets(tmp_path)
+    expected_music = {"tension_pulse", "tech_minimal", "editorial_warm"}
+    assert set(music.keys()) == expected_music
+    assert set(MUSIC_GENERATORS.keys()) == expected_music
+    for name, wav_path in music.items():
+        assert wav_path.exists(), f"Falta pista musical {name}"
+        assert wav_path.stat().st_size > 10000
+
+    resolved = resolve_music_source("tension_pulse", music_dir=tmp_path)
+    assert resolved == tmp_path / "tension_pulse.wav"
+    assert resolve_music_source("none", music_dir=tmp_path) is None
 
 
 def test_build_sfx_mix_command_without_voice(tmp_path: Path):

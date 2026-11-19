@@ -22,8 +22,8 @@ flowchart TD
     end
 
     subgraph Generacion ["3. Orquestacion Multi-Escena y Diseño"]
-        C --> F["scenes.py (11 Primitivas + cue_word) / styles.py"]
-        F --> G["index.html (Composicion GSAP / SVG)"]
+        C --> F["scenes.py (25 Primitivas + cue_word) / styles.py / fetch_assets.py / image_tools.py"]
+        F --> G["index.html (Composicion GSAP / SVG / Canvas 2D)"]
     end
 
     subgraph Render ["4. Compilacion y Renderizado"]

@@ -10,6 +10,7 @@ import html
 import json
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 _REPO_ROOT = str(Path(__file__).resolve().parent.parent)
@@ -70,12 +71,25 @@ def extract_word_list(transcript_data: dict) -> list[dict]:
     return words
 
 
+_STRONG_PUNCT_END = (".", "?", "!", ":", ";")
+
+
+def _normalize_emphasis_token(word: str) -> str:
+    decomposed = unicodedata.normalize("NFKD", word.lower())
+    ascii_only = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+    return re.sub(r"[^a-z0-9]", "", ascii_only)
+
+
 def group_words(
-    words: list[dict], words_per_group: int = 4, pause_threshold: float = 0.4
+    words: list[dict],
+    words_per_group: int = 4,
+    pause_threshold: float = 0.4,
+    split_on_punctuation: bool = True,
 ) -> list[list[dict]]:
     """
-    Agrupa palabras en bloques legibles de 2 a 5 palabras,
-    cortando de inmediato si se detecta una pausa superior a pause_threshold.
+    Agrupa palabras en bloques legibles (por defecto hasta 4 palabras),
+    cortando ante pausas superiores a pause_threshold y respetando cierres
+    naturales de frase (puntuación fuerte o coma tras >= 2 palabras).
     """
     if not words:
         return []
@@ -89,10 +103,19 @@ def group_words(
             continue
 
         prev_w = current_group[-1]
+        prev_text = str(prev_w.get("word", "")).strip()
         pause = w["start"] - prev_w["end"]
 
-        # Cortar si excede el tamaño máximo o si hubo una pausa natural notable
-        if len(current_group) >= words_per_group or pause >= pause_threshold:
+        ends_sentence = split_on_punctuation and prev_text.endswith(_STRONG_PUNCT_END)
+        ends_clause = split_on_punctuation and prev_text.endswith(",") and len(current_group) >= 2
+
+        # Cortar si excede tamaño máximo, hubo pausa notable o cierre natural de cláusula/frase
+        if (
+            len(current_group) >= words_per_group
+            or pause >= pause_threshold
+            or ends_sentence
+            or ends_clause
+        ):
             groups.append(current_group)
             current_group = [w]
         else:
@@ -133,12 +156,21 @@ def export_vtt(groups: list[list[dict]], output_path: Path):
 def generate_html_and_gsap(
     groups: list[list[dict]],
     caption_style: str = DEFAULT_CAPTION_STYLE,
+    emphasis_words: list[str] | set[str] | None = None,
 ) -> tuple[str, str]:
     """
     Genera el bloque HTML de subtítulos agrupados y el código JavaScript para la línea de tiempo GSAP.
-    Soporta variantes de estilo de subtítulos cinéticos registradas en core.styles.
+    Soporta variantes de estilo de subtítulos cinéticos registradas en core.styles y énfasis
+    tipográfico limpio (sin cajas ni pastillas) sobre palabras clave.
     """
     get_caption_style(caption_style)
+    emphasis_set: set[str] = set()
+    if emphasis_words:
+        for entry in emphasis_words:
+            for tok in str(entry).split():
+                norm = _normalize_emphasis_token(tok)
+                if norm:
+                    emphasis_set.add(norm)
 
     html_parts = [
         "<!-- @captions:start -->",
@@ -159,10 +191,14 @@ def generate_html_and_gsap(
             f'  <div id="{group_id}" class="caption-phrase" style="opacity: 0; display: none;">'
         )
 
+        word_classes: list[str] = []
         for w_idx, w in enumerate(group):
             word_id = f"cw_{g_idx}_{w_idx}"
             word_text = html.escape(w["word"], quote=False)
-            html_parts.append(f'    <span id="{word_id}" class="word">{word_text}</span>')
+            is_emph = bool(emphasis_set) and _normalize_emphasis_token(w["word"]) in emphasis_set
+            base_cls = "word word-emphasis" if is_emph else "word"
+            word_classes.append(base_cls)
+            html_parts.append(f'    <span id="{word_id}" class="{base_cls}">{word_text}</span>')
 
         html_parts.append("  </div>")
 
@@ -175,8 +211,9 @@ def generate_html_and_gsap(
         for w_idx, w in enumerate(group):
             word_id = f"cw_{g_idx}_{w_idx}"
             w_start = w["start"]
+            active_cls = f"{word_classes[w_idx]} active"
             gsap_lines.append(
-                f'tl.to("#{word_id}", {{ className: "word active", duration: 0.04 }}, {w_start:.3f});'
+                f'tl.to("#{word_id}", {{ className: "{active_cls}", duration: 0.04 }}, {w_start:.3f});'
             )
 
         # GSAP Timeline: Desaparece la frase al terminar el bloque

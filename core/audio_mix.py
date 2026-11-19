@@ -10,7 +10,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from core.generate_sfx import ensure_sfx_assets
+from core.generate_sfx import ensure_sfx_assets, resolve_music_source
 
 
 @dataclass(frozen=True)
@@ -150,7 +150,7 @@ def mix_storyboard_audio(
     total_duration: float,
     voice_path: Path | None = None,
     output_name: str = "audio_mix.wav",
-    music_path: Path | None = None,
+    music_path: Path | str | None = None,
     music_volume: float = 0.14,
     ambient_bed: bool = False,
 ) -> Path:
@@ -165,7 +165,7 @@ def mix_storyboard_audio(
             continue
         resolved_events.append((sfx_map[ev.sfx], ev.time_sec, ev.volume))
 
-    effective_music = music_path
+    effective_music = resolve_music_source(music_path)
     if effective_music is None and ambient_bed and "drone" in sfx_map:
         effective_music = sfx_map["drone"]
 

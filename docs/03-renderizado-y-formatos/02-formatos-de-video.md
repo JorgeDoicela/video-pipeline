@@ -1,6 +1,6 @@
 # 04 — Formatos de Video Soportados
 
-Este documento define la especificacion de diseño, contratos tecnicos y ejemplos de codigo para los formatos, relaciones de aspecto y las 9 plantillas de video que produce el pipeline.
+Este documento define la especificacion de diseño, contratos tecnicos y ejemplos de codigo para los formatos, relaciones de aspecto y las 7 plantillas esenciales de video que produce el pipeline.
 
 ---
 
@@ -169,8 +169,8 @@ Para cubrir producción vertical (TikTok/Reels/Shorts) y horizontal (YouTube/Pre
 | `talking_head_9_16` | `1080x1920` (9:16) | Presentador Vertical | Video de presentador vertical para Shorts/Reels/TikTok con insignia superior, tarjeta flotante y subtítulos dentro de zonas seguras. |
 | `editorial_16_9` | `1920x1080` (16:9) | Narrativa Editorial / Historia / Ensayo | Escenario dividido widescreen con crónica principal, referencia temática y panel lateral de puntos clave sin bloques de código. |
 | `talking_head_16_9` | `1920x1080` (16:9) | Presentador Widescreen | Video de cámara o screencast a pantalla completa (`cut.mp4`), tarjeta *lower-third* animada y subtítulos cinéticos sincronizados. |
-| `explainer_scenes_9_16` | `1080x1920` (9:16) | Explainer Multi-Escena Faceless | Orquestación temporal desde `storyboard.json` con atmósfera dinámica, 20 componentes vectoriales (incluido `custom_scene`), subtítulos `hero_top`, sincronización `cue_word` y mezcla de voz, cama con *ducking* y SFX (`audio_mix.wav`). |
-| `explainer_scenes_16_9` | `1920x1080` (16:9) | Explainer Widescreen Faceless | Mismo motor multi-escena de 20 componentes en formato horizontal 16:9 para ensayos, tutoriales, historia, comparativas y métricas. |
+| `explainer_scenes_9_16` | `1080x1920` (9:16) | Explainer Multi-Escena Faceless | Orquestación temporal desde `storyboard.json` con atmósfera dinámica, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 25 componentes vectoriales/Canvas/Cutouts (incluidos `toggle_alert`, `conveyor_factory`, `cta_card`, `canvas_fx`, `image_cutout` y `custom_scene`), subtítulos `hero_top` con `emphasis_words`, sincronización `cue_word` y mezcla de voz, música/cama con *ducking* y 15 SFX (`audio_mix.wav`). |
+| `explainer_scenes_16_9` | `1920x1080` (16:9) | Explainer Widescreen Faceless | Mismo motor multi-escena de 25 componentes en formato horizontal 16:9 para ensayos, tutoriales, historia, comparativas y métricas. |
 
 ---
 

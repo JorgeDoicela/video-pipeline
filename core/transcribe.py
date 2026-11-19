@@ -38,20 +38,104 @@ def parse_replacements(raw_pairs: list[str] | None) -> dict[str, str]:
     return mapping
 
 
+_EDGE_PUNCT_RE = re.compile(r"^([^\w]*)(.*?)([^\w]*)$", flags=re.UNICODE)
+
+
+def _split_edge_punct(token: str) -> tuple[str, str, str]:
+    match = _EDGE_PUNCT_RE.match(token)
+    if not match:
+        return "", token, ""
+    return match.group(1), match.group(2), match.group(3)
+
+
+def _replace_word_sequence(
+    words: list[dict[str, Any]], src_tokens: list[str], dst_tokens: list[str]
+) -> list[dict[str, Any]]:
+    """Reemplaza secuencias contiguas de 1 o más palabras preservando puntuación y timestamps."""
+    n_src = len(src_tokens)
+    n_dst = len(dst_tokens)
+    if n_src == 0 or n_dst == 0 or len(words) < n_src:
+        return words
+
+    src_lower = [t.lower() for t in src_tokens]
+    result: list[dict[str, Any]] = []
+    idx = 0
+    total = len(words)
+
+    while idx < total:
+        if idx + n_src <= total:
+            window = words[idx : idx + n_src]
+            split_win = [_split_edge_punct(str(w.get("word", ""))) for w in window]
+            if [core.lower() for _, core, _ in split_win] == src_lower:
+                lead_punct = split_win[0][0]
+                trail_punct = split_win[-1][2]
+                t_start = float(window[0].get("start", 0.0))
+                t_end = float(window[-1].get("end", t_start))
+                avg_prob = round(sum(float(w.get("probability", 1.0)) for w in window) / n_src, 4)
+
+                if n_dst == n_src:
+                    for offset, dst_tok in enumerate(dst_tokens):
+                        prefix = lead_punct if offset == 0 else ""
+                        suffix = trail_punct if offset == n_dst - 1 else ""
+                        result.append(
+                            {
+                                **window[offset],
+                                "word": f"{prefix}{dst_tok}{suffix}",
+                            }
+                        )
+                else:
+                    span = max(0.0, t_end - t_start)
+                    step = span / n_dst
+                    for offset, dst_tok in enumerate(dst_tokens):
+                        prefix = lead_punct if offset == 0 else ""
+                        suffix = trail_punct if offset == n_dst - 1 else ""
+                        w_start = round(t_start + offset * step, 3)
+                        w_end = round(
+                            t_end if offset == n_dst - 1 else t_start + (offset + 1) * step, 3
+                        )
+                        result.append(
+                            {
+                                "word": f"{prefix}{dst_tok}{suffix}",
+                                "start": w_start,
+                                "end": w_end,
+                                "probability": avg_prob,
+                            }
+                        )
+                idx += n_src
+                continue
+
+        result.append(words[idx])
+        idx += 1
+
+    return result
+
+
 def apply_vocabulary_replacements(
     data: dict[str, Any], replacements: dict[str, str] | None
 ) -> dict[str, Any]:
     """
-    Reemplaza de forma determinista términos mal transcritos (ej. 'lidis' -> 'Redis')
-    tanto en el texto de cada segmento como en los tokens individuales preservando puntuación.
+    Reemplaza de forma determinista términos o frases cortas mal transcritas
+    (ej. 'lidis' -> 'Redis', 'lo sabrás' -> 'los abras') tanto en el texto de
+    cada segmento como en los tokens individuales, preservando puntuación y timestamps.
     """
     if not replacements:
         return data
 
+    ordered_pairs = sorted(
+        (
+            (src.strip(), dst.strip())
+            for src, dst in replacements.items()
+            if src.strip() and dst.strip()
+        ),
+        key=lambda item: len(item[0].split()),
+        reverse=True,
+    )
     patterns: list[tuple[re.Pattern[str], str]] = [
         (re.compile(rf"(?<!\w){re.escape(src)}(?!\w)", flags=re.IGNORECASE), dst)
-        for src, dst in replacements.items()
-        if src
+        for src, dst in ordered_pairs
+    ]
+    token_rules: list[tuple[list[str], list[str]]] = [
+        (src.split(), dst.split()) for src, dst in ordered_pairs
     ]
 
     for seg in data.get("segments", []):
@@ -60,11 +144,19 @@ def apply_vocabulary_replacements(
             seg_text = pat.sub(lambda _, d=dst: d, seg_text)
         seg["text"] = seg_text
 
-        for w in seg.get("words", []):
-            w_text = str(w.get("word", ""))
-            for pat, dst in patterns:
-                w_text = pat.sub(lambda _, d=dst: d, w_text)
-            w["word"] = w_text
+        seg_words = seg.get("words")
+        if isinstance(seg_words, list) and seg_words:
+            updated_words = list(seg_words)
+            for src_tokens, dst_tokens in token_rules:
+                updated_words = _replace_word_sequence(updated_words, src_tokens, dst_tokens)
+            # Reemplazo de respaldo para sub-tokens con guiones/apóstrofes
+            for w in updated_words:
+                w_text = str(w.get("word", ""))
+                for pat, dst in patterns:
+                    if " " not in dst:
+                        w_text = pat.sub(lambda _, d=dst: d, w_text)
+                w["word"] = w_text
+            seg["words"] = updated_words
 
     return data
 

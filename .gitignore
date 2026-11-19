@@ -43,6 +43,8 @@ renders/
 !templates/talking_head/cut.mp4
 !templates/talking_head_9_16/cut.mp4
 !assets/audio/*.wav
+!assets/music/*.wav
+!assets/music/*.mp3
 
 # Mantener la estructura de carpetas en Git
 !.gitkeep

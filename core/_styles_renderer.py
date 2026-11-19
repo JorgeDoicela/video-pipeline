@@ -251,6 +251,14 @@ def generate_caption_css(caption_style: CaptionStyle) -> str:
         "      .word.active {",
         *[f"        {rule}" for rule in caption_style.active_css],
         "      }",
+        "      .word.word-emphasis.active {",
+        "        color: var(--accent-secondary);",
+        "        opacity: 1;",
+        "        background: transparent;",
+        "        border: none;",
+        "        padding: 0;",
+        "        text-shadow: 0 0 28px var(--accent-primary-glow), 0 4px 16px rgba(0, 0, 0, 0.72);",
+        "      }",
         "      /* @caption-style:end */",
     ]
     return "\n".join(lines)

@@ -68,18 +68,20 @@ video-pipeline/
 │   └── skills/           # Skills especializadas locales
 │       └── diseno-video/ # Estándares visuales limpios, tipografía y HyperFrames
 ├── core/              # Scripts CLI de procesamiento y orquestación
-│   ├── pipeline.py       # Orquestador maestro end-to-end
-│   ├── scenes.py         # Motor multi-escena (20 componentes SVG/HTML + custom_scene, cue_word, hero_top)
-│   ├── audio_mix.py      # Mezclador determinista de voz, cama con ducking y SFX (FFmpeg)
+│   ├── pipeline.py       # Orquestador maestro end-to-end (--no-cut-silence, --no-sfx, --words-per-group, assets, image)
+│   ├── scenes.py         # Motor multi-escena (25 componentes SVG/HTML/Canvas + image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
+│   ├── audio_mix.py      # Mezclador determinista de voz, música/cama con ducking y 15 SFX (FFmpeg)
 │   ├── styles.py         # Fachada del motor de diseño en 3 niveles y estilos de subtítulos
 │   ├── _styles_catalog.py# Catálogo declarativo de diseños, temas, layouts y tokens
 │   ├── _styles_renderer.py# Compilador CSS, inyección idempotente y persistencia
-│   ├── sync_captions.py  # Generador de subtítulos cinéticos (HTML, GSAP, SRT, VTT)
+│   ├── sync_captions.py  # Generador de subtítulos cinéticos (cortes por puntuación, emphasis_words, HTML, GSAP, SRT, VTT)
 │   ├── cut_silence.py    # Recorte algorítmico de pausas (FFmpeg)
-│   ├── transcribe.py     # Transcripción con word timestamps y reemplazo de vocabulario (faster-whisper)
+│   ├── transcribe.py     # Transcripción con word timestamps y reemplazos multi-palabra (faster-whisper)
 │   ├── create_project.py # Scaffolding automatizado de proyectos
-│   ├── generate_sfx.py   # Síntesis matemática de 9 efectos de sonido WAV (incl. scan y drone)
-│   └── generate_icons.py # Generador de iconografía técnica vectorial SVG
+│   ├── generate_sfx.py   # Síntesis matemática de 15 efectos de sonido WAV y 3 pistas musicales loopables
+│   ├── generate_icons.py # Generador de 18 iconos técnicos vectoriales SVG base
+│   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG, mapas Natural Earth GeoJSON CC0 y audio CC0)
+│   └── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX isnet/silueta/u2netp y color), crop, auto-trim, cutout sticker y conversión
 ├── templates/         # Catálogo de 7 plantillas esenciales (9:16 y 16:9)
 │   ├── explainer_scenes_9_16/ # Explainer faceless multi-escena vertical 9:16 (1080x1920)
 │   ├── explainer_scenes_16_9/ # Explainer faceless multi-escena horizontal 16:9 (1920x1080)
@@ -89,7 +91,7 @@ video-pipeline/
 │   ├── editorial_16_9/   # Narrativa histórica, bíblica y ensayos en 16:9
 │   └── talking_head_16_9/# Presentador widescreen 16:9 con lower-third y subtítulos
 ├── projects/          # Proyectos de video concretos generados a partir de templates
-├── assets/            # Recursos estáticos globales (audio SFX, fuentes, iconos SVG)
+├── assets/            # Recursos estáticos globales (audio/ SFX, music/ camas, maps/ SVG, images/ cutouts, icons/ SVG, fonts/)
 ├── tests/             # Suite automatizada de pruebas unitarias (pytest)
 ├── docs/              # Documentación modular Docs-as-Code (00- y subcarpetas 01- a 05-)
 ├── .github/workflows/ # Pipeline de integración continua (CI) en GitHub Actions

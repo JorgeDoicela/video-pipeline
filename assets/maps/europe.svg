@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 680">
+  <!-- Reino Unido e Irlanda -->
+  <path d="M 240 245 L 280 230 L 295 315 L 250 325 Z" fill="rgba(148,163,184,0.16)" stroke="var(--border-strong)" stroke-width="2.5" stroke-linejoin="round" />
+  <!-- Escandinavia -->
+  <path d="M 425 90 L 515 80 L 555 155 L 505 225 L 445 210 L 415 150 Z" fill="rgba(148,163,184,0.16)" stroke="var(--border-strong)" stroke-width="2.5" stroke-linejoin="round" />
+  <!-- Europa Continental -->
+  <path d="M 320 265 L 455 235 L 625 220 L 685 310 L 635 420 L 535 450 L 485 515 L 445 480 L 420 425 L 330 435 L 235 485 L 185 435 L 220 355 L 305 335 Z" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-primary))" stroke-width="3.5" stroke-linejoin="round" />
+</svg>

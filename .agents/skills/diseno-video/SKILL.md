@@ -82,15 +82,19 @@ Para videos explicativos donde solo habla la voz del narrador (`explainer_scenes
 
 ### 4.1. Opciones de Nivel Raíz en `storyboard.json`
 * `caption_position`:
-  * `"hero_top"` (recomendado para Shorts/Reels/TikTok de alto impacto): coloca los subtítulos cinéticos palabra por palabra en el tercio superior a `68px` en mayúsculas, dejando libre el escenario central para la animación (las escenas pueden llevar `"headline": ""` para no duplicar texto arriba).
+  * `"hero_top"` (recomendado para Shorts/Reels/TikTok de alto impacto): coloca los subtítulos cinéticos palabra por palabra en el tercio superior a `68px` en mayúsculas con `text-shadow` luminoso, dejando libre el escenario central para la animación (las escenas pueden llevar `"headline": ""` para no duplicar texto arriba).
   * `"bottom"`: coloca los subtítulos en la zona inferior segura cuando cada escena muestra su propio `badge` + `headline` en la parte superior.
 * `brand` y `category`: firma tipográfica superior opcional (ej. `"brand": "jorge.dev"`, `"category": "CIBERSEGURIDAD"`), renderizada sin cápsulas ni bordes.
 * `atmosphere`: atmósfera base (`"sunburst"`, `"grid"`, `"clean"`), que además puede conmutarse dinámicamente escena por escena.
 * `ambient_bed`: `true` activa la cama sintética grave loopable (`drone.wav`) mezclada con *ducking* dinámico (`sidechaincompress`) bajo la voz.
+* `music`: preset musical procedural local (`"tension_pulse"`, `"tech_minimal"`, `"editorial_warm"`) o ruta a archivo `.wav`/`.mp3`, mezclado automáticamente con *ducking*.
+* `camera_motion`: `true` (defecto) aplica un movimiento de cámara virtual lento y determinista (`scale: 1.0 -> 1.028`) sobre `#scenes-stage` sin mover los subtítulos.
+* `film_grain`: `true` activa viñeta radial profunda y textura cinematográfica determinista (`data-film-grain="true"`).
+* `words_per_group` y `emphasis_words`: configuran el número máximo de palabras por bloque de subtítulo (ej. `3`, respetando además cortes en puntuación fuerte y comas) y las palabras clave que se iluminan con `.word-emphasis` (color secundario + `text-shadow`, cero cajas o pastillas).
 
-### 4.2. Catálogo de 20 Componentes Narrativos (`COMPONENT_REGISTRY`)
-1. `phone_mockup`: soporta `mode: "list"` (carpetas con retícula de enfoque) y `mode: "app_grid"` (pantalla móvil con reloj gigante, cuadrícula `4x4` de apps, etiqueta superior y arco HUD radial).
-2. `radar_map`: mapa vectorial y radar táctico con barrido cónico 360° (`svgOrigin: "440 340"`) y objetivos geolocalizados (`targets`).
+### 4.2. Catálogo de 25 Componentes Narrativos (`COMPONENT_REGISTRY`)
+1. `phone_mockup`: soporta `mode: "list"` (carpetas con retícula de enfoque y cursor animado opcional `show_cursor: true`) y `mode: "app_grid"` (pantalla móvil con reloj gigante, cuadrícula `4x4` de apps, etiqueta superior, arco HUD radial y flash de obturador opcional `capture_flash: true`, `capture_count: 5`).
+2. `radar_map`: mapa vectorial y radar táctico con barrido cónico 360° (`svgOrigin: "440 340"`), presets geográficos reales en `assets/maps/` (`map_preset: "korea" | "world" | "europe" | "americas" | "asia"`), ruta animada opcional (`route: true`) y objetivos geolocalizados (`targets`).
 3. `xray_scanner`: marco HUD con 4 esquinas, láser horizontal en vivo y tarjetas laterales (`callouts`).
 4. `padlock_denied`: candado vectorial encadenado con sello `ACCESO DENEGADO` (`stamp`, `detail`).
 5. `keyboard_type`: teclado QWERTY interactivo con teclas activas resaltadas (`active_keys`), caja de texto (`typed_text`) y barra de sugerencias (`suggestions`).
@@ -107,12 +111,34 @@ Para videos explicativos donde solo habla la voz del narrador (`explainer_scenes
 16. `quote_focus`: cita, tesis o principio central con autor y contexto.
 17. `bar_chart`: gráfico de barras horizontales proporcionales.
 18. `code_spotlight`: bloque de código o CLI con numeración y línea activa resaltada.
-19. `icon_spotlight`: icono vectorial desnudo de `assets/icons/` dentro de anillo de progreso radial.
-20. `custom_scene`: **primitiva abierta de máxima flexibilidad** que recibe `html` (con marcador `{scene_id}`) y `gsap` (con `{scene_id}` y `{start}`) para construir metáforas visuales SVG/GSAP hechas a la medida exacta de cualquier frase del guion sin modificar `core/`.
+19. `icon_spotlight`: icono vectorial desnudo de `assets/icons/` (o descargado automáticamente desde Iconify al especificar `"icon": "lucide:shield-alert"` o `"simple-icons:wireshark"`) dentro de anillo de progreso radial.
+20. `toggle_alert`: monitor/panel de sistema con interruptor interactivo (`label`, `state_on`, `state_off`), alerta de integridad (`alert_title`, `alert_detail`) y apagón CRT determinista (`crt_reboot: true`).
+21. `conveyor_factory`: línea de producción industrial con prensa estampadora, emblema central y dispositivos en cinta (`caption`, `device_tag`).
+22. `cta_card`: cierre interactivo con botón de llamada a la acción (`cta_text`), marco móvil (`clock`) y mutación de candado seguro (`before_label`) a ojo/alerta (`after_label`).
+23. `canvas_fx`: primitiva Canvas 2D 100% determinista conducida por proxy numérico en GSAP (`onUpdate`, cero `requestAnimationFrame`), con modos `effect: "particles" | "matrix" | "radar_waves" | "noise_field"`, `title`, `subtitle` y `color`.
+24. `image_cutout`: presenta una imagen procesada o recorte transparente (`assets/images/<archivo>.png`/`.webp`) con entrada elástica, flotación determinista opcional (`float_motion: true`), `title` y `subtitle`.
+25. `custom_scene`: **primitiva abierta de máxima flexibilidad** que recibe `html` (con marcador `{scene_id}`) y `gsap` (con `{scene_id}` y `{start}`) para construir metáforas visuales SVG/GSAP hechas a la medida exacta de cualquier frase del guion sin modificar `core/`.
 
 ### 4.3. Sincronización por Voz (`cue_word`) y Cambio de Mood por Escena
 * Cada escena puede declarar `"cue_word": "<palabra>"` para que `align_storyboard_to_transcript` ajuste su `start` al instante exacto en que Whisper detectó esa palabra.
 * Cada escena puede declarar `"accent": "danger" | "warning" | "secondary" | "tertiary" | "primary"` y `"atmosphere": "sunburst" | "grid" | "clean"` para variar el color y el fondo entre escenas.
+
+### 4.4. Gestor de Assets Abiertos y Procesador de Imágenes (`core/fetch_assets.py` y `core/image_tools.py`)
+Para incorporar nuevos iconos vectoriales, mapas geográficos reales, muestras de audio CC0 o recortes de imágenes sin fondo (cutouts) directamente en `assets/`:
+* **Iconos y logos SVG (Iconify — Lucide, Tabler, Simple Icons):**
+  `uv run python core/pipeline.py assets icon simple-icons:wireshark`
+* **Mapas geopolíticos reales (Natural Earth GeoJSON CC0 -> `assets/maps/<name>.svg`):**
+  `uv run python core/pipeline.py assets map PRK -c KOR,JPN -n korea_real`
+* **SFX y música CC0 normalizados a WAV 48kHz 16-bit (URL directa o Freesound API v2 CC0):**
+  `uv run python core/pipeline.py assets audio shutter_org --freesound "camera shutter" --type sfx`
+* **Eliminación de fondo (IA local ONNX `isnet` 1024x1024 / `silueta` / `u2netp` o color), recorte y conversión de imágenes (`assets/images/`):**
+  ```bash
+  uv run python core/pipeline.py image rembg -i foto.jpg -o assets/images/sujeto.png -m ai --model isnet --trim --outline 6 --shadow 10
+  uv run python core/pipeline.py image crop -i captura.png -o assets/images/captura.webp --aspect 9:16 --width 1080 --height 1920
+  uv run python core/pipeline.py image convert -i raw.png -o assets/images/opt.webp --width 840 --quality 92
+  ```
+* **Inventario de assets locales:**
+  `uv run python core/pipeline.py assets list`
 
 ---
 

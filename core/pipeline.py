@@ -34,6 +34,19 @@ from core.cut_silence import (  # noqa: E402
     detect_silence,
     get_media_duration,
 )
+from core.fetch_assets import (  # noqa: E402
+    fetch_audio_cc0,
+    fetch_icon,
+    fetch_map,
+    list_local_assets,
+)
+from core.image_tools import (  # noqa: E402
+    ASPECT_PRESETS,
+    DEFAULT_ONNX_MODEL,
+    ONNX_REMBG_MODELS,
+    _parse_crop_box,
+    process_image_pipeline,
+)
 from core.scenes import (  # noqa: E402
     align_storyboard_to_transcript,
     attach_audio_track_to_html,
@@ -114,6 +127,9 @@ def produce_pipeline(
     music_path: str | None = None,
     music_volume: float = 0.14,
     ambient_bed: bool = False,
+    skip_cut_silence: bool = False,
+    skip_sfx: bool = False,
+    words_per_group: int | None = None,
 ):
     """Ejecuta la tubería de producción completa de extremo a extremo."""
     start_time = time.time()
@@ -155,14 +171,20 @@ def produce_pipeline(
         overrides=overrides,
     )
 
-    # 2. Recorte Algorítmico de Silencios con FFmpeg
+    # 2. Recorte Algorítmico de Silencios con FFmpeg (u omisión con --no-cut-silence)
     is_audio_only = input_path.suffix.lower() in AUDIO_EXTENSIONS
     cut_video_path = project_dir / ("cut.wav" if is_audio_only else "cut.mp4")
-    print("\n--> [Paso 2/5] Analizando pausas y recortando silencios...")
-    total_dur = get_media_duration(str(input_path))
-    silences = detect_silence(str(input_path), noise_db=noise_db, min_duration=min_silence)
-    keep_intervals = compute_keep_intervals(total_dur, silences)
-    cut_and_concat(str(input_path), str(cut_video_path), keep_intervals)
+    if skip_cut_silence:
+        print(
+            "\n--> [Paso 2/5] Preservando pista original sin recorte de silencios (--no-cut-silence)..."
+        )
+        shutil.copy2(input_path, cut_video_path)
+    else:
+        print("\n--> [Paso 2/5] Analizando pausas y recortando silencios...")
+        total_dur = get_media_duration(str(input_path))
+        silences = detect_silence(str(input_path), noise_db=noise_db, min_duration=min_silence)
+        keep_intervals = compute_keep_intervals(total_dur, silences)
+        cut_and_concat(str(input_path), str(cut_video_path), keep_intervals)
 
     cut_dur = get_media_duration(str(cut_video_path))
     if cut_dur > 0:
@@ -182,15 +204,35 @@ def produce_pipeline(
         replacements=replacements,
     )
 
+    # Pre-resolución de storyboard para heredar ritmo y palabras de énfasis en subtítulos
+    effective_sb_path: Path | None = None
+    preloaded_sb = None
+    if storyboard_path:
+        effective_sb_path = Path(storyboard_path)
+    elif (project_dir / "storyboard.json").exists():
+        effective_sb_path = project_dir / "storyboard.json"
+    if effective_sb_path is not None and effective_sb_path.exists():
+        preloaded_sb = load_storyboard(effective_sb_path)
+
     # 4. Sincronización e Inyección de Subtítulos Cinéticos
     print("\n--> [Paso 4/5] Generando e inyectando subtítulos cinéticos en HTML/GSAP...")
     transcript_data = load_transcript(transcript_path)
     words = extract_word_list(transcript_data)
+    effective_wpg = (
+        words_per_group
+        if words_per_group is not None
+        else (preloaded_sb.words_per_group if preloaded_sb and preloaded_sb.words_per_group else 4)
+    )
+    emphasis_words = preloaded_sb.emphasis_words if preloaded_sb else None
     if words:
-        groups = group_words(words, words_per_group=4, pause_threshold=0.4)
+        groups = group_words(words, words_per_group=effective_wpg, pause_threshold=0.4)
         export_srt(groups, project_dir / "subtitles.srt")
         export_vtt(groups, project_dir / "subtitles.vtt")
-        html_code, gsap_code = generate_html_and_gsap(groups, caption_style=resolved_caption_style)
+        html_code, gsap_code = generate_html_and_gsap(
+            groups,
+            caption_style=resolved_caption_style,
+            emphasis_words=emphasis_words,
+        )
         inject_into_html(
             project_dir / "index.html",
             html_code,
@@ -203,10 +245,7 @@ def produce_pipeline(
         )
 
     # 4b. Compilación de Storyboard Multi-Escena + Mezcla de Voz y SFX (si aplica)
-    effective_sb_path: Path | None = None
-    if storyboard_path:
-        effective_sb_path = Path(storyboard_path)
-    elif auto_storyboard:
+    if effective_sb_path is None and auto_storyboard:
         generated_sb = build_storyboard_from_transcript(
             transcript_data,
             title=title or project_name,
@@ -216,28 +255,32 @@ def produce_pipeline(
         effective_sb_path.write_text(
             json.dumps(generated_sb, indent=2, ensure_ascii=False), encoding="utf-8"
         )
-    elif (project_dir / "storyboard.json").exists():
-        effective_sb_path = project_dir / "storyboard.json"
     if effective_sb_path is not None:
-        print(
-            f"\n--> [Storyboard] Sincronizando escenas y mezclando voz + SFX ({effective_sb_path.name})..."
-        )
-        sb = load_storyboard(effective_sb_path)
+        print(f"\n--> [Storyboard] Sincronizando escenas y audio ({effective_sb_path.name})...")
+        sb = preloaded_sb if preloaded_sb is not None else load_storyboard(effective_sb_path)
         sb = align_storyboard_to_transcript(
             sb, transcript_data, total_duration=cut_dur if cut_dur > 0 else None
         )
         inject_storyboard_into_html(project_dir / "index.html", sb)
-        events = extract_sfx_events(sb, include_sub_events=True)
-        mixed_wav = mix_storyboard_audio(
-            project_dir=project_dir,
-            events=events,
-            total_duration=sb.duration,
-            voice_path=cut_video_path,
-            music_path=Path(music_path) if music_path else None,
-            music_volume=music_volume,
-            ambient_bed=ambient_bed or sb.ambient_bed,
-        )
-        attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, sb.duration)
+        events = [] if skip_sfx else extract_sfx_events(sb, include_sub_events=True)
+        effective_music = music_path or sb.music
+        use_ambient = ambient_bed or sb.ambient_bed
+        if not events and not effective_music and not use_ambient:
+            print(
+                f"[AudioMix] Sin SFX ni cama adicional; vinculando pista limpia -> {cut_video_path.name}"
+            )
+            attach_audio_track_to_html(project_dir / "index.html", cut_video_path.name, sb.duration)
+        else:
+            mixed_wav = mix_storyboard_audio(
+                project_dir=project_dir,
+                events=events,
+                total_duration=sb.duration,
+                voice_path=cut_video_path,
+                music_path=effective_music,
+                music_volume=music_volume,
+                ambient_bed=use_ambient,
+            )
+            attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, sb.duration)
 
     # 5. Auditoría de Estándares HyperFrames (WCAG AA, Motion, Layout)
     print("\n--> [Paso 5/5] Auditando estándares con hyperframes check...")
@@ -403,6 +446,22 @@ def main():
         help="Activar cama ambiental sintética grave (drone.wav) con ducking automático",
     )
     p_produce.add_argument(
+        "--no-cut-silence",
+        action="store_true",
+        help="Preservar el audio/video original sin recortar pausas ni silencios",
+    )
+    p_produce.add_argument(
+        "--no-sfx",
+        action="store_true",
+        help="Suprimir todos los SFX sintéticos del storyboard y conservar la pista limpia",
+    )
+    p_produce.add_argument(
+        "--words-per-group",
+        type=int,
+        default=None,
+        help="Máximo de palabras por bloque de subtítulo (defecto: storyboard o 4)",
+    )
+    p_produce.add_argument(
         "--auto-render", action="store_true", help="Compilar MP4 automáticamente al concluir"
     )
     p_produce.add_argument(
@@ -533,6 +592,154 @@ def main():
         help="Activar cama ambiental sintética (drone.wav) con ducking",
     )
 
+    # Subcomando: assets
+    p_assets = subparsers.add_parser(
+        "assets",
+        help="Descargar y gestionar assets abiertos (Iconify SVG, mapas Natural Earth CC0 y audio CC0)",
+    )
+    assets_sub = p_assets.add_subparsers(dest="asset_action", help="Acción sobre assets")
+
+    pa_list = assets_sub.add_parser("list", help="Listar inventario de assets locales")
+    pa_list.add_argument("--json", action="store_true", help="Salida en formato JSON")
+
+    pa_icon = assets_sub.add_parser(
+        "icon", help="Descargar icono o logo SVG desde Iconify (Lucide/Tabler/Simple Icons)"
+    )
+    pa_icon.add_argument(
+        "spec",
+        help="Identificador del icono (ej. 'shield-alert', 'lucide:cpu', 'tabler:radar-2', 'simple-icons:linux')",
+    )
+    pa_icon.add_argument("-n", "--name", help="Nombre destino en assets/icons/<name>.svg")
+    pa_icon.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
+
+    pa_map = assets_sub.add_parser(
+        "map", help="Compilar mapa vectorial SVG real desde Natural Earth GeoJSON (CC0)"
+    )
+    pa_map.add_argument(
+        "country",
+        help="País(es) o código(s) ISO separados por coma (ej. 'PRK', 'North Korea', 'RUS')",
+    )
+    pa_map.add_argument("-n", "--name", help="Nombre destino en assets/maps/<name>.svg")
+    pa_map.add_argument(
+        "-c", "--context", help="Países vecinos de contexto secundario separados por coma"
+    )
+    pa_map.add_argument("--geojson", help="Ruta local o URL alternativa a archivo GeoJSON")
+    pa_map.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
+
+    pa_audio = assets_sub.add_parser(
+        "audio", help="Descargar y normalizar SFX o música CC0 a WAV 48kHz 16-bit"
+    )
+    pa_audio.add_argument("name", help="Nombre destino del archivo sin extensión")
+    pa_audio.add_argument("--url", help="URL directa a muestra de audio CC0")
+    pa_audio.add_argument("--freesound", help="Consulta en Freesound API v2 (solo CC0)")
+    pa_audio.add_argument(
+        "--type",
+        choices=["sfx", "music"],
+        default="sfx",
+        help="Tipo de audio: 'sfx' (assets/audio/) o 'music' (assets/music/)",
+    )
+    pa_audio.add_argument(
+        "--max-duration",
+        type=float,
+        default=None,
+        help="Duración máxima en segundos al normalizar",
+    )
+    pa_audio.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
+
+    # Subcomando: image
+    p_image = subparsers.add_parser(
+        "image",
+        help="Recortar, convertir y quitar el fondo de imágenes (rembg IA local ONNX / color, crop, convert)",
+    )
+    image_sub = p_image.add_subparsers(dest="image_action", help="Acción sobre imagen")
+
+    pi_conv = image_sub.add_parser(
+        "convert", help="Convertir formato (PNG, WEBP, JPG) y redimensionar con filtro Lanczos"
+    )
+    pi_conv.add_argument("-i", "--input", required=True, help="Imagen de entrada")
+    pi_conv.add_argument("-o", "--output", required=True, help="Ruta de salida (.png, .webp, .jpg)")
+    pi_conv.add_argument("--width", type=int, help="Ancho destino en píxeles")
+    pi_conv.add_argument("--height", type=int, help="Alto destino en píxeles")
+    pi_conv.add_argument(
+        "--mode",
+        choices=["cover", "contain", "stretch"],
+        default="cover",
+        help="Modo de ajuste al redimensionar (defecto: cover)",
+    )
+    pi_conv.add_argument("--quality", type=int, default=92, help="Calidad WEBP/JPEG (1-100)")
+
+    pi_crop = image_sub.add_parser(
+        "crop",
+        help="Recortar por coordenadas, aspect-ratio (9:16, 16:9, 1:1) o auto-trim de bordes",
+    )
+    pi_crop.add_argument("-i", "--input", required=True, help="Imagen de entrada")
+    pi_crop.add_argument("-o", "--output", required=True, help="Imagen de salida")
+    pi_crop.add_argument("--box", help="Caja exacta 'x,y,ancho,alto' en píxeles")
+    pi_crop.add_argument(
+        "--aspect",
+        choices=list(ASPECT_PRESETS.keys()),
+        help="Recorte centrado a relación de aspecto (9:16, 16:9, 1:1, 4:5, 4:3)",
+    )
+    pi_crop.add_argument(
+        "--trim", action="store_true", help="Recortar automáticamente bordes vacíos o sólidos"
+    )
+    pi_crop.add_argument(
+        "--padding", type=int, default=0, help="Margen extra en píxeles tras --trim"
+    )
+    pi_crop.add_argument("--width", type=int, help="Ancho final opcional")
+    pi_crop.add_argument("--height", type=int, help="Alto final opcional")
+    pi_crop.add_argument(
+        "--mode",
+        choices=["cover", "contain", "stretch"],
+        default="cover",
+        help="Modo de redimensionamiento si se indican --width/--height",
+    )
+
+    pi_bg = image_sub.add_parser(
+        "rembg",
+        help="Eliminar el fondo (por IA local ONNX U2-NetP o color) y generar cutout transparente con borde/sombra",
+    )
+    pi_bg.add_argument("-i", "--input", required=True, help="Imagen de entrada")
+    pi_bg.add_argument("-o", "--output", required=True, help="Imagen de salida (.png o .webp)")
+    pi_bg.add_argument(
+        "-m",
+        "--method",
+        choices=["color", "ai"],
+        default="color",
+        help="Método: 'color' (detecta color de esquinas o --color) o 'ai' (red neuronal ONNX local)",
+    )
+    pi_bg.add_argument(
+        "--model",
+        choices=list(ONNX_REMBG_MODELS.keys()),
+        default=DEFAULT_ONNX_MODEL,
+        help="Modelo ONNX para --method ai: isnet (1024x1024 estudio, defecto), silueta (320x320 medio) o u2netp (320x320 rápido)",
+    )
+    pi_bg.add_argument("--color", help="Color hexadecimal del fondo a eliminar (ej. '#ffffff')")
+    pi_bg.add_argument(
+        "--tolerance", type=float, default=34.0, help="Tolerancia de color (0-255, defecto: 34)"
+    )
+    pi_bg.add_argument(
+        "--feather", type=float, default=16.0, help="Suavizado de bordes (defecto: 16)"
+    )
+    pi_bg.add_argument(
+        "--trim", action="store_true", help="Ajustar caja al sujeto recortando bordes vacíos"
+    )
+    pi_bg.add_argument(
+        "--padding", type=int, default=12, help="Margen alrededor del sujeto al usar --trim"
+    )
+    pi_bg.add_argument(
+        "--outline", type=int, default=0, help="Grosor en px del borde estilo sticker/cutout"
+    )
+    pi_bg.add_argument(
+        "--outline-color", default="#ffffff", help="Color del borde cutout (defecto: #ffffff)"
+    )
+    pi_bg.add_argument(
+        "--shadow",
+        type=int,
+        default=0,
+        help="Radio de desenfoque de sombra paralela (0 = sin sombra)",
+    )
+
     args = parser.parse_args()
 
     if not args.subcommand:
@@ -568,6 +775,9 @@ def main():
             music_path=args.music,
             music_volume=args.music_volume,
             ambient_bed=args.ambient_bed,
+            skip_cut_silence=args.no_cut_silence,
+            skip_sfx=args.no_sfx,
+            words_per_group=args.words_per_group,
         )
     elif args.subcommand == "cut":
         dur = get_media_duration(args.input)
@@ -671,12 +881,81 @@ def main():
                 events=events,
                 total_duration=sb.duration,
                 voice_path=voice_path,
-                music_path=Path(args.music) if args.music else None,
+                music_path=args.music or sb.music,
                 music_volume=args.music_volume,
                 ambient_bed=args.ambient_bed or sb.ambient_bed,
             )
             attach_audio_track_to_html(html_path, mixed_wav.name, sb.duration)
             print(f"Audio mezclado en {mixed_wav} ({len(events)} eventos SFX)")
+    elif args.subcommand == "assets":
+        act = getattr(args, "asset_action", None)
+        if not act or act == "list":
+            inv = list_local_assets()
+            if getattr(args, "json", False):
+                print(json.dumps(inv, indent=2, ensure_ascii=False))
+            else:
+                for k, items in inv.items():
+                    print(f"[{k.upper()}] ({len(items)}): {', '.join(items)}")
+        elif act == "icon":
+            fetch_icon(args.spec, name=args.name, force=args.force)
+        elif act == "map":
+            fetch_map(
+                country_queries=args.country,
+                name=args.name,
+                context_queries=args.context,
+                geojson_source=args.geojson,
+                force=args.force,
+            )
+        elif act == "audio":
+            fetch_audio_cc0(
+                name=args.name,
+                url=args.url,
+                freesound_query=args.freesound,
+                kind=args.type,
+                max_duration=args.max_duration,
+                force=args.force,
+            )
+    elif args.subcommand == "image":
+        img_act = getattr(args, "image_action", None)
+        if not img_act:
+            p_image.print_help()
+            sys.exit(0)
+        elif img_act == "convert":
+            process_image_pipeline(
+                input_path=args.input,
+                output_path=args.output,
+                width=args.width,
+                height=args.height,
+                resize_mode=args.mode,
+                quality=args.quality,
+            )
+        elif img_act == "crop":
+            process_image_pipeline(
+                input_path=args.input,
+                output_path=args.output,
+                crop_box=_parse_crop_box(args.box),
+                aspect=args.aspect,
+                auto_trim=args.trim,
+                trim_padding=args.padding,
+                width=args.width,
+                height=args.height,
+                resize_mode=args.mode,
+            )
+        elif img_act == "rembg":
+            process_image_pipeline(
+                input_path=args.input,
+                output_path=args.output,
+                remove_bg=args.method,
+                ai_model=args.model,
+                key_color=args.color,
+                tolerance=args.tolerance,
+                feather=args.feather,
+                auto_trim=args.trim,
+                trim_padding=args.padding,
+                outline_width=args.outline,
+                outline_color=args.outline_color,
+                shadow_blur=args.shadow,
+            )
 
 
 if __name__ == "__main__":

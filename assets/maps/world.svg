@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 680">
+  <!-- Norteamérica -->
+  <path d="M 110 175 L 210 140 L 315 165 L 335 235 L 285 295 L 235 320 L 185 280 L 130 235 Z" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-primary))" stroke-width="3" stroke-linejoin="round" />
+  <!-- Sudamérica -->
+  <path d="M 245 345 L 315 365 L 355 435 L 325 535 L 285 570 L 255 495 L 235 410 Z" fill="rgba(148,163,184,0.14)" stroke="var(--border-strong)" stroke-width="2.5" stroke-linejoin="round" />
+  <!-- Europa -->
+  <path d="M 415 155 L 515 145 L 545 210 L 495 255 L 420 245 L 395 200 Z" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-primary))" stroke-width="3" stroke-linejoin="round" />
+  <!-- África -->
+  <path d="M 415 275 L 525 275 L 565 365 L 520 505 L 465 515 L 425 415 L 395 335 Z" fill="rgba(148,163,184,0.14)" stroke="var(--border-strong)" stroke-width="2.5" stroke-linejoin="round" />
+  <!-- Asia -->
+  <path d="M 545 145 L 720 155 L 775 245 L 725 340 L 625 355 L 555 295 L 535 215 Z" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-primary))" stroke-width="3" stroke-linejoin="round" />
+  <!-- Oceanía -->
+  <path d="M 660 420 L 755 425 L 775 500 L 710 525 L 650 485 Z" fill="rgba(148,163,184,0.14)" stroke="var(--border-strong)" stroke-width="2.5" stroke-linejoin="round" />
+</svg>

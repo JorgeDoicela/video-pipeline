@@ -99,12 +99,12 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
-  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, 20 componentes vectoriales animados (incluido `custom_scene`), subtítulos `hero_top` o inferiores, y mezcla de voz + cama con *ducking* + SFX.
+  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 24 componentes vectoriales/Canvas animados (incluidos `toggle_alert`, `conveyor_factory`, `cta_card`, `canvas_fx` determinista y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz + música/cama con *ducking* + 15 SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y terminal vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
 * **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
-  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena para ensayos, tutoriales, historia, comparativas y métricas.
+  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena con las mismas 24 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
   * `editorial_16_9`: Narrativa widescreen para ensayos, historia, teología o divulgación con puntos clave.
   * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 
@@ -126,6 +126,8 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | :--- | :--- | :--- |
 | **Pipeline Completo** | `python3 core/pipeline.py produce -i <raw> -p <slug> -t <tpl> -d <diseño> -s <estilo> --auto-render` | Ejecuta corte (audio o video), transcripción, diseño macro, subtitulado, storyboard (`--storyboard` o `--auto-storyboard`), mezcla SFX, auditoría y renderizado. |
 | **Compilar Storyboard** | `python3 core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
+| **Gestor de Assets CC0** | `python3 core/pipeline.py assets <list\|icon\|map\|audio> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON) o normaliza audio CC0 (URL/Freesound) en `assets/`. |
+| **Procesador de Imágenes** | `python3 core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 / `silueta` / `u2netp` o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
 | **Catálogo de Diseños** | `python3 core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--chrome`, `--motion`) y Overrides (`--set`). |
 | **Cambiar Diseño/Opciones** | `python3 core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
 | **Inspeccionar Diseño** | `python3 core/pipeline.py style <slug> --inspect` | Muestra la configuración efectiva de los 3 niveles aplicada sobre un proyecto. |
@@ -147,27 +149,34 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ```text
 video-pipeline/
-├── assets/                 # Recursos locales reutilizables (audio SFX, fuentes, iconos SVG)
-│   ├── audio/             # Efectos de sonido libres (whoosh, pop, click, chime, beep, sub_hit, glitch, scan, drone WAV)
-│   ├── fonts/             # Tipografías del sistema
-│   └── icons/             # Iconografía técnica vectorial (Docker, K8s, Kafka, Redis SVG)
+├── assets/                 # Recursos locales reutilizables (SFX, música, fuentes, imágenes, iconos y mapas SVG)
+│   ├── audio/             # 15 efectos de sonido WAV (whoosh, pop, click, chime, beep, sub_hit, glitch, scan, drone, shutter, riser, boom, keyclick, powerdown, alarm)
+│   ├── music/             # 3 pistas musicales procedurales loopables (tension_pulse, tech_minimal, editorial_warm) y pistas CC0
+│   ├── maps/              # 5 mapas geográficos vectoriales SVG (korea, world, europe, americas, asia)
+│   ├── images/            # Imágenes procesadas y recortes transparentes (cutouts PNG/WEBP, .gitkeep)
+│   ├── fonts/             # Tipografías locales del sistema (.gitkeep)
+│   └── icons/             # 18 iconos técnicos vectoriales SVG (Docker, K8s, Kafka, Redis, Shield, Lock, Radar, etc.)
 ├── core/                   # Herramientas del motor compartido
 │   ├── __init__.py        # Módulo Python del núcleo
 │   ├── _runtime.py        # Inicialización de rutas y entorno virtual local
-│   ├── pipeline.py        # Orquestador maestro de producción end-to-end
-│   ├── scenes.py          # Motor multi-escena (20 primitivas SVG/HTML + custom_scene, cue_word, hero_top y auto-storyboard)
-│   ├── audio_mix.py       # Mezclador determinista de voz, cama con ducking y SFX (adelay + sidechaincompress + alimiter)
+│   ├── pipeline.py        # Orquestador maestro de producción end-to-end (--no-cut-silence, --no-sfx, --words-per-group)
+│   ├── scenes.py          # Motor multi-escena (25 primitivas SVG/HTML/Canvas + image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
+│   ├── audio_mix.py       # Mezclador determinista de voz, música/cama con ducking y 15 SFX (adelay + sidechaincompress + alimiter)
 │   ├── styles.py          # Fachada CLI y API del motor de diseño en 3 niveles
 │   ├── _styles_catalog.py # Catálogo declarativo de diseños, temas, layouts y tokens
 │   ├── _styles_renderer.py# Compilador CSS, mutación HTML y persistencia
-│   ├── sync_captions.py   # Motor de subtítulos cinéticos y exportador SRT/VTT
+│   ├── sync_captions.py   # Motor de subtítulos cinéticos (cortes por puntuación, emphasis_words, SRT/VTT)
 │   ├── create_project.py  # Scaffold automatizado a partir de plantillas
 │   ├── cut_silence.py     # Algoritmo de poda de silencios (FFmpeg)
-│   ├── transcribe.py      # Transcripción local con timestamps (faster-whisper)
-│   ├── generate_sfx.py    # Síntesis matemática de efectos de sonido
-│   └── generate_icons.py  # Generador de iconos SVG vectoriales
+│   ├── transcribe.py      # Transcripción local con timestamps y reemplazos multi-palabra (faster-whisper)
+│   ├── generate_sfx.py    # Síntesis matemática de 15 SFX WAV y 3 pistas musicales loopables
+│   ├── generate_icons.py  # Generador de 18 iconos SVG vectoriales base
+│   ├── fetch_assets.py    # Descargador y compilador de iconos (Iconify), mapas (Natural Earth) y audio CC0
+│   └── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX isnet/silueta/u2netp y color), crop, auto-trim, cutout sticker y conversión
 ├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)
-│   ├── test_audio_mix.py  # Pruebas de síntesis SFX y construcción de filter_complex
+│   ├── test_audio_mix.py  # Pruebas de síntesis SFX/música y construcción de filter_complex
+│   ├── test_fetch_assets.py # Pruebas de Iconify SVG, Natural Earth GeoJSON y audio CC0
+│   ├── test_image_tools.py # Pruebas de rembg ONNX/color, cutout sticker, crop y conversión
 │   ├── test_pipeline.py   # Verificación de interfaces CLI del pipeline
 │   ├── test_scaffold.py   # Pruebas de sanitización y scaffolding
 │   ├── test_scenes.py     # Pruebas de storyboard, cue_word, componentes y conmutación de diseños

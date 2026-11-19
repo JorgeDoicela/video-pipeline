@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 680">
+  <!-- Corea del Sur y Jeju -->
+  <path d="M 386 364 L 444 358 L 486 352 L 508 408 L 522 468 L 496 528 L 444 558 L 392 544 L 372 486 L 374 422 Z" fill="rgba(148,163,184,0.14)" stroke="var(--border-strong)" stroke-width="2.5" stroke-linejoin="round" />
+  <ellipse cx="412" cy="588" rx="18" ry="9" fill="rgba(148,163,184,0.14)" stroke="var(--border-strong)" stroke-width="2" />
+  <!-- Corea del Norte (zona destacada) -->
+  <path d="M 412 90 L 456 98 L 498 118 L 524 156 L 512 204 L 498 250 L 512 302 L 486 348 L 442 354 L 386 360 L 352 322 L 330 270 L 346 218 L 368 172 L 386 124 Z" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-danger))" stroke-width="4" stroke-linejoin="round" />
+  <!-- Línea DMZ -->
+  <path d="M 382 362 L 444 356 L 490 350" fill="none" stroke="var(--accent-warning)" stroke-width="2.5" stroke-dasharray="6 6" />
+</svg>

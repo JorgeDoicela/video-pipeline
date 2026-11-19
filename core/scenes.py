@@ -66,6 +66,11 @@ class StoryboardSpec:
     brand: str | None = None
     category: str | None = None
     ambient_bed: bool = False
+    music: str | None = None
+    camera_motion: bool = True
+    film_grain: bool = False
+    words_per_group: int | None = None
+    emphasis_words: list[str] = field(default_factory=list)
     scenes: list[SceneSpec] = field(default_factory=list)
 
 
@@ -126,6 +131,24 @@ def _render_phone_mockup(
             for col in palette
         )
         circumference = 2.0 * math.pi * 390.0
+        capture_flash = bool(props.get("capture_flash", False))
+        capture_count = int(props.get("capture_count", 5))
+        flash_html = (
+            f'<div id="{scene_id}_flash" class="ng-phone-flash" data-layout-ignore></div>'
+            if capture_flash
+            else ""
+        )
+        counter_html = (
+            f'<div id="{scene_id}_cap_badge" class="ng-capture-counter" data-layout-ignore>'
+            f'  <svg class="ng-bare-icon" width="38" height="38" viewBox="0 0 24 24" fill="none" '
+            f'    stroke="var(--scene-accent, var(--accent-danger))" stroke-width="2.2">'
+            f'    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>'
+            f"  </svg>"
+            f"  <span>{capture_count}</span>"
+            f"</div>"
+            if capture_flash
+            else ""
+        )
         markup = (
             f'<div id="{scene_id}_phone_hud" class="ng-phone-hud-wrap">'
             f'  <div id="{scene_id}_alert_tag" class="ng-hud-floating-tag">{alert_text}</div>'
@@ -137,6 +160,7 @@ def _render_phone_mockup(
             f'      transform="rotate(-90 430 430)" />'
             f"  </svg>"
             f'  <div id="{scene_id}_phone" class="ng-phone-frame ng-phone-grid-mode">'
+            f"    {flash_html}"
             f'    <div class="ng-phone-statusbar" data-layout-ignore>'
             f"      <span>{clock_start}</span>"
             f'      <span class="ng-phone-island"></span>'
@@ -146,18 +170,27 @@ def _render_phone_mockup(
             f'    <div class="ng-app-grid" data-layout-ignore>{cells_html}</div>'
             f'    <div class="ng-phone-dock" data-layout-ignore></div>'
             f"  </div>"
+            f"  {counter_html}"
             f"</div>"
         )
         t_in = start + 0.10
-        gsap_js = "\n".join(
-            [
-                f'tl.fromTo("#{scene_id}_phone", {{ y: 50, opacity: 0, scale: 0.92 }}, {{ y: 0, opacity: 1, scale: 1, duration: 0.42, ease: "power3.out" }}, {t_in:.3f});',
-                f'tl.fromTo("#{scene_id}_alert_tag", {{ opacity: 0, y: -16 }}, {{ opacity: 1, y: 0, duration: 0.30, ease: "power2.out" }}, {t_in + 0.12:.3f});',
-                f'tl.fromTo("#{scene_id} .ng-app-tile", {{ scale: 0.6, opacity: 0 }}, {{ scale: 1, opacity: 1, stagger: 0.02, duration: 0.24, ease: "back.out(1.7)" }}, {t_in + 0.16:.3f});',
-                f'tl.to("#{scene_id}_hud_arc", {{ strokeDashoffset: 0, rotation: 90, transformOrigin: "50% 50%", duration: {max(0.6, dur - 0.3):.3f}, ease: "power1.inOut" }}, {t_in:.3f});',
-            ]
-        )
-        return markup, gsap_js
+        gsap_lines = [
+            f'tl.fromTo("#{scene_id}_phone", {{ y: 50, opacity: 0, scale: 0.92 }}, {{ y: 0, opacity: 1, scale: 1, duration: 0.42, ease: "power3.out" }}, {t_in:.3f});',
+            f'tl.fromTo("#{scene_id}_alert_tag", {{ opacity: 0, y: -16 }}, {{ opacity: 1, y: 0, duration: 0.30, ease: "power2.out" }}, {t_in + 0.12:.3f});',
+            f'tl.fromTo("#{scene_id} .ng-app-tile", {{ scale: 0.6, opacity: 0 }}, {{ scale: 1, opacity: 1, stagger: 0.02, duration: 0.24, ease: "back.out(1.7)" }}, {t_in + 0.16:.3f});',
+            f'tl.to("#{scene_id}_hud_arc", {{ strokeDashoffset: 0, rotation: 90, transformOrigin: "50% 50%", duration: {max(0.6, dur - 0.3):.3f}, ease: "power1.inOut" }}, {t_in:.3f});',
+        ]
+        if capture_flash and dur >= 1.4:
+            t_fl1 = round(start + dur * 0.42, 3)
+            t_fl2 = round(start + dur * 0.72, 3)
+            gsap_lines.extend(
+                [
+                    f'tl.fromTo("#{scene_id}_flash", {{ opacity: 0.85 }}, {{ opacity: 0, duration: 0.28, ease: "power2.out", immediateRender: false }}, {t_fl1:.3f});',
+                    f'tl.fromTo("#{scene_id}_flash", {{ opacity: 0.85 }}, {{ opacity: 0, duration: 0.28, ease: "power2.out", immediateRender: false }}, {t_fl2:.3f});',
+                    f'tl.fromTo("#{scene_id}_cap_badge", {{ opacity: 0, scale: 0.7, y: 18 }}, {{ opacity: 1, scale: 1, y: 0, duration: 0.32, ease: "back.out(1.8)", immediateRender: false }}, {t_fl1 + 0.06:.3f});',
+                ]
+            )
+        return markup, "\n".join(gsap_lines)
 
     items = props.get("items", [])[:4]
     if not items:
@@ -200,6 +233,15 @@ def _render_phone_mockup(
             f"</div>"
         )
 
+    show_cursor = bool(props.get("show_cursor", False))
+    cursor_html = (
+        f'<svg id="{scene_id}_cursor" class="ng-phone-cursor" width="54" height="54" viewBox="0 0 24 24" '
+        f'fill="var(--text-primary)" stroke="var(--bg)" stroke-width="1.6" data-layout-ignore>'
+        f'<path d="M5 3l14 9-6.5 1.8L9 20.5 5 3z"/></svg>'
+        if show_cursor
+        else ""
+    )
+
     markup = f"""
     <div id="{scene_id}_phone" class="ng-phone-frame">
       <div class="ng-phone-statusbar" data-layout-ignore>
@@ -216,20 +258,27 @@ def _render_phone_mockup(
         <span class="ret-c ret-bl"></span>
         <span class="ret-c ret-br"></span>
       </div>
+      {cursor_html}
     </div>"""
 
     t_in = start + 0.12
     t_focus = min(start + max(0.55, dur * 0.32), start + dur - 0.35)
     reticle_y = 148 + highlight_idx * 126
-    gsap_js = "\n".join(
-        [
-            f'tl.fromTo("#{scene_id}_phone", {{ y: 60, opacity: 0, scale: 0.94 }}, {{ y: 0, opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }}, {t_in:.3f});',
-            f'tl.fromTo("#{scene_id} .ng-phone-row", {{ x: -24, opacity: 0 }}, {{ x: 0, opacity: 1, stagger: 0.08, duration: 0.32, ease: "power2.out" }}, {t_in + 0.14:.3f});',
-            f'tl.set("#{scene_id}_reticle", {{ top: {reticle_y} }}, {t_focus - 0.02:.3f});',
-            f'tl.fromTo("#{scene_id}_reticle", {{ opacity: 0, scale: 1.25 }}, {{ opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2.0)" }}, {t_focus:.3f});',
-        ]
-    )
-    return markup, gsap_js
+    gsap_lines = [
+        f'tl.fromTo("#{scene_id}_phone", {{ y: 60, opacity: 0, scale: 0.94 }}, {{ y: 0, opacity: 1, scale: 1, duration: 0.45, ease: "power3.out" }}, {t_in:.3f});',
+        f'tl.fromTo("#{scene_id} .ng-phone-row", {{ x: -24, opacity: 0 }}, {{ x: 0, opacity: 1, stagger: 0.08, duration: 0.32, ease: "power2.out" }}, {t_in + 0.14:.3f});',
+        f'tl.set("#{scene_id}_reticle", {{ top: {reticle_y} }}, {t_focus - 0.02:.3f});',
+        f'tl.fromTo("#{scene_id}_reticle", {{ opacity: 0, scale: 1.25 }}, {{ opacity: 1, scale: 1, duration: 0.32, ease: "back.out(2.0)" }}, {t_focus:.3f});',
+    ]
+    if show_cursor:
+        cursor_y = reticle_y + 42
+        gsap_lines.extend(
+            [
+                f'tl.fromTo("#{scene_id}_cursor", {{ opacity: 0, x: 180, y: {cursor_y + 110} }}, {{ opacity: 1, x: 40, y: {cursor_y}, duration: 0.42, ease: "power3.out" }}, {t_focus + 0.06:.3f});',
+                f'tl.to("#{scene_id}_cursor", {{ scale: 0.82, duration: 0.10, yoyo: true, repeat: 1, ease: "power2.inOut" }}, {t_focus + 0.50:.3f});',
+            ]
+        )
+    return markup, "\n".join(gsap_lines)
 
 
 def _render_network_graph(
@@ -656,7 +705,16 @@ def _render_icon_spotlight(
         'stroke="var(--scene-accent, var(--accent-primary))" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
         '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
     )
-    candidate = Path(__file__).resolve().parent.parent / "assets" / "icons" / f"{icon_name}.svg"
+    icons_dir = Path(__file__).resolve().parent.parent / "assets" / "icons"
+    local_slug = icon_name.split(":", 1)[-1].split("/", 1)[-1]
+    candidate = icons_dir / f"{local_slug}.svg"
+    if not candidate.exists() and (":" in icon_name or "/" in icon_name):
+        try:
+            from core.fetch_assets import fetch_icon
+
+            candidate = fetch_icon(icon_name, name=local_slug, icons_dir=icons_dir)
+        except Exception:
+            candidate = icons_dir / f"{local_slug}.svg"
     if candidate.exists():
         raw_svg = candidate.read_text(encoding="utf-8")
         raw_svg = re.sub(r'\swidth="[^"]*"', "", raw_svg, count=1)
@@ -693,15 +751,84 @@ def _render_icon_spotlight(
     return markup, gsap
 
 
+_MAP_PRESETS: dict[str, tuple[str, str]] = {
+    # (polígono/path principal resaltado, contexto geográfico secundario)
+    "korea": (
+        "M 415 95 L 485 112 L 518 165 L 495 235 L 515 295 L 478 352 L 388 362 L 348 310 L 332 248 L 368 182 L 385 128 Z",
+        "M 388 366 L 478 356 L 520 438 L 498 525 L 430 562 L 382 522 L 372 440 Z",
+    ),
+    "europe": (
+        "M 280 200 L 420 140 L 580 175 L 620 295 L 540 390 L 380 410 L 265 320 Z",
+        "M 200 280 L 260 270 L 255 370 L 195 360 Z",
+    ),
+    "americas": (
+        "M 260 110 L 440 130 L 490 230 L 410 310 L 320 290 L 245 200 Z",
+        "M 420 330 L 520 380 L 485 560 L 420 530 L 395 410 Z",
+    ),
+    "asia": (
+        "M 155 150 L 460 120 L 635 165 L 610 295 L 555 375 L 470 430 L 380 495 L 305 425 L 220 380 L 145 275 Z",
+        "M 670 250 L 710 265 L 695 340 L 655 375 L 642 355 L 675 315 Z",
+    ),
+    "world": (
+        "M 210 180 L 360 165 L 385 265 L 250 285 Z M 450 160 L 660 175 L 685 300 L 475 310 Z",
+        "M 275 315 L 365 340 L 340 495 L 280 465 Z M 500 330 L 605 355 L 575 495 L 490 450 Z",
+    ),
+}
+
+
 def _render_radar_map(
     scene_id: str, props: dict[str, Any], start: float, dur: float
 ) -> tuple[str, str]:
-    """Radar táctico y mapa vectorial con barrido angular y objetivos geolocalizados."""
+    """Radar táctico y mapa vectorial con barrido angular, presets geográficos y ruta animada."""
     region_title = html.escape(str(props.get("region", "ZONA DE ANÁLISIS")), quote=False)
     targets = props.get("targets") or [
         {"label": "ORIGEN", "sublabel": "NODO CENTRAL", "x": 380, "y": 290, "alert": True},
         {"label": "SEÚL · RELAY", "sublabel": "ENLACE EXTERNO", "x": 510, "y": 470, "alert": False},
     ]
+    map_preset = str(props.get("map_preset", "")).strip().lower()
+    show_route = bool(props.get("route", False))
+
+    zone_svg = (
+        f'<polygon id="{scene_id}_zone" points="350,170 470,150 510,250 465,370 370,395 310,295" '
+        f'fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-danger))" stroke-width="4" opacity="0" />'
+    )
+    if map_preset:
+        custom_map_file = (
+            Path(__file__).resolve().parent.parent / "assets" / "maps" / f"{map_preset}.svg"
+        )
+        if custom_map_file.exists():
+            raw_map = custom_map_file.read_text(encoding="utf-8")
+            inner_match = re.search(
+                r"<svg[^>]*>(.*)</svg>", raw_map, flags=re.DOTALL | re.IGNORECASE
+            )
+            if inner_match:
+                zone_svg = f'<g id="{scene_id}_zone" opacity="0">{inner_match.group(1)}</g>'
+        elif map_preset in _MAP_PRESETS:
+            primary_d, secondary_d = _MAP_PRESETS[map_preset]
+            zone_svg = (
+                f'<g id="{scene_id}_zone" opacity="0">'
+                f'  <path d="{secondary_d}" fill="rgba(148,163,184,0.12)" stroke="var(--border-strong)" stroke-width="2.5" />'
+                f'  <path d="{primary_d}" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-danger))" stroke-width="4" stroke-linejoin="round" />'
+                f"</g>"
+            )
+
+    route_svg = ""
+    route_gsap = ""
+    if show_route and len(targets) >= 2:
+        x1, y1 = float(targets[0].get("x", 380)), float(targets[0].get("y", 290))
+        x2, y2 = float(targets[1].get("x", 510)), float(targets[1].get("y", 470))
+        cx = min(x1, x2) - 130
+        cy = (y1 + y2) / 2.0 + 35
+        route_len = round(math.hypot(x2 - x1, y2 - y1) * 1.65, 1)
+        route_svg = (
+            f'<path id="{scene_id}_route" d="M {x1} {y1} Q {cx} {cy} {x2} {y2}" '
+            f'fill="none" stroke="var(--accent-warning)" stroke-width="5" stroke-linecap="round" '
+            f'stroke-dasharray="{route_len}" stroke-dashoffset="{route_len}" />'
+        )
+        route_gsap = (
+            f'tl.to("#{scene_id}_route", {{ strokeDashoffset: 0, duration: {min(1.4, max(0.5, dur * 0.42)):.3f}, '
+            f'ease: "power2.inOut" }}, {start + 0.45:.3f});'
+        )
 
     targets_svg: list[str] = []
     for idx, tgt in enumerate(targets[:4]):
@@ -734,26 +861,26 @@ def _render_radar_map(
         <circle cx="440" cy="340" r="100" fill="none" stroke="var(--divider)" stroke-width="2" />
         <line x1="140" y1="340" x2="740" y2="340" stroke="var(--divider)" stroke-width="1.5" />
         <line x1="440" y1="40" x2="440" y2="640" stroke="var(--divider)" stroke-width="1.5" />
-        <polygon id="{scene_id}_zone" points="350,170 470,150 510,250 465,370 370,395 310,295"
-          fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-danger))" stroke-width="4" opacity="0" />
+        {zone_svg}
         <g id="{scene_id}_sweep">
           <path d="M 440 340 L 680 200 A 280 280 0 0 1 720 340 Z" fill="var(--accent-primary-soft)" opacity="0.55" />
           <line x1="440" y1="340" x2="720" y2="340" stroke="var(--scene-accent, var(--accent-primary))" stroke-width="3" />
         </g>
+        {route_svg}
         {"".join(targets_svg)}
         <text x="440" y="648" text-anchor="middle" fill="var(--text-secondary)" font-size="28" font-weight="800">{region_title}</text>
       </svg>
     </div>"""
 
     t_in = start + 0.08
-    gsap = "\n".join(
-        [
-            f'tl.fromTo("#{scene_id}_zone", {{ opacity: 0, scale: 0.88, svgOrigin: "440 340" }}, {{ opacity: 1, scale: 1, svgOrigin: "440 340", duration: 0.4, ease: "power2.out" }}, {t_in:.3f});',
-            f'tl.fromTo("#{scene_id}_sweep", {{ rotation: 0, svgOrigin: "440 340" }}, {{ rotation: 360, svgOrigin: "440 340", duration: {max(0.8, dur - 0.15):.3f}, ease: "none" }}, {start:.3f});',
-            f'tl.to("#{scene_id} g[id^=\\"{scene_id}_tgt_\\"]", {{ opacity: 1, stagger: 0.18, duration: 0.32, ease: "power2.out" }}, {t_in + 0.18:.3f});',
-        ]
-    )
-    return markup, gsap
+    gsap_lines = [
+        f'tl.fromTo("#{scene_id}_zone", {{ opacity: 0, scale: 0.88, svgOrigin: "440 340" }}, {{ opacity: 1, scale: 1, svgOrigin: "440 340", duration: 0.4, ease: "power2.out" }}, {t_in:.3f});',
+        f'tl.fromTo("#{scene_id}_sweep", {{ rotation: 0, svgOrigin: "440 340" }}, {{ rotation: 360, svgOrigin: "440 340", duration: {max(0.8, dur - 0.15):.3f}, ease: "none" }}, {start:.3f});',
+        f'tl.to("#{scene_id} g[id^=\\"{scene_id}_tgt_\\"]", {{ opacity: 1, stagger: 0.18, duration: 0.32, ease: "power2.out" }}, {t_in + 0.18:.3f});',
+    ]
+    if route_gsap:
+        gsap_lines.append(route_gsap)
+    return markup, "\n".join(gsap_lines)
 
 
 def _render_xray_scanner(
@@ -1080,6 +1207,287 @@ def _render_custom_scene(
     )
 
 
+def _render_toggle_alert(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Panel de sistema con switch interactivo, detección de integridad y apagón CRT determinista."""
+    label = html.escape(str(props.get("label", "PROTECCIÓN DEL SISTEMA")), quote=False)
+    state_on = html.escape(str(props.get("state_on", "ACTIVO")), quote=False)
+    state_off = html.escape(str(props.get("state_off", "DESACTIVADO")), quote=False)
+    alert_title = html.escape(str(props.get("alert_title", "CAMBIO DETECTADO")), quote=False)
+    alert_detail = html.escape(str(props.get("alert_detail", "INTEGRIDAD ALTERADA")), quote=False)
+    crt_reboot = bool(props.get("crt_reboot", True))
+
+    markup = f"""
+    <div id="{scene_id}_toggle_wrap" class="ng-custom-stage">
+      <svg viewBox="0 0 880 680" width="860" height="660">
+        <rect x="80" y="90" width="720" height="440" rx="28" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="8" />
+        <rect x="405" y="530" width="70" height="72" fill="var(--border-strong)" />
+        <rect x="310" y="598" width="260" height="20" rx="10" fill="var(--border-strong)" />
+        <g id="{scene_id}_tg_ui">
+          <text x="440" y="210" text-anchor="middle" fill="var(--text-primary)" font-size="42" font-weight="900">{label}</text>
+          <rect id="{scene_id}_tg_track" x="330" y="255" width="220" height="110" rx="55" fill="#22c55e" />
+          <circle id="{scene_id}_tg_knob" cx="495" cy="310" r="44" fill="#ffffff" />
+          <text id="{scene_id}_tg_on" x="440" y="425" text-anchor="middle" fill="var(--text-muted)" font-size="30" font-weight="800">{state_on}</text>
+          <text id="{scene_id}_tg_off" x="440" y="425" text-anchor="middle" fill="var(--accent-danger)" font-size="30" font-weight="800" opacity="0">{state_off}</text>
+        </g>
+        <g id="{scene_id}_tg_warn" opacity="0">
+          <rect x="190" y="195" width="500" height="100" rx="16" fill="var(--accent-danger)" />
+          <text x="440" y="260" text-anchor="middle" fill="#ffffff" font-size="40" font-weight="900">{alert_title}</text>
+          <text x="440" y="365" text-anchor="middle" fill="var(--text-secondary)" font-size="30" font-weight="800">{alert_detail}</text>
+        </g>
+        <rect id="{scene_id}_tg_crt" x="130" y="306" width="620" height="8" rx="4" fill="#ffffff" opacity="0" />
+      </svg>
+    </div>"""
+
+    t_flip = round(start + dur * 0.22, 3)
+    t_warn = round(start + dur * 0.48, 3)
+    t_crt = round(start + dur * 0.78, 3)
+    gsap_lines = [
+        f'tl.to("#{scene_id}_tg_knob", {{ attr: {{ cx: 385 }}, duration: 0.34, ease: "power2.inOut" }}, {t_flip:.3f});',
+        f'tl.to("#{scene_id}_tg_track", {{ attr: {{ fill: "#334155" }}, duration: 0.34 }}, {t_flip:.3f});',
+        f'tl.to("#{scene_id}_tg_on", {{ opacity: 0, duration: 0.14 }}, {t_flip + 0.08:.3f});',
+        f'tl.to("#{scene_id}_tg_off", {{ opacity: 1, duration: 0.18 }}, {t_flip + 0.14:.3f});',
+        f'tl.to("#{scene_id}_tg_ui", {{ opacity: 0, duration: 0.18 }}, {t_warn - 0.06:.3f});',
+        f'tl.fromTo("#{scene_id}_tg_warn", {{ opacity: 0, scale: 0.9, svgOrigin: "440 280" }}, {{ opacity: 1, scale: 1, svgOrigin: "440 280", duration: 0.28, ease: "back.out(1.8)", immediateRender: false }}, {t_warn:.3f});',
+    ]
+    if crt_reboot:
+        gsap_lines.extend(
+            [
+                f'tl.to("#{scene_id}_tg_warn", {{ opacity: 0, duration: 0.14 }}, {t_crt - 0.05:.3f});',
+                f'tl.fromTo("#{scene_id}_tg_crt", {{ opacity: 0, scaleX: 1, svgOrigin: "440 310" }}, {{ opacity: 1, duration: 0.12, immediateRender: false }}, {t_crt:.3f});',
+                f'tl.to("#{scene_id}_tg_crt", {{ scaleX: 0.02, opacity: 0, svgOrigin: "440 310", duration: 0.38, ease: "power3.in" }}, {t_crt + 0.20:.3f});',
+            ]
+        )
+    return markup, "\n".join(gsap_lines)
+
+
+def _render_conveyor_factory(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Línea de producción animada con prensa estampadora y dispositivos en cinta."""
+    caption = html.escape(str(props.get("caption", "PREINSTALADO DE FÁBRICA")), quote=False)
+    device_tag = html.escape(str(props.get("device_tag", "08:00")), quote=False)
+
+    markup = f"""
+    <div id="{scene_id}_factory" class="ng-custom-stage">
+      <svg viewBox="0 0 880 700" width="860" height="680">
+        <rect x="424" y="10" width="32" height="175" fill="var(--text-muted)" />
+        <g id="{scene_id}_press">
+          <rect x="340" y="168" width="200" height="122" rx="16" fill="var(--surface)" stroke="var(--accent-warning)" stroke-width="5" />
+          <polygon points="440,190 452,224 488,226 460,248 470,280 440,260 410,280 420,248 392,226 428,224"
+            fill="var(--accent-danger)" stroke="var(--accent-warning)" stroke-width="3" />
+        </g>
+        <g id="{scene_id}_belt">
+          <rect x="105" y="330" width="170" height="245" rx="24" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="5" />
+          <path d="M 140 452 Q 190 412 240 452 Q 190 492 140 452 Z" fill="none" stroke="var(--accent-danger)" stroke-width="4" />
+          <circle cx="190" cy="452" r="13" fill="var(--accent-danger)" />
+          <rect x="355" y="330" width="170" height="245" rx="24" fill="var(--surface)" stroke="var(--scene-accent, var(--accent-danger))" stroke-width="5" />
+          <path d="M 390 452 Q 440 412 490 452 Q 440 492 390 452 Z" fill="none" stroke="var(--accent-danger)" stroke-width="4" />
+          <circle cx="440" cy="452" r="13" fill="var(--accent-danger)" />
+          <rect x="605" y="330" width="170" height="245" rx="24" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="5" />
+          <text x="690" y="395" text-anchor="middle" fill="var(--text-primary)" font-size="30" font-weight="800">{device_tag}</text>
+        </g>
+        <rect x="40" y="580" width="800" height="40" rx="20" fill="var(--surface-elevated)" stroke="var(--border-strong)" stroke-width="4" />
+        <text x="440" y="672" text-anchor="middle" fill="var(--accent-warning)" font-size="32" font-weight="900">{caption}</text>
+      </svg>
+    </div>"""
+
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_belt", {{ x: -110, opacity: 0 }}, {{ x: 0, opacity: 1, duration: 0.52, ease: "power2.out" }}, {start + 0.06:.3f});',
+            f'tl.to("#{scene_id}_press", {{ y: 42, duration: 0.24, yoyo: true, repeat: 1, ease: "power3.inOut" }}, {start + min(0.55, dur * 0.35):.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_cta_card(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """Cierre interactivo de alto impacto con CTA y mutación de estado seguro a alerta."""
+    cta_text = html.escape(str(props.get("cta_text", "COMPARTIR")), quote=False)
+    clock = html.escape(str(props.get("clock", "08:20")), quote=False)
+    before_label = html.escape(str(props.get("before_label", "SOLO MÍO")), quote=False)
+    after_label = html.escape(str(props.get("after_label", "NO ES SOLO TUYO")), quote=False)
+
+    markup = f"""
+    <div id="{scene_id}_cta_wrap" class="ng-custom-stage">
+      <svg viewBox="0 0 880 760" width="860" height="740">
+        <g id="{scene_id}_cta_btn">
+          <rect x="245" y="34" width="390" height="96" rx="48" fill="var(--scene-accent, var(--accent-danger))" />
+          <text x="440" y="96" text-anchor="middle" fill="#ffffff" font-size="40" font-weight="900">{cta_text}</text>
+        </g>
+        <rect x="270" y="180" width="340" height="545" rx="42" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="8" />
+        <text x="440" y="290" text-anchor="middle" fill="var(--text-primary)" font-size="62" font-weight="900">{clock}</text>
+        <g id="{scene_id}_cta_safe">
+          <path d="M 405 430 V 405 A 35 35 0 0 1 475 405 V 430" fill="none" stroke="#22c55e" stroke-width="10" stroke-linecap="round" />
+          <rect x="390" y="430" width="100" height="82" rx="14" fill="#22c55e" />
+          <text x="440" y="575" text-anchor="middle" fill="#86efac" font-size="30" font-weight="800">{before_label}</text>
+        </g>
+        <g id="{scene_id}_cta_alert" opacity="0">
+          <path d="M 335 465 Q 440 390 545 465 Q 440 540 335 465 Z" fill="rgba(255,59,92,0.22)" stroke="var(--accent-danger)" stroke-width="6" />
+          <circle cx="440" cy="465" r="32" fill="var(--accent-danger)" />
+          <circle cx="440" cy="465" r="13" fill="var(--bg)" />
+          <text x="440" y="580" text-anchor="middle" fill="var(--accent-danger)" font-size="30" font-weight="900">{after_label}</text>
+        </g>
+      </svg>
+    </div>"""
+
+    t_btn = round(start + min(0.45, dur * 0.16), 3)
+    t_morph = round(start + dur * 0.52, 3)
+    gsap = "\n".join(
+        [
+            f'tl.fromTo("#{scene_id}_cta_btn", {{ opacity: 0, scale: 0.82, svgOrigin: "440 82" }}, {{ opacity: 1, scale: 1, svgOrigin: "440 82", duration: 0.36, ease: "back.out(1.8)" }}, {t_btn:.3f});',
+            f'tl.to("#{scene_id}_cta_safe", {{ opacity: 0, duration: 0.24 }}, {t_morph - 0.08:.3f});',
+            f'tl.fromTo("#{scene_id}_cta_alert", {{ opacity: 0, scale: 0.82, svgOrigin: "440 465" }}, {{ opacity: 1, scale: 1, svgOrigin: "440 465", duration: 0.38, ease: "back.out(1.8)", immediateRender: false }}, {t_morph:.3f});',
+        ]
+    )
+    return markup, gsap
+
+
+def _render_canvas_fx(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Primitiva Canvas 2D 100% determinista sincronizada con GSAP (sin requestAnimationFrame).
+    Soporta efectos: 'particles', 'matrix', 'radar_waves', 'noise_field'.
+    """
+    effect = str(props.get("effect", "particles")).strip().lower()
+    if effect not in {"particles", "matrix", "radar_waves", "noise_field"}:
+        effect = "particles"
+    title = html.escape(str(props.get("title", "")), quote=False)
+    subtitle = html.escape(str(props.get("subtitle", "")), quote=False)
+    accent_hex = html.escape(str(props.get("color", "#38bdf8")), quote=False)
+
+    title_html = f'<div class="ng-canvas-title">{title}</div>' if title else ""
+    sub_html = f'<div class="ng-spot-sub">{subtitle}</div>' if subtitle else ""
+
+    markup = f"""
+    <div id="{scene_id}_canvas_wrap" class="ng-canvas-wrap">
+      <canvas id="{scene_id}_canvas" class="ng-canvas-el" width="840" height="620" data-layout-ignore></canvas>
+      {title_html}
+      {sub_html}
+    </div>"""
+
+    # Coreografía determinista conducida por proxy numérico en el timeline de GSAP
+    gsap = (
+        f"(function() {{\n"
+        f'  const cvs = document.getElementById("{scene_id}_canvas");\n'
+        f"  if (!cvs) return;\n"
+        f'  const ctx = cvs.getContext("2d");\n'
+        f"  const W = cvs.width, H = cvs.height;\n"
+        f'  const mode = "{effect}";\n'
+        f'  const col = "{accent_hex}";\n'
+        f"  const proxy = {{ p: 0 }};\n"
+        f"  const draw = (p) => {{\n"
+        f"    ctx.clearRect(0, 0, W, H);\n"
+        f'    if (mode === "radar_waves") {{\n'
+        f"      for (let k = 0; k < 5; k++) {{\n"
+        f"        const r = ((p * 260 + k * 64) % 290) + 18;\n"
+        f"        ctx.beginPath();\n"
+        f"        ctx.arc(W / 2, H / 2, r, 0, Math.PI * 2);\n"
+        f"        ctx.strokeStyle = col;\n"
+        f"        ctx.globalAlpha = Math.max(0.05, 1 - r / 310);\n"
+        f"        ctx.lineWidth = 3;\n"
+        f"        ctx.stroke();\n"
+        f"      }}\n"
+        f'    }} else if (mode === "matrix") {{\n'
+        f'      ctx.font = "700 22px monospace";\n'
+        f"      ctx.fillStyle = col;\n"
+        f"      for (let c = 0; c < 24; c++) {{\n"
+        f"        const x = 24 + c * 34;\n"
+        f"        const base = ((c * 97) % 100) / 100;\n"
+        f"        const headY = ((p * 1.4 + base) % 1.0) * H;\n"
+        f"        for (let r = 0; r < 10; r++) {{\n"
+        f"          const y = headY - r * 26;\n"
+        f"          if (y < 0 || y > H) continue;\n"
+        f"          ctx.globalAlpha = Math.max(0.08, 1 - r * 0.1);\n"
+        f'          ctx.fillText(((c + r) % 2 === 0) ? "1" : "0", x, y);\n'
+        f"        }}\n"
+        f"      }}\n"
+        f'    }} else if (mode === "noise_field") {{\n'
+        f"      ctx.strokeStyle = col;\n"
+        f"      ctx.lineWidth = 2.5;\n"
+        f"      for (let row = 0; row < 12; row++) {{\n"
+        f"        ctx.beginPath();\n"
+        f"        ctx.globalAlpha = 0.25 + (row / 20);\n"
+        f"        for (let x = 20; x <= W - 20; x += 20) {{\n"
+        f"          const y = 70 + row * 42 + Math.sin(x * 0.018 + p * Math.PI * 4 + row * 0.6) * 18;\n"
+        f"          if (x === 20) ctx.moveTo(x, y); else ctx.lineTo(x, y);\n"
+        f"        }}\n"
+        f"        ctx.stroke();\n"
+        f"      }}\n"
+        f"    }} else {{\n"
+        f"      for (let i = 0; i < 42; i++) {{\n"
+        f"        const angle = (i * 2.39996) + p * Math.PI * 1.5;\n"
+        f"        const dist = 40 + ((i * 19 + p * 180) % 260);\n"
+        f"        const x = W / 2 + Math.cos(angle) * dist * 1.3;\n"
+        f"        const y = H / 2 + Math.sin(angle) * dist * 0.85;\n"
+        f"        ctx.beginPath();\n"
+        f"        ctx.arc(x, y, 4 + (i % 4), 0, Math.PI * 2);\n"
+        f"        ctx.fillStyle = col;\n"
+        f"        ctx.globalAlpha = 0.25 + 0.65 * Math.sin(p * Math.PI + i);\n"
+        f"        ctx.fill();\n"
+        f"      }}\n"
+        f"    }}\n"
+        f"    ctx.globalAlpha = 1;\n"
+        f"  }};\n"
+        f"  draw(0);\n"
+        f'  tl.to(proxy, {{ p: 1, duration: {dur:.3f}, ease: "none", onUpdate: () => draw(proxy.p) }}, {start:.3f});\n'
+        f"}})();"
+    )
+    return markup, gsap
+
+
+def _render_image_cutout(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Muestra una imagen procesada o recorte transparente (cutout PNG/WEBP de assets/images/)
+    con animación de entrada determinista, flotación sutil y título/etiqueta tipográfica limpia.
+    """
+    src_raw = str(props.get("src", "")).strip()
+    if not src_raw:
+        src_raw = "../../assets/images/cutout.png"
+    elif "/" not in src_raw and "\\" not in src_raw:
+        src_raw = f"../../assets/images/{src_raw}"
+    src_attr = html.escape(src_raw, quote=True)
+
+    title = html.escape(str(props.get("title", "")), quote=False)
+    subtitle = html.escape(str(props.get("subtitle", "")), quote=False)
+    max_width = int(props.get("max_width", 720))
+    float_motion = bool(props.get("float_motion", True))
+
+    title_html = f'<div class="ng-cutout-title">{title}</div>' if title else ""
+    sub_html = f'<div class="ng-spot-sub">{subtitle}</div>' if subtitle else ""
+
+    markup = f"""
+    <div id="{scene_id}_cutout_wrap" class="ng-cutout-wrap">
+      <div id="{scene_id}_cutout_stage" class="ng-cutout-stage">
+        <img id="{scene_id}_cutout_img" class="ng-cutout-img" src="{src_attr}"
+          style="max-width: {max_width}px;" alt="{title}" data-layout-ignore />
+      </div>
+      {title_html}
+      {sub_html}
+    </div>"""
+
+    t_in = start + 0.08
+    gsap_lines = [
+        f'tl.fromTo("#{scene_id}_cutout_img", {{ opacity: 0, y: 42, scale: 0.90 }}, {{ opacity: 1, y: 0, scale: 1, duration: 0.45, ease: "back.out(1.6)" }}, {t_in:.3f});',
+    ]
+    if float_motion and dur >= 1.4:
+        float_dur = round(max(0.5, (dur - 0.55) / 2.0), 3)
+        gsap_lines.append(
+            f'tl.to("#{scene_id}_cutout_stage", {{ y: -14, duration: {float_dur:.3f}, yoyo: true, repeat: 1, ease: "sine.inOut" }}, {t_in + 0.45:.3f});'
+        )
+    if title:
+        gsap_lines.append(
+            f'tl.fromTo("#{scene_id}_cutout_wrap .ng-cutout-title", {{ opacity: 0, y: 18 }}, {{ opacity: 1, y: 0, duration: 0.32, ease: "power2.out" }}, {t_in + 0.16:.3f});'
+        )
+    return markup, "\n".join(gsap_lines)
+
+
 ComponentRenderer = Callable[[str, dict[str, Any], float, float], tuple[str, str]]
 
 COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
@@ -1102,17 +1510,16 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
     "keyboard_type": _render_keyboard_type,
     "padlock_denied": _render_padlock_denied,
     "file_cards": _render_file_cards,
+    "toggle_alert": _render_toggle_alert,
+    "conveyor_factory": _render_conveyor_factory,
+    "cta_card": _render_cta_card,
+    "canvas_fx": _render_canvas_fx,
+    "image_cutout": _render_image_cutout,
     "custom_scene": _render_custom_scene,
 }
 
 
-def build_scenes_css() -> str:
-    """
-    Devuelve el bloque CSS canónico para todos los 16 componentes narrativos,
-    cabecera de marca, subtítulos Hero-Top y atmósfera dinámica.
-    """
-    return """      /* @scenes-css:start */
-      #brand-bar {
+_SCENES_BASE_CSS = """      #brand-bar {
         position: absolute;
         top: 42px;
         left: 72px;
@@ -1150,11 +1557,39 @@ def build_scenes_css() -> str:
         letter-spacing: -0.02em;
         line-height: 1.08;
       }
+      #root[data-caption-pos="hero_top"] .word.active {
+        text-shadow: 0 0 32px var(--accent-primary-glow), 0 4px 16px rgba(0, 0, 0, 0.72);
+      }
       #root[data-caption-pos="hero_top"] #scenes-stage {
         top: 380px;
         height: 1360px;
       }
-      .ng-phone-hud-wrap {
+      .ng-tw-cursor {
+        color: var(--scene-accent, var(--accent-warning));
+        font-weight: 900;
+        margin-left: 4px;
+      }
+      .ng-custom-stage {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.45));
+      }
+      #root[data-film-grain="true"]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 45;
+        background:
+          radial-gradient(circle at 50% 48%, transparent 52%, rgba(0, 0, 0, 0.52) 100%),
+          repeating-radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+      }"""
+
+_COMPONENT_CSS_BLOCKS: dict[str, str] = {
+    "phone_mockup": """      .ng-phone-hud-wrap {
         position: relative;
         width: 100%;
         display: flex;
@@ -1184,6 +1619,39 @@ def build_scenes_css() -> str:
         min-height: 760px;
         align-items: center;
         justify-content: space-between;
+        overflow: hidden;
+      }
+      .ng-phone-flash {
+        position: absolute;
+        inset: 0;
+        background: #ffffff;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 10;
+        border-radius: inherit;
+      }
+      .ng-capture-counter {
+        position: absolute;
+        right: 72px;
+        bottom: 18px;
+        z-index: 5;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--font-mono);
+        font-size: 38px;
+        font-weight: 900;
+        color: var(--scene-accent, var(--accent-danger));
+        opacity: 0;
+      }
+      .ng-phone-cursor {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        z-index: 12;
+        opacity: 0;
+        pointer-events: none;
+        filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.65));
       }
       .ng-phone-island {
         width: 110px;
@@ -1225,8 +1693,8 @@ def build_scenes_css() -> str:
         height: 68px;
         background: var(--surface-elevated);
         border-radius: 24px;
-      }
-      .ng-radar-wrap {
+      }""",
+    "radar_map": """      .ng-radar-wrap {
         width: 100%;
         display: flex;
         justify-content: center;
@@ -1234,8 +1702,9 @@ def build_scenes_css() -> str:
       .ng-radar-svg {
         width: 100%;
         height: auto;
-      }
-      .ng-xray-stage {
+        filter: drop-shadow(0 0 24px rgba(0, 0, 0, 0.4));
+      }""",
+    "xray_scanner": """      .ng-xray-stage {
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -1313,8 +1782,8 @@ def build_scenes_css() -> str:
       .ng-xray-call-detail {
         font-size: 28px;
         color: var(--text-muted);
-      }
-      .ng-alert-modal {
+      }""",
+    "system_alert": """      .ng-alert-modal {
         width: 100%;
         max-width: 820px;
         background: var(--surface);
@@ -1347,17 +1816,12 @@ def build_scenes_css() -> str:
         line-height: 1.35;
         color: var(--text-primary);
       }
-      .ng-tw-cursor {
-        color: var(--scene-accent, var(--accent-warning));
-        font-weight: 900;
-        margin-left: 4px;
-      }
       .ng-alert-sub {
         font-family: var(--font-mono);
         font-size: 28px;
         color: var(--text-muted);
-      }
-      .ng-hex-card {
+      }""",
+    "hex_inspector": """      .ng-hex-card {
         width: 100%;
         background: var(--surface);
         border: 1px solid var(--border);
@@ -1400,8 +1864,8 @@ def build_scenes_css() -> str:
         font-size: 32px;
         font-weight: 900;
         color: var(--text-primary);
-      }
-      .ng-monitor-wrap {
+      }""",
+    "desktop_monitor": """      .ng-monitor-wrap {
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -1487,8 +1951,8 @@ def build_scenes_css() -> str:
         height: 18px;
         background: var(--border-strong);
         border-radius: 9px;
-      }
-      .ng-kb-wrap {
+      }""",
+    "keyboard_type": """      .ng-kb-wrap {
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -1565,8 +2029,8 @@ def build_scenes_css() -> str:
         background: var(--surface-elevated);
         border: 1px solid var(--border);
         border-radius: 12px;
-      }
-      .ng-lock-wrap {
+      }""",
+    "padlock_denied": """      .ng-lock-wrap {
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -1583,8 +2047,8 @@ def build_scenes_css() -> str:
         font-weight: 900;
         color: var(--accent-danger);
         letter-spacing: 0.08em;
-      }
-      .ng-fcards-wrap {
+      }""",
+    "file_cards": """      .ng-fcards-wrap {
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -1625,15 +2089,71 @@ def build_scenes_css() -> str:
         font-family: var(--font-mono);
         font-size: 22px;
         color: var(--accent-danger);
-      }
-      .ng-custom-stage {
+      }""",
+    "canvas_fx": """      .ng-canvas-wrap {
         width: 100%;
         display: flex;
-         flex-direction: column;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      .ng-canvas-el {
+        width: 100%;
+        max-width: 840px;
+        height: auto;
+        border-radius: 22px;
+        border: 1px solid var(--border);
+        background: var(--surface);
+      }
+      .ng-canvas-title {
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-primary);
+        text-align: center;
+      }""",
+    "image_cutout": """      .ng-cutout-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+        text-align: center;
+      }
+      .ng-cutout-stage {
+        display: flex;
         align-items: center;
         justify-content: center;
       }
-      /* @scenes-css:end */"""
+      .ng-cutout-img {
+        width: 100%;
+        height: auto;
+        max-height: 680px;
+        object-fit: contain;
+        filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.55));
+      }
+      .ng-cutout-title {
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-primary);
+        text-align: center;
+      }""",
+}
+
+
+def build_scenes_css(used_components: set[str] | None = None) -> str:
+    """
+    Devuelve el bloque CSS canónico para los componentes narrativos usados,
+    cabecera de marca, subtítulos Hero-Top y atmósfera dinámica.
+    Si used_components es None, incluye todos los bloques (compatibilidad total).
+    """
+    parts = ["      /* @scenes-css:start */", _SCENES_BASE_CSS]
+    for comp_name, css_block in _COMPONENT_CSS_BLOCKS.items():
+        if used_components is None or comp_name in used_components:
+            parts.append(css_block)
+    parts.append("      /* @scenes-css:end */")
+    return "\n".join(parts)
 
 
 def load_storyboard(path: Path) -> StoryboardSpec:
@@ -1698,6 +2218,11 @@ def load_storyboard(path: Path) -> StoryboardSpec:
     if caption_position not in VALID_CAPTION_POSITIONS:
         caption_position = "bottom"
 
+    raw_wpg = raw.get("words_per_group")
+    words_per_group = int(raw_wpg) if raw_wpg is not None else None
+    raw_emph = raw.get("emphasis_words") or []
+    emphasis_words = [str(w).strip() for w in raw_emph if str(w).strip()]
+
     return StoryboardSpec(
         title=str(raw.get("title", "Storyboard")),
         duration=duration,
@@ -1707,6 +2232,11 @@ def load_storyboard(path: Path) -> StoryboardSpec:
         brand=str(raw["brand"]).strip() if raw.get("brand") else None,
         category=str(raw["category"]).strip() if raw.get("category") else None,
         ambient_bed=bool(raw.get("ambient_bed", False)),
+        music=str(raw["music"]).strip() if raw.get("music") else None,
+        camera_motion=bool(raw.get("camera_motion", True)),
+        film_grain=bool(raw.get("film_grain", False)),
+        words_per_group=words_per_group,
+        emphasis_words=emphasis_words,
         scenes=scenes,
     )
 
@@ -1773,6 +2303,11 @@ def align_storyboard_to_transcript(
         brand=storyboard.brand,
         category=storyboard.category,
         ambient_bed=storyboard.ambient_bed,
+        music=storyboard.music,
+        camera_motion=storyboard.camera_motion,
+        film_grain=storyboard.film_grain,
+        words_per_group=storyboard.words_per_group,
+        emphasis_words=list(storyboard.emphasis_words),
         scenes=adjusted,
     )
 
@@ -1782,22 +2317,30 @@ def extract_sfx_events(
 ) -> list[SfxEvent]:
     """
     Extrae los eventos de SFX sincronizados con el inicio de cada escena.
+    Si una escena declara sfx='none' o sfx_volume <= 0, suprime tanto el evento
+    primario como cualquier sub-evento interno.
     Si include_sub_events=True, añade también efectos secundarios intra-escena
     (bloqueo de retícula, barrido de escáner, escritura de alerta, etc.).
     """
     events: list[SfxEvent] = []
     secondary_sfx_map = {
-        "phone_mockup": ("beep", 0.35),
+        "phone_mockup": ("shutter", 0.35),
         "terminal_grid": ("glitch", 0.45),
         "connector_flow": ("click", 0.38),
         "radar_map": ("scan", 0.32),
         "xray_scanner": ("scan", 0.30),
-        "system_alert": ("beep", 0.28),
+        "system_alert": ("alarm", 0.28),
         "hex_inspector": ("glitch", 0.36),
+        "keyboard_type": ("keyclick", 0.25),
+        "toggle_alert": ("powerdown", 0.65),
+        "conveyor_factory": ("boom", 0.35),
+        "cta_card": ("riser", 0.45),
     }
     for scene in storyboard.scenes:
-        if scene.sfx and scene.sfx.lower() != "none":
-            events.append(SfxEvent(sfx=scene.sfx, time_sec=scene.start, volume=scene.sfx_volume))
+        sfx_name = (scene.sfx or "").strip().lower()
+        if not sfx_name or sfx_name == "none" or scene.sfx_volume <= 0:
+            continue
+        events.append(SfxEvent(sfx=scene.sfx, time_sec=scene.start, volume=scene.sfx_volume))
         if include_sub_events and scene.duration >= 1.8 and scene.component in secondary_sfx_map:
             sub_sfx, rel_offset = secondary_sfx_map[scene.component]
             sub_t = round(min(scene.start + scene.duration * rel_offset, scene.end - 0.3), 3)
@@ -1831,6 +2374,12 @@ def build_storyboard_html_and_gsap(storyboard: StoryboardSpec) -> tuple[str, str
     ):
         gsap_parts.append(
             f'if (document.getElementById("atmosphere-rays")) {{ tl.to("#atmosphere-rays", {{ rotation: 36, duration: {storyboard.duration:.3f}, ease: "none" }}, 0); }}'
+        )
+
+    if storyboard.camera_motion and storyboard.duration >= 1.5:
+        half_d = round(storyboard.duration / 2.0, 3)
+        gsap_parts.append(
+            f'tl.fromTo("#scenes-stage", {{ scale: 1.0 }}, {{ scale: 1.028, duration: {half_d:.3f}, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }}, 0);'
         )
 
     for idx, scene in enumerate(storyboard.scenes):
@@ -1919,7 +2468,8 @@ def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> 
         raise FileNotFoundError(f"No se encontró el archivo HTML: {html_path}")
 
     scenes_html, scenes_gsap = build_storyboard_html_and_gsap(storyboard)
-    scenes_css = build_scenes_css()
+    used_components = {s.component for s in storyboard.scenes}
+    scenes_css = build_scenes_css(used_components=used_components)
     content = html_path.read_text(encoding="utf-8")
 
     # 0. Inyección idempotente del CSS de los 16 componentes
@@ -1949,10 +2499,13 @@ def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> 
             "El archivo HTML no contiene los marcadores // @scenes-gsap:start/end compatibles con multi-escena."
         )
 
-    # 3. Actualizar data-duration, data-atmosphere y data-caption-pos exclusivamente en #root
+    # 3. Actualizar data-duration, data-atmosphere, data-caption-pos y data-film-grain exclusivamente en #root
     content = _set_root_attr(content, "data-duration", f"{storyboard.duration:.2f}")
     content = _set_root_attr(content, "data-atmosphere", storyboard.atmosphere)
     content = _set_root_attr(content, "data-caption-pos", storyboard.caption_position)
+    content = _set_root_attr(
+        content, "data-film-grain", "true" if storyboard.film_grain else "false"
+    )
 
     html_path.write_text(content, encoding="utf-8")
 

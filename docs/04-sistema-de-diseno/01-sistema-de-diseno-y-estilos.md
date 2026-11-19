@@ -136,6 +136,6 @@ python3 core/pipeline.py style mi-proyecto --reset-overrides
 
 ## 6. Enlaces Relacionados
 
-* Ver el catálogo de las 5 plantillas esenciales en [02-formatos-de-video.md](../03-renderizado-y-formatos/02-formatos-de-video.md).
+* Ver el catálogo de las 7 plantillas esenciales en [02-formatos-de-video.md](../03-renderizado-y-formatos/02-formatos-de-video.md).
 * Consultar los flujos de trabajo paso a paso en [01-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
 * Volver al índice maestro en [00-indice-general.md](../00-indice-general.md).

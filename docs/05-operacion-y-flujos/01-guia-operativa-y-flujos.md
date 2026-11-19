@@ -24,7 +24,7 @@ python3 core/pipeline.py produce \
 ```
 
 > [!TIP]
-> Puedes elegir cualquiera de los **4 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`, `-d terminal`), cualquiera de las **4 paletas cromáticas** (`-s`) y cualquiera de las **6 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
+> Puedes elegir cualquiera de los **4 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`, `-d terminal`), cualquiera de las **4 paletas cromáticas** (`-s`) y cualquiera de las **7 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
 > `python3 core/pipeline.py style tutorial-kubernetes -d editorial --layout asymmetric_focus --caption-style minimal_clean`
 
 Este comando ejecuta automáticamente:
@@ -55,7 +55,7 @@ flowchart TD
 ---
 
 ### Paso 1: Inicializar el Proyecto mediante Scaffolding
-Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **5 plantillas esenciales** y los **4 Diseños Macro**:
+Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **7 plantillas esenciales** y los **4 Diseños Macro**:
 
 ```bash
 cd video-pipeline
@@ -183,7 +183,7 @@ Para recompilar únicamente el storyboard y mezclar SFX + cama con *ducking* tra
 uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav --ambient-bed
 ```
 
-### 3.3. Catálogo de los 20 Componentes Narrativos (`COMPONENT_REGISTRY`)
+### 3.3. Catálogo de los 25 Componentes Narrativos (`COMPONENT_REGISTRY`)
 
 | Componente | Uso Principal | Propiedades Clave (`props`) |
 | :--- | :--- | :--- |
@@ -192,13 +192,13 @@ uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio project
 | `quote_focus` | Citas, versículos, leyes o tesis centrales | `quote`, `author`, `context` |
 | `bar_chart` | Métricas proporcionales, porcentajes, rankings | `bars: [{label, value, display, highlight}]` |
 | `code_spotlight` | Bloques de código o CLI con línea resaltada | `language`, `lines`, `highlight_line` |
-| `icon_spotlight` | Icono SVG de `assets/icons/` + anillo radial | `icon`, `label`, `sublabel`, `ring_progress` |
+| `icon_spotlight` | Icono SVG de `assets/icons/` (o `coleccion:nombre` desde Iconify) + anillo radial | `icon`, `label`, `sublabel`, `ring_progress` |
 | `stat_callout` | Dato único de alto impacto + barras opcionales | `value` (o `primary_text`), `label` (o `secondary_text`), `note`, `bars` |
-| `phone_mockup` | Smartphone en modo lista (`list`) o pantalla de apps (`app_grid`) con anillo HUD | `mode` (`list` \| `app_grid`), `app_title`, `items`, `clock_start`, `clock_end`, `alert_text` |
+| `phone_mockup` | Smartphone en modo lista (`list`) o pantalla de apps (`app_grid`) con anillo HUD, flash y cursor | `mode` (`list` \| `app_grid`), `app_title`, `items`, `clock_start`, `clock_end`, `alert_text`, `capture_flash`, `capture_count`, `show_cursor` |
 | `network_graph` | Topología de nodos y trazado de rutas | `nodes: [{id, label, x, y, alert}]`, `edges`, `center_label` |
 | `terminal_grid` | Matriz de 6 terminales con LEDs y vibración de alerta | `screens: [{id, lines, status}]` |
 | `connector_flow` | Conexión física o lógica entre puerto host y dispositivo | `left_label`, `right_label`, `status_text` |
-| `radar_map` | Mapa vectorial y radar táctico con barrido cónico 360° | `region`, `targets: [{label, sublabel, x, y, alert}]` |
+| `radar_map` | Mapa vectorial (`assets/maps/<preset>.svg`), ruta animada y radar táctico 360° | `region`, `map_preset` (`korea` \| `world` \| `europe` \| `americas` \| `asia`), `route`, `targets: [{label, sublabel, x, y, alert}]` |
 | `xray_scanner` | Marco HUD con barrido láser horizontal y tarjetas laterales | `subject`, `footer_tag`, `callouts: [{title, detail, side}]` |
 | `system_alert` | Modal de advertencia del sistema con efecto máquina de escribir (`typewriter`) | `title`, `message`, `subtext` |
 | `hex_inspector` | Volcado hexadecimal de memoria con fila activa y hallazgo | `target_addr`, `tag`, `finding` |
@@ -206,6 +206,11 @@ uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio project
 | `keyboard_type` | Teclado QWERTY interactivo con teclas activas, caja de texto y sugerencias | `typed_text`, `active_keys`, `suggestions` |
 | `padlock_denied` | Candado vectorial encadenado con sello de bloqueo (`ACCESO DENEGADO`) | `stamp`, `detail` |
 | `file_cards` | Tarjetas de archivos marcados con número de serie / huella criptográfica | `serial_code`, `files`, `caption` |
+| `toggle_alert` | Panel de sistema con switch interactivo, alerta de integridad y apagón CRT determinista | `label`, `state_on`, `state_off`, `alert_title`, `alert_detail`, `crt_reboot` |
+| `conveyor_factory` | Línea de producción industrial con prensa estampadora y dispositivos en cinta | `caption`, `device_tag` |
+| `cta_card` | Cierre interactivo con llamada a la acción y mutación de candado seguro a ojo/alerta | `cta_text`, `clock`, `before_label`, `after_label` |
+| `canvas_fx` | Primitiva Canvas 2D 100% determinista conducida por proxy en GSAP (`onUpdate`) | `effect` (`particles` \| `matrix` \| `radar_waves` \| `noise_field`), `title`, `subtitle`, `color` |
+| `image_cutout` | Recorte transparente o imagen procesada (`assets/images/`) con entrada elástica y flotación | `src`, `title`, `subtitle`, `max_width`, `float_motion` |
 | `custom_scene` | Escena abierta para inyectar cualquier composición SVG/HTML y coreografía GSAP a medida | `html` (con marcador `{scene_id}`), `gsap` (con `{scene_id}` y `{start}`) |
 
 ### 3.4. Ejemplo de Escena a Medida con `custom_scene`

@@ -182,3 +182,22 @@ def test_inject_handles_backslashes_html_escape_and_nested_divs(tmp_path):
     assert "Viejo" not in result
     assert "Texto" not in result
     assert result.count('id="captions-container"') == 1
+
+
+def test_group_words_splits_on_punctuation_and_emphasis_words():
+    words = [
+        {"word": "Estado.", "start": 0.0, "end": 0.4},
+        {"word": "Y", "start": 0.45, "end": 0.55},
+        {"word": "ver", "start": 0.55, "end": 0.75},
+        {"word": "Pegasus", "start": 0.75, "end": 1.2},
+    ]
+    groups = group_words(words, words_per_group=4, pause_threshold=0.4)
+    assert len(groups) == 2
+    assert [w["word"] for w in groups[0]] == ["Estado."]
+    assert [w["word"] for w in groups[1]] == ["Y", "ver", "Pegasus"]
+
+    html_out, gsap_out = generate_html_and_gsap(
+        groups, caption_style="minimal_clean", emphasis_words=["Pegasus"]
+    )
+    assert 'class="word word-emphasis">Pegasus</span>' in html_out
+    assert 'className: "word word-emphasis active"' in gsap_out

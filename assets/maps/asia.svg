@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 680">
+  <!-- Asia Continental -->
+  <path d="M 155 150 L 460 120 L 635 165 L 610 295 L 555 375 L 470 430 L 380 495 L 305 425 L 220 380 L 145 275 Z" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-primary))" stroke-width="3.5" stroke-linejoin="round" />
+  <!-- Península Coreana -->
+  <path d="M 590 285 L 625 290 L 630 355 L 598 358 Z" fill="rgba(239,68,68,0.28)" stroke="var(--accent-danger)" stroke-width="3" stroke-linejoin="round" />
+  <!-- Archipiélago de Japón -->
+  <path d="M 670 250 L 710 265 L 695 340 L 655 375 L 642 355 L 675 315 Z" fill="rgba(148,163,184,0.16)" stroke="var(--border-strong)" stroke-width="2.5" stroke-linejoin="round" />
+</svg>

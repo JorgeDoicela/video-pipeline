@@ -181,6 +181,11 @@ def test_component_registry_includes_universal_primitives():
         "keyboard_type",
         "padlock_denied",
         "file_cards",
+        "toggle_alert",
+        "conveyor_factory",
+        "cta_card",
+        "canvas_fx",
+        "image_cutout",
         "custom_scene",
     }
     assert expected == set(COMPONENT_REGISTRY.keys())
@@ -340,3 +345,171 @@ def test_explainer_project_supports_switching_all_macro_designs(tmp_path: Path):
         assert ".ng-quote-text" in content
         assert ".ng-timeline" in content
         assert ".ng-spotlight" in content
+
+
+def test_vocabulary_replacements_supports_multi_word_phrases():
+    from core.transcribe import apply_vocabulary_replacements, parse_replacements
+
+    rep = parse_replacements(["lo sabrás=los abras", "redstar=Red Star"])
+    sample = {
+        "segments": [
+            {
+                "text": "Aunque nunca lo sabrás en redstar.",
+                "words": [
+                    {"word": "Aunque", "start": 0.0, "end": 0.3},
+                    {"word": "nunca", "start": 0.3, "end": 0.6},
+                    {"word": "lo", "start": 0.6, "end": 0.8},
+                    {"word": "sabrás", "start": 0.8, "end": 1.2},
+                    {"word": "en", "start": 1.2, "end": 1.3},
+                    {"word": "redstar.", "start": 1.3, "end": 1.9},
+                ],
+            }
+        ]
+    }
+    updated = apply_vocabulary_replacements(sample, rep)
+    assert updated["segments"][0]["text"] == "Aunque nunca los abras en Red Star."
+    words = [w["word"] for w in updated["segments"][0]["words"]]
+    assert words == ["Aunque", "nunca", "los", "abras", "en", "Red", "Star."]
+    assert updated["segments"][0]["words"][2]["start"] == pytest.approx(0.6)
+    assert updated["segments"][0]["words"][3]["end"] == pytest.approx(1.2)
+    assert updated["segments"][0]["words"][5]["start"] == pytest.approx(1.3)
+    assert updated["segments"][0]["words"][6]["end"] == pytest.approx(1.9)
+
+
+def test_extract_sfx_events_suppresses_sub_events_when_sfx_none():
+    sb = StoryboardSpec(
+        title="Muted",
+        duration=10.0,
+        scenes=[
+            SceneSpec(
+                id="s1",
+                start=0.0,
+                end=5.0,
+                headline="",
+                component="phone_mockup",
+                sfx="none",
+                sfx_volume=0.0,
+            ),
+            SceneSpec(
+                id="s2",
+                start=5.0,
+                end=10.0,
+                headline="",
+                component="radar_map",
+                sfx="none",
+                sfx_volume=0.35,
+            ),
+        ],
+    )
+    assert extract_sfx_events(sb, include_sub_events=True) == []
+
+
+def test_build_scenes_css_tree_shaking_and_enhanced_components():
+    from core.scenes import build_scenes_css
+
+    css_phone_only = build_scenes_css(used_components={"phone_mockup"})
+    assert ".ng-phone-hud-wrap" in css_phone_only
+    assert ".ng-phone-flash" in css_phone_only
+    assert ".ng-hex-card" not in css_phone_only
+    assert ".ng-kb-board" not in css_phone_only
+
+    sb = StoryboardSpec(
+        title="Enhanced",
+        duration=8.0,
+        words_per_group=3,
+        emphasis_words=["Pegasus"],
+        scenes=[
+            SceneSpec(
+                id="sc_phone",
+                start=0.0,
+                end=4.0,
+                headline="",
+                component="phone_mockup",
+                props={"mode": "app_grid", "capture_flash": True, "capture_count": 5},
+            ),
+            SceneSpec(
+                id="sc_map",
+                start=4.0,
+                end=8.0,
+                headline="",
+                component="radar_map",
+                props={"map_preset": "korea", "route": True},
+            ),
+        ],
+    )
+    html_out, gsap_out = build_storyboard_html_and_gsap(sb)
+    assert "sc_phone_flash" in html_out
+    assert "sc_phone_cap_badge" in html_out
+    assert "sc_map_route" in html_out
+    assert "strokeDashoffset: 0" in gsap_out
+
+
+def test_new_production_components_and_deterministic_canvas_fx(tmp_path: Path):
+    sb = StoryboardSpec(
+        title="Production Suite",
+        duration=16.0,
+        camera_motion=True,
+        film_grain=True,
+        music="tension_pulse",
+        scenes=[
+            SceneSpec(
+                id="sc_tg",
+                start=0.0,
+                end=4.0,
+                headline="",
+                component="toggle_alert",
+                props={"label": "PROTECCIÓN", "crt_reboot": True},
+            ),
+            SceneSpec(
+                id="sc_fac",
+                start=4.0,
+                end=8.0,
+                headline="",
+                component="conveyor_factory",
+                props={"caption": "DE FÁBRICA"},
+            ),
+            SceneSpec(
+                id="sc_cta",
+                start=8.0,
+                end=12.0,
+                headline="",
+                component="cta_card",
+                props={"cta_text": "COMPARTIR"},
+            ),
+            SceneSpec(
+                id="sc_fx",
+                start=12.0,
+                end=16.0,
+                headline="",
+                component="canvas_fx",
+                props={"effect": "matrix", "title": "FLUJO DETERMINISTA"},
+            ),
+        ],
+    )
+    html_out, gsap_out = build_storyboard_html_and_gsap(sb)
+    assert "sc_tg_tg_crt" in html_out
+    assert "sc_fac_press" in html_out
+    assert "sc_cta_cta_alert" in html_out
+    assert "sc_fx_canvas" in html_out
+    assert "requestAnimationFrame" not in gsap_out
+    assert "onUpdate: () => draw(proxy.p)" in gsap_out
+    assert "scale: 1.028" in gsap_out
+
+    # Verificar que los 5 mapas SVG reales existen en assets/maps/
+    maps_dir = Path(__file__).resolve().parent.parent / "assets" / "maps"
+    for preset in ("korea", "world", "europe", "americas", "asia"):
+        assert (maps_dir / f"{preset}.svg").exists()
+
+    # Verificar inyección de data-film-grain="true"
+    src_html = (
+        Path(__file__).resolve().parent.parent
+        / "templates"
+        / "explainer_scenes_9_16"
+        / "index.html"
+    )
+    html_file = tmp_path / "index.html"
+    html_file.write_text(src_html.read_text(encoding="utf-8"), encoding="utf-8")
+    inject_storyboard_into_html(html_file, sb)
+    injected = html_file.read_text(encoding="utf-8")
+    assert 'data-film-grain="true"' in injected
+    assert ".ng-canvas-el" in injected
