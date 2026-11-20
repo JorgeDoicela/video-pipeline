@@ -95,7 +95,7 @@ def test_generate_html_and_gsap_styles():
             {"word": "Containers", "start": 0.95, "end": 1.4},
         ]
     ]
-    html_code, gsap_code = generate_html_and_gsap(groups, caption_style="highlight_pill")
+    html_code, gsap_code = generate_html_and_gsap(groups, caption_style="minimal_clean")
 
     assert '<div id="captions-container" class="caption-bar">' in html_code
     assert '<span id="cw_0_0" class="word">Docker</span>' in html_code
@@ -104,10 +104,7 @@ def test_generate_html_and_gsap_styles():
     assert 'tl.set("#cg_0", { display: "inline-block", opacity: 1 }, 0.500);' in gsap_code
     assert 'tl.to("#cw_0_0", { className: "word active", duration: 0.04 }, 0.500);' in gsap_code
     assert 'tl.set("#cg_0", { opacity: 0, display: "none" }, 1.550);' in gsap_code
-
-    # Probar variante minimal_clean sin escala artificial
-    _, gsap_clean = generate_html_and_gsap(groups, caption_style="minimal_clean")
-    assert "scale:" not in gsap_clean
+    assert "scale:" not in gsap_code
 
 
 def test_idempotent_inject_into_html(tmp_path):
@@ -139,8 +136,8 @@ def test_idempotent_inject_into_html(tmp_path):
     inject_into_html(html_file, h1, g1, caption_style="minimal_clean")
 
     groups_2 = [[{"word": "Segunda", "start": 0.4, "end": 0.9}]]
-    h2, g2 = generate_html_and_gsap(groups_2, caption_style="highlight_pill")
-    inject_into_html(html_file, h2, g2, caption_style="highlight_pill")
+    h2, g2 = generate_html_and_gsap(groups_2, caption_style="minimal_clean")
+    inject_into_html(html_file, h2, g2, caption_style="minimal_clean")
 
     result = html_file.read_text(encoding="utf-8")
     assert "Segunda" in result

@@ -79,9 +79,8 @@ video-pipeline/
 │   ├── transcribe.py     # Transcripción con word timestamps y reemplazos multi-palabra (faster-whisper)
 │   ├── create_project.py # Scaffolding automatizado de proyectos
 │   ├── generate_sfx.py   # Síntesis matemática de 15 efectos de sonido WAV y 3 pistas musicales loopables
-│   ├── generate_icons.py # Generador de 18 iconos técnicos vectoriales SVG base
-│   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG, mapas Natural Earth GeoJSON CC0 y audio CC0)
-│   └── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX isnet/silueta/u2netp y color), crop, auto-trim, cutout sticker y conversión
+│   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth GeoJSON CC0 y audio CC0)
+│   └── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
 ├── templates/         # Catálogo de 7 plantillas esenciales (9:16 y 16:9)
 │   ├── explainer_scenes_9_16/ # Explainer faceless multi-escena vertical 9:16 (1080x1920)
 │   ├── explainer_scenes_16_9/ # Explainer faceless multi-escena horizontal 16:9 (1920x1080)

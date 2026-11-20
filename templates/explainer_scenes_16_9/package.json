@@ -1,6 +1,21 @@
 {
-  "name": "explainer_scenes_16_9",
-  "version": "1.0.0",
+  "name": "template-explainer-scenes-16-9",
   "private": true,
-  "description": "Plantilla horizontal 16:9 multi-escena faceless con atmosfera 2D, componentes narrativos universales y mezcla SFX/voz."
+  "type": "module",
+  "scripts": {
+    "dev": "hyperframes preview",
+    "render": "hyperframes render",
+    "check": "hyperframes check"
+  },
+  "videoStyle": "dark_violet",
+  "captionStyle": "minimal_clean",
+  "videoDesign": {
+    "design": "cinematic",
+    "style": "dark_violet",
+    "layout": "standard",
+    "chrome": "hidden",
+    "motion": "snappy",
+    "captionStyle": "minimal_clean",
+    "overrides": {}
+  }
 }

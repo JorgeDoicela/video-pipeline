@@ -342,9 +342,9 @@ def test_explainer_project_supports_switching_all_macro_designs(tmp_path: Path):
         assert f'data-design="{design_slug}"' in content
         assert "<!-- @scenes:start -->" in content
         assert "<!-- @captions:start -->" in content
-        assert ".ng-quote-text" in content
-        assert ".ng-timeline" in content
-        assert ".ng-spotlight" in content
+        assert ".ng-phone-frame" in content
+        assert ".ng-term-grid" in content
+        assert ".ng-flow-wrap" in content
 
 
 def test_vocabulary_replacements_supports_multi_word_phrases():

@@ -13,18 +13,19 @@ import shutil
 import sys
 from pathlib import Path
 
-_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from core._runtime import ensure_local_venv, ensure_repo_root_on_path  # noqa: E402
+
+ensure_repo_root_on_path()
 
 from core.styles import (  # noqa: E402
     CAPTION_STYLES,
-    CHROME_VARIANTS,
     DEFAULT_DESIGN,
     DESIGN_SYSTEMS,
-    LAYOUT_VARIANTS,
-    MOTION_PROFILES,
     THEMES,
+    add_design_arguments,
     apply_style_to_project,
     parse_set_overrides,
 )
@@ -196,10 +197,8 @@ def create_project(
     return target_path
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Scaffold de nuevos proyectos de video programático en HyperFrames"
-    )
+def register_scaffold_arguments(parser: argparse.ArgumentParser) -> None:
+    """Registra los argumentos de creación/scaffolding de proyectos en el parser indicado."""
     parser.add_argument("name", help="Nombre o slug del nuevo proyecto")
     parser.add_argument(
         "-t",
@@ -208,46 +207,7 @@ def main():
         choices=list(AVAILABLE_TEMPLATES.keys()),
         help="Plantilla base a utilizar",
     )
-    parser.add_argument(
-        "-d",
-        "--design",
-        default=DEFAULT_DESIGN,
-        choices=list(DESIGN_SYSTEMS.keys()),
-        help=f"Nivel 1: Diseño Macro del proyecto (defecto: {DEFAULT_DESIGN})",
-    )
-    parser.add_argument(
-        "-s",
-        "--style",
-        choices=list(THEMES.keys()),
-        help="Nivel 2: Tema visual / paleta (si se omite, usa el nativo del Diseño Macro)",
-    )
-    parser.add_argument(
-        "--layout",
-        choices=list(LAYOUT_VARIANTS.keys()),
-        help="Nivel 2: Variante de distribución interna de paneles y lower-third",
-    )
-    parser.add_argument(
-        "--chrome",
-        choices=list(CHROME_VARIANTS.keys()),
-        help="Nivel 2: Variante de barra de ventana",
-    )
-    parser.add_argument(
-        "--motion",
-        choices=list(MOTION_PROFILES.keys()),
-        help="Nivel 2: Perfil de animación GSAP",
-    )
-    parser.add_argument(
-        "--caption-style",
-        choices=list(CAPTION_STYLES.keys()),
-        help="Nivel 2: Estilo de subtítulos cinéticos",
-    )
-    parser.add_argument(
-        "--set",
-        dest="overrides",
-        action="append",
-        metavar="CLAVE=VALOR",
-        help="Nivel 3: Ajustar propiedad individual (ej. --set accent_primary=#ff5500)",
-    )
+    add_design_arguments(parser, default_design=DEFAULT_DESIGN)
     parser.add_argument("--title", help="Título principal para inyectar en el index.html")
     parser.add_argument(
         "--duration", type=float, help="Duración en segundos del video (data-duration)"
@@ -256,6 +216,13 @@ def main():
         "-f", "--force", action="store_true", help="Sobrescribir si el directorio ya existe"
     )
 
+
+def main() -> None:
+    ensure_local_venv()
+    parser = argparse.ArgumentParser(
+        description="Scaffold de nuevos proyectos de video programático en HyperFrames"
+    )
+    register_scaffold_arguments(parser)
     args = parser.parse_args()
     parsed_overrides = parse_set_overrides(args.overrides)
     create_project(

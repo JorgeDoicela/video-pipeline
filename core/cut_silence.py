@@ -193,10 +193,8 @@ def cut_and_concat(
     print(f"[FFmpeg] Medio exportado con éxito a: {out_path.resolve()}")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Recorte de pausas y silencios en video/audio con FFmpeg"
-    )
+def register_cut_arguments(parser: argparse.ArgumentParser) -> None:
+    """Registra los argumentos CLI de recorte de silencios en el parser indicado."""
     parser.add_argument("-i", "--input", required=True, help="Ruta al video/audio crudo")
     parser.add_argument("-o", "--output", required=True, help="Ruta al video recortado de salida")
     parser.add_argument(
@@ -208,6 +206,13 @@ def main():
         default=0.45,
         help="Duración mínima de pausa a recortar en segundos (por defecto 0.45)",
     )
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Recorte de pausas y silencios en video/audio con FFmpeg"
+    )
+    register_cut_arguments(parser)
     args = parser.parse_args()
 
     total_dur = get_media_duration(args.input)

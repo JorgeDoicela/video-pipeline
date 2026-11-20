@@ -13,9 +13,12 @@ import json
 import sys
 from pathlib import Path
 
-_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from core._runtime import ensure_local_venv, ensure_repo_root_on_path  # noqa: E402
+
+ensure_repo_root_on_path()
 
 from core._styles_catalog import (  # noqa: E402
     CAPTION_STYLES,
@@ -53,6 +56,7 @@ from core._styles_renderer import (  # noqa: E402
     inspect_project_design,
     parse_set_overrides,
     print_catalog,
+    upsert_marked_css_block,
 )
 
 __all__ = [
@@ -75,6 +79,7 @@ __all__ = [
     "LayoutVariant",
     "MotionProfile",
     "VisualTheme",
+    "add_design_arguments",
     "apply_style_to_html",
     "apply_style_to_project",
     "build_root_css_block",
@@ -89,10 +94,59 @@ __all__ = [
     "inspect_project_design",
     "parse_set_overrides",
     "print_catalog",
+    "upsert_marked_css_block",
 ]
 
 
+def add_design_arguments(
+    subparser: argparse.ArgumentParser,
+    default_design: str | None = None,
+) -> None:
+    """Registra de forma canónica los argumentos CLI de los 3 niveles de diseño en un parser."""
+    subparser.add_argument(
+        "-d",
+        "--design",
+        default=default_design,
+        choices=list(DESIGN_SYSTEMS.keys()),
+        help=f"Nivel 1: Diseño Macro completo ({', '.join(DESIGN_SYSTEMS.keys())})",
+    )
+    subparser.add_argument(
+        "-s",
+        "--style",
+        choices=list(THEMES.keys()),
+        help=f"Nivel 2: Tema cromático y tipográfico ({', '.join(THEMES.keys())})",
+    )
+    subparser.add_argument(
+        "--layout",
+        choices=list(LAYOUT_VARIANTS.keys()),
+        help=f"Nivel 2: Variante de distribución interna ({', '.join(LAYOUT_VARIANTS.keys())})",
+    )
+    subparser.add_argument(
+        "--chrome",
+        choices=list(CHROME_VARIANTS.keys()),
+        help=f"Nivel 2: Variante de marco de ventanas ({', '.join(CHROME_VARIANTS.keys())})",
+    )
+    subparser.add_argument(
+        "--motion",
+        choices=list(MOTION_PROFILES.keys()),
+        help=f"Nivel 2: Perfil de animación GSAP ({', '.join(MOTION_PROFILES.keys())})",
+    )
+    subparser.add_argument(
+        "--caption-style",
+        choices=list(CAPTION_STYLES.keys()),
+        help=f"Nivel 2: Estilo de subtítulos cinéticos ({', '.join(CAPTION_STYLES.keys())})",
+    )
+    subparser.add_argument(
+        "--set",
+        dest="overrides",
+        action="append",
+        metavar="CLAVE=VALOR",
+        help="Nivel 3: Sobreescribir propiedad puntual de este diseño (ej. --set accent_primary=#ff5500)",
+    )
+
+
 def main() -> None:
+    ensure_local_venv()
     parser = argparse.ArgumentParser(
         description="Gestor jerárquico de Diseños Macro, Variantes Internas y Overrides para video-pipeline"
     )
@@ -111,45 +165,7 @@ def main() -> None:
         help="Aplicar un Diseño Macro, cambiar opciones internas o ajustar propiedades puntuales",
     )
     p_apply.add_argument("target", help="Nombre del proyecto en projects/ o ruta a index.html")
-    p_apply.add_argument(
-        "-d",
-        "--design",
-        choices=list(DESIGN_SYSTEMS.keys()),
-        help="Nivel 1: Diseño Macro completo",
-    )
-    p_apply.add_argument(
-        "-s",
-        "--style",
-        choices=list(THEMES.keys()),
-        help="Nivel 2: Tema visual / paleta de colores",
-    )
-    p_apply.add_argument(
-        "--layout",
-        choices=list(LAYOUT_VARIANTS.keys()),
-        help="Nivel 2: Variante de distribución interna",
-    )
-    p_apply.add_argument(
-        "--chrome",
-        choices=list(CHROME_VARIANTS.keys()),
-        help="Nivel 2: Variante de cabecera de tarjetas/ventanas",
-    )
-    p_apply.add_argument(
-        "--motion",
-        choices=list(MOTION_PROFILES.keys()),
-        help="Nivel 2: Perfil de animación GSAP",
-    )
-    p_apply.add_argument(
-        "--caption-style",
-        choices=list(CAPTION_STYLES.keys()),
-        help="Nivel 2: Estilo de subtítulos cinéticos",
-    )
-    p_apply.add_argument(
-        "--set",
-        dest="overrides",
-        action="append",
-        metavar="CLAVE=VALOR",
-        help="Nivel 3: Ajustar propiedad individual",
-    )
+    add_design_arguments(p_apply, default_design=None)
     p_apply.add_argument(
         "--reset-overrides",
         action="store_true",

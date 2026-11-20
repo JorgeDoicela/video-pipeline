@@ -3,8 +3,8 @@
 Gestor y descargador determinista de activos abiertos (CC0 / MIT) para video-pipeline.
 
 Conecta el pipeline bajo demanda con tres fuentes abiertas y gratuitas sin romper
-el renderizado 100% offline:
-  1. Iconify API (Lucide, Tabler, Simple Icons — MIT/CC0, sin API Key) -> assets/icons/<slug>.svg
+el renderizado 100% offline, e incluye el catálogo base de 18 iconos técnicos vectoriales:
+  1. Iconify API (Lucide, Tabler, Simple Icons — MIT/CC0, sin API Key) + 18 iconos semilla locales -> assets/icons/<slug>.svg
   2. Natural Earth GeoJSON (Dominio Público CC0, sin API Key) -> assets/maps/<slug>.svg
   3. Audio CC0 (URL directa o búsqueda en Freesound API v2 con filtro CC0) -> assets/audio/ o assets/music/ (WAV 48kHz 16-bit)
 """
@@ -25,11 +25,13 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core._runtime import ensure_local_venv  # noqa: E402
+from core._runtime import REPO_ROOT, ensure_local_venv, ensure_repo_root_on_path  # noqa: E402
+
+ensure_repo_root_on_path()
+_REPO_ROOT = REPO_ROOT
 
 ICONIFY_API_BASE = "https://api.iconify.design"
 NATURAL_EARTH_110M_URL = (
@@ -39,6 +41,125 @@ NATURAL_EARTH_110M_URL = (
 FREESOUND_SEARCH_URL = "https://freesound.org/apiv2/search/text/"
 
 USER_AGENT = "video-pipeline-asset-fetcher/1.0 (local-deterministic-studio)"
+
+BASE_ICONS: dict[str, str] = {
+    "server": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+  <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+  <line x1="6" y1="6" x2="6.01" y2="6"/>
+  <line x1="6" y1="18" x2="6.01" y2="18"/>
+</svg>""",
+    "database": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+  <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+  <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+</svg>""",
+    "cloud": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
+</svg>""",
+    "docker": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M4 10h2v2H4zM7 10h2v2H7zM10 10h2v2h-2zM7 7h2v2H7zM10 7h2v2h-2zM13 7h2v2h-2z"/>
+  <path d="M22 13c-.5-1-1.5-1.5-2.5-1.5-.5 0-1 .2-1.5.5C17 9 14 8 11 8H2c-.5 0-1 .5-1 1 0 4 3 8 9 8 5.5 0 9.5-3 10.5-6.5.5.3 1 .5 1.5.5z"/>
+</svg>""",
+    "kubernetes": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <polygon points="12 2 21 7 21 17 12 22 3 17 3 7 12 2"/>
+  <circle cx="12" cy="12" r="3"/>
+  <line x1="12" y1="2" x2="12" y2="9"/>
+  <line x1="12" y1="15" x2="12" y2="22"/>
+  <line x1="21" y1="7" x2="15" y2="10.5"/>
+  <line x1="3" y1="17" x2="9" y2="13.5"/>
+  <line x1="21" y1="17" x2="15" y2="13.5"/>
+  <line x1="3" y1="7" x2="9" y2="10.5"/>
+</svg>""",
+    "kafka": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="18" cy="5" r="3"/>
+  <circle cx="6" cy="12" r="3"/>
+  <circle cx="18" cy="19" r="3"/>
+  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+</svg>""",
+    "redis": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+  <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+  <polyline points="2 12 12 17 22 12"/>
+  <polyline points="2 17 12 22 22 17"/>
+</svg>""",
+    "git": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="18" cy="18" r="3"/>
+  <circle cx="6" cy="6" r="3"/>
+  <path d="M6 9a9 9 0 0 0 9 9"/>
+  <line x1="6" y1="9" x2="6" y2="21"/>
+</svg>""",
+    "cpu": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="4" y="4" width="16" height="16" rx="2"/>
+  <rect x="9" y="9" width="6" height="6"/>
+  <line x1="9" y1="1" x2="9" y2="4"/>
+  <line x1="15" y1="1" x2="15" y2="4"/>
+  <line x1="9" y1="20" x2="9" y2="23"/>
+  <line x1="15" y1="20" x2="15" y2="23"/>
+  <line x1="20" y1="9" x2="23" y2="9"/>
+  <line x1="20" y1="15" x2="23" y2="15"/>
+  <line x1="1" y1="9" x2="4" y2="9"/>
+  <line x1="1" y1="15" x2="4" y2="15"/>
+</svg>""",
+    "terminal": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <polyline points="4 17 10 11 4 5"/>
+  <line x1="12" y1="19" x2="20" y2="19"/>
+</svg>""",
+    "shield": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+</svg>""",
+    "lock": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+</svg>""",
+    "eye": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+  <circle cx="12" cy="12" r="3"/>
+</svg>""",
+    "globe": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="12" r="10"/>
+  <line x1="2" y1="12" x2="22" y2="12"/>
+  <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+</svg>""",
+    "smartphone": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+  <line x1="12" y1="18" x2="12.01" y2="18"/>
+</svg>""",
+    "alert": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+  <line x1="12" y1="9" x2="12" y2="13"/>
+  <line x1="12" y1="17" x2="12.01" y2="17"/>
+</svg>""",
+    "key": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="7.5" cy="15.5" r="5.5"/>
+  <path d="m21 2-9.6 9.6"/>
+  <path d="m15.5 7.5 3 3L22 7l-3-3"/>
+</svg>""",
+    "radar": """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/>
+  <path d="M4 6h.01"/>
+  <path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/>
+  <path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/>
+  <path d="M12 18h.01"/>
+  <path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/>
+  <circle cx="12" cy="12" r="2"/>
+  <path d="m13.41 10.59 5.66-5.66"/>
+</svg>""",
+}
+
+
+def ensure_base_icons(icons_dir: Path | None = None, force: bool = False) -> dict[str, Path]:
+    """Garantiza que los 18 iconos técnicos vectoriales SVG semilla existan en assets/icons/."""
+    target_dir = icons_dir or (_REPO_ROOT / "assets" / "icons")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    paths: dict[str, Path] = {}
+    for slug, svg_content in BASE_ICONS.items():
+        file_path = target_dir / f"{slug}.svg"
+        if not file_path.exists() or force:
+            file_path.write_text(svg_content.strip() + "\n", encoding="utf-8")
+            print(f"[Assets:Icon] Generado icono base: {file_path.name}")
+        paths[slug] = file_path
+    return paths
 
 
 def _sanitize_slug(raw: str) -> str:
@@ -101,6 +222,11 @@ def fetch_icon(
     out_path = target_dir / f"{out_slug}.svg"
 
     if out_path.exists() and not force:
+        return out_path
+
+    if prefix == "lucide" and icon_id in BASE_ICONS and not force:
+        out_path.write_text(BASE_ICONS[icon_id].strip() + "\n", encoding="utf-8")
+        print(f"[Assets:Icon] Generado desde catálogo base: {out_path.name}")
         return out_path
 
     url = f"{ICONIFY_API_BASE}/{prefix}/{icon_id}.svg"
@@ -458,14 +584,21 @@ def list_local_assets() -> dict[str, list[str]]:
     }
 
 
-def main() -> None:
-    ensure_local_venv()
-    parser = argparse.ArgumentParser(
-        description="Gestor y descargador de assets abiertos (Iconify SVG, Natural Earth Maps, Audio CC0)."
-    )
-    sub = parser.add_subparsers(dest="kind", help="Tipo de asset a gestionar")
+def register_assets_subparsers(
+    parser: argparse.ArgumentParser,
+    dest: str = "asset_action",
+) -> None:
+    """Registra los subcomandos de gestión de assets en el parser indicado."""
+    sub = parser.add_subparsers(dest=dest, help="Acción sobre assets")
 
-    # 1. Subcomando: icon
+    p_list = sub.add_parser("list", help="Listar todos los assets locales disponibles en assets/")
+    p_list.add_argument("--json", action="store_true", help="Emitir inventario en formato JSON")
+
+    p_seed = sub.add_parser(
+        "seed-icons", help="Generar/restaurar los 18 iconos técnicos vectoriales SVG base"
+    )
+    p_seed.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existen")
+
     p_icon = sub.add_parser(
         "icon", help="Descargar icono o logo SVG desde Iconify (Lucide/Tabler/Simple Icons)"
     )
@@ -476,7 +609,6 @@ def main() -> None:
     p_icon.add_argument("-n", "--name", help="Nombre de archivo destino sin extensión (opcional)")
     p_icon.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
 
-    # 2. Subcomando: map
     p_map = sub.add_parser(
         "map", help="Compilar mapa vectorial SVG real desde Natural Earth GeoJSON (CC0)"
     )
@@ -495,7 +627,6 @@ def main() -> None:
     p_map.add_argument("--geojson", help="Ruta local o URL alternativa a archivo GeoJSON")
     p_map.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
 
-    # 3. Subcomando: audio
     p_audio = sub.add_parser(
         "audio", help="Descargar y normalizar SFX o música CC0 a WAV 48kHz 16-bit"
     )
@@ -520,12 +651,11 @@ def main() -> None:
     )
     p_audio.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
 
-    # 4. Subcomando: list
-    p_list = sub.add_parser("list", help="Listar todos los assets locales disponibles en assets/")
-    p_list.add_argument("--json", action="store_true", help="Emitir inventario en formato JSON")
 
-    args = parser.parse_args()
-    if not args.kind or args.kind == "list":
+def dispatch_assets_action(args: argparse.Namespace, action_attr: str = "asset_action") -> None:
+    """Ejecuta la acción de assets seleccionada en un argparse.Namespace."""
+    act = getattr(args, action_attr, None)
+    if not act or act == "list":
         inv = list_local_assets()
         if getattr(args, "json", False):
             print(json.dumps(inv, indent=2, ensure_ascii=False))
@@ -534,9 +664,11 @@ def main() -> None:
                 print(f"[{k.upper()}] ({len(items)}): {', '.join(items)}")
         return
 
-    if args.kind == "icon":
+    if act == "seed-icons":
+        ensure_base_icons(force=getattr(args, "force", False))
+    elif act == "icon":
         fetch_icon(args.spec, name=args.name, force=args.force)
-    elif args.kind == "map":
+    elif act == "map":
         fetch_map(
             country_queries=args.country,
             name=args.name,
@@ -544,7 +676,7 @@ def main() -> None:
             geojson_source=args.geojson,
             force=args.force,
         )
-    elif args.kind == "audio":
+    elif act == "audio":
         fetch_audio_cc0(
             name=args.name,
             url=args.url,
@@ -553,6 +685,16 @@ def main() -> None:
             max_duration=args.max_duration,
             force=args.force,
         )
+
+
+def main() -> None:
+    ensure_local_venv()
+    parser = argparse.ArgumentParser(
+        description="Gestor y descargador de assets abiertos (Iconify SVG, Natural Earth Maps, Audio CC0)."
+    )
+    register_assets_subparsers(parser, dest="asset_action")
+    args = parser.parse_args()
+    dispatch_assets_action(args, action_attr="asset_action")
 
 
 if __name__ == "__main__":

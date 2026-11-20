@@ -115,7 +115,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
    * **3 Layouts (`--layout`):** `standard`, `asymmetric_focus`, `stacked`.
    * **4 Marcos de Ventana (`--chrome`):** `auto`, `hidden`, `minimal_line`, `terminal_bar`.
    * **3 Perfiles GSAP (`--motion`):** `smooth`, `snappy`, `minimal`.
-   * **2 Estilos de Subtítulos (`--caption-style`):** `minimal_clean` (defecto), `highlight_pill`.
+   * **Estilo de Subtítulos (`--caption-style`):** `minimal_clean` (estándar único limpio sin pastillas).
 3. **Nivel 3 — Overrides Granulares (`--set clave=valor`):** Ajuste puntual por proyecto (`accent_primary`, `radius_lg`, `stage_gap`, etc.) persistido en `package.json` (`videoDesign`).
 
 ---
@@ -127,7 +127,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | **Pipeline Completo** | `python3 core/pipeline.py produce -i <raw> -p <slug> -t <tpl> -d <diseño> -s <estilo> --auto-render` | Ejecuta corte (audio o video), transcripción, diseño macro, subtitulado, storyboard (`--storyboard` o `--auto-storyboard`), mezcla SFX, auditoría y renderizado. |
 | **Compilar Storyboard** | `python3 core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
 | **Gestor de Assets CC0** | `python3 core/pipeline.py assets <list\|icon\|map\|audio> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON) o normaliza audio CC0 (URL/Freesound) en `assets/`. |
-| **Procesador de Imágenes** | `python3 core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 / `silueta` / `u2netp` o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
+| **Procesador de Imágenes** | `python3 core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
 | **Catálogo de Diseños** | `python3 core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--chrome`, `--motion`) y Overrides (`--set`). |
 | **Cambiar Diseño/Opciones** | `python3 core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
 | **Inspeccionar Diseño** | `python3 core/pipeline.py style <slug> --inspect` | Muestra la configuración efectiva de los 3 niveles aplicada sobre un proyecto. |
@@ -170,9 +170,8 @@ video-pipeline/
 │   ├── cut_silence.py     # Algoritmo de poda de silencios (FFmpeg)
 │   ├── transcribe.py      # Transcripción local con timestamps y reemplazos multi-palabra (faster-whisper)
 │   ├── generate_sfx.py    # Síntesis matemática de 15 SFX WAV y 3 pistas musicales loopables
-│   ├── generate_icons.py  # Generador de 18 iconos SVG vectoriales base
-│   ├── fetch_assets.py    # Descargador y compilador de iconos (Iconify), mapas (Natural Earth) y audio CC0
-│   └── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX isnet/silueta/u2netp y color), crop, auto-trim, cutout sticker y conversión
+│   ├── fetch_assets.py    # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth y audio CC0)
+│   └── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
 ├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)
 │   ├── test_audio_mix.py  # Pruebas de síntesis SFX/música y construcción de filter_complex
 │   ├── test_fetch_assets.py # Pruebas de Iconify SVG, Natural Earth GeoJSON y audio CC0

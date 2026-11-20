@@ -53,7 +53,7 @@ python3 core/generate_sfx.py
 
 ## 2. Iconografía Técnica Vectorial (`assets/icons/`)
 
-Iconos SVG monocromáticos con `viewBox="0 0 24 24"`, diseñados con `stroke="currentColor"` mediante [`core/generate_icons.py`](../../core/generate_icons.py) para adoptar dinámicamente el color del texto o acento CSS circundante.
+Iconos SVG monocromáticos con `viewBox="0 0 24 24"`, diseñados con `stroke="currentColor"` y gestionados mediante [`core/fetch_assets.py`](../../core/fetch_assets.py) (`ensure_base_icons` y descarga desde Iconify) para adoptar dinámicamente el color del texto o acento CSS circundante.
 
 | Icono | Archivo | Concepto Técnico |
 | :--- | :--- | :--- |
@@ -96,9 +96,9 @@ Siluetas geográficas SVG con `viewBox="0 0 880 680"` integradas con los tokens 
 <img src="../../assets/icons/docker.svg" width="32" height="32" style="filter: drop-shadow(0 0 8px #38bdf8);" alt="Docker" />
 ```
 
-Para regenerar los iconos vectoriales:
+Para regenerar o restaurar los 18 iconos vectoriales semilla:
 ```bash
-python3 core/generate_icons.py
+uv run python core/pipeline.py assets seed-icons
 ```
 
 ---
@@ -152,16 +152,13 @@ El módulo [`core/fetch_assets.py`](../../core/fetch_assets.py) (integrado como 
 
 El módulo [`core/image_tools.py`](../../core/image_tools.py) (integrado como subcomando `pipeline.py image`) procesa imágenes estáticas, capturas y fotografías de manera 100% local hacia `assets/images/` para utilizarlas en el componente narrativo `image_cutout` o en plantillas HTML:
 
-1. **Eliminación de Fondo (`rembg`) — IA Local ONNX (`isnet`, `silueta`, `u2netp`) o Extracción Cromática (`color`):**
-   * `--method ai`: Ejecuta inferencia neuronal sobre `onnxruntime` en local (descarga y cachea el modelo ONNX una sola vez en `.cache/models/<modelo>.onnx`). Soporta tres perfiles mediante `--model`:
-     * `isnet` *(Defecto — Calidad de Estudio)*: **DIS (`isnet-general-use.onnx`, `1024x1024`)**, máxima nitidez en bordes finos, cabello, hardware y capturas de alta definición 1080p.
-     * `silueta`: **Silueta (`silueta.onnx`, `320x320`, 43 MB)**, equilibrio intermedio entre tamaño y precisión.
-     * `u2netp`: **U2-NetP (`u2netp.onnx`, `320x320`, 4.7 MB)**, perfil ultraligero para ejecución rápida en CPU.
-   * `--method color`: Extracción cromática determinista con suavizado de bordes (`--feather`), detectando automáticamente el color de fondo en las 4 esquinas o usando `--color "#ffffff"`, ideal para logos, diagramas o capturas.
+1. **Eliminación de Fondo (`rembg`) — IA Local ONNX (`isnet-general-use.onnx`, 1024x1024) o Extracción Cromática (`color`):**
+   * `--method ai` *(Defecto)*: Ejecuta el modelo de estudio **DIS IS-Net (`isnet-general-use.onnx`, `1024x1024`)** sobre `onnxruntime` en local (descarga y cachea el modelo una sola vez en `.cache/models/isnet-general-use.onnx`), garantizando nitidez en bordes finos, cabello, hardware y capturas de alta definición 1080p.
+   * `--method color`: Extracción cromática determinista con suavizado de bordes (`--feather`), detectando automáticamente el color de fondo en las 4 esquinas o usando `--color "#ffffff"`, ideal para logos planos, diagramas o capturas con fondo sólido.
    * **Acabado de estudio (Sticker / Cutout):** Soporta `--trim` (ajuste automático al sujeto), `--outline <px>` (borde perimetral uniforme mediante dilatación morfológica) y `--shadow <px>` (sombra paralela difuminada).
    ```bash
    # Quitar fondo con IA de estudio (IS-Net 1024x1024 por defecto), recortar márgenes y añadir borde + sombra
-   uv run python core/pipeline.py image rembg -i foto.jpg -o assets/images/sujeto.png -m ai --model isnet --trim --outline 6 --shadow 10
+   uv run python core/pipeline.py image rembg -i foto.jpg -o assets/images/sujeto.png --trim --outline 6 --shadow 10
 
    # Quitar fondo sólido de un logo o captura y generar sticker limpio
    uv run python core/pipeline.py image rembg -i logo.png -o assets/images/logo_cutout.png -m color --trim --outline 4

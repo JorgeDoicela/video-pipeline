@@ -40,7 +40,7 @@ renders/
 *.flac
 
 # Excepciones de fixtures para plantillas y activos locales
-!templates/talking_head/cut.mp4
+!templates/talking_head_16_9/cut.mp4
 !templates/talking_head_9_16/cut.mp4
 !assets/audio/*.wav
 !assets/music/*.wav

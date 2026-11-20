@@ -2,7 +2,7 @@
 Pruebas unitarias para el motor de procesamiento de imágenes y recortes transparentes (core/image_tools.py):
   - Conversión de formatos (PNG, WEBP, JPG)
   - Recorte por caja, aspect-ratio (9:16, 16:9, 1:1) y auto-trim de bordes vacíos
-  - Eliminación de fondo por extracción cromática (color key + feathering) y por IA local ONNX (U2-NetP)
+  - Eliminación de fondo por extracción cromática (color key + feathering) y por IA local ONNX (IS-Net 1024x1024)
   - Acabado de cutout tipo sticker (contorno dilatado + sombra paralela)
   - Componente narrativo image_cutout en core/scenes.py
 """
@@ -129,19 +129,13 @@ def test_remove_background_onnx_inference_pipeline(tmp_path: Path, monkeypatch):
 
     monkeypatch.setattr("onnxruntime.InferenceSession", FakeSession)
 
-    # 1. Modelo por defecto 'isnet' (1024x1024 de estudio)
-    res_isnet = remove_background_onnx(src, model_slug="isnet", model_path=fake_model)
+    res_isnet = remove_background_onnx(src, model_path=fake_model)
     assert res_isnet.size == (160, 120)
     assert res_isnet.mode == "RGBA"
     assert observed_shapes[-1] == (1, 3, 1024, 1024)
     arr = np.asarray(res_isnet)
     assert arr[0, 0, 3] == 0
     assert arr[60, 80, 3] == 255
-
-    # 2. Modelo 'silueta' y 'u2netp' (320x320)
-    res_sil = remove_background_onnx(src, model_slug="silueta", model_path=fake_model)
-    assert res_sil.size == (160, 120)
-    assert observed_shapes[-1] == (1, 3, 320, 320)
 
 
 def test_image_cutout_scene_component():
@@ -164,7 +158,8 @@ def test_image_cutout_scene_component():
         ],
     )
     html_out, gsap_out = build_storyboard_html_and_gsap(sb)
-    assert "../../assets/images/pegasus_sticker.png" in html_out
+    assert "assets/images/pegasus_sticker.png" in html_out
+    assert "../../assets/" not in html_out
     assert "sc_cut_cutout_img" in html_out
     assert "EVIDENCIA FORENSE" in html_out
     assert "sc_cut_cutout_stage" in gsap_out

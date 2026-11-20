@@ -10,18 +10,25 @@ import html
 import json
 import re
 import sys
-import unicodedata
 from pathlib import Path
 
-_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from core._runtime import (  # noqa: E402
+    ensure_local_venv,
+    ensure_repo_root_on_path,
+    normalize_token,
+)
+
+ensure_repo_root_on_path()
 
 from core.styles import (  # noqa: E402
     CAPTION_STYLES,
     DEFAULT_CAPTION_STYLE,
     generate_caption_css,
     get_caption_style,
+    upsert_marked_css_block,
 )
 
 
@@ -72,12 +79,6 @@ def extract_word_list(transcript_data: dict) -> list[dict]:
 
 
 _STRONG_PUNCT_END = (".", "?", "!", ":", ";")
-
-
-def _normalize_emphasis_token(word: str) -> str:
-    decomposed = unicodedata.normalize("NFKD", word.lower())
-    ascii_only = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
-    return re.sub(r"[^a-z0-9]", "", ascii_only)
 
 
 def group_words(
@@ -168,7 +169,7 @@ def generate_html_and_gsap(
     if emphasis_words:
         for entry in emphasis_words:
             for tok in str(entry).split():
-                norm = _normalize_emphasis_token(tok)
+                norm = normalize_token(tok)
                 if norm:
                     emphasis_set.add(norm)
 
@@ -195,7 +196,7 @@ def generate_html_and_gsap(
         for w_idx, w in enumerate(group):
             word_id = f"cw_{g_idx}_{w_idx}"
             word_text = html.escape(w["word"], quote=False)
-            is_emph = bool(emphasis_set) and _normalize_emphasis_token(w["word"]) in emphasis_set
+            is_emph = bool(emphasis_set) and normalize_token(w["word"]) in emphasis_set
             base_cls = "word word-emphasis" if is_emph else "word"
             word_classes.append(base_cls)
             html_parts.append(f'    <span id="{word_id}" class="{base_cls}">{word_text}</span>')
@@ -271,16 +272,7 @@ def inject_into_html(
     if caption_style is not None:
         style_cfg = get_caption_style(caption_style)
         cap_css = generate_caption_css(style_cfg)
-        if "/* @caption-style:start */" in content and "/* @caption-style:end */" in content:
-            content = re.sub(
-                r"\s*/\* @caption-style:start \*/.*?/\* @caption-style:end \*/",
-                lambda _: "\n" + cap_css,
-                content,
-                count=1,
-                flags=re.DOTALL,
-            )
-        elif "</style>" in content:
-            content = content.replace("</style>", f"{cap_css}\n    </style>", 1)
+        content = upsert_marked_css_block(content, "caption-style", cap_css)
 
     # 1. Reemplazar contenedor de subtítulos existente de manera determinista
     if "<!-- @captions:start -->" in content and "<!-- @captions:end -->" in content:
@@ -355,10 +347,8 @@ def inject_into_html(
     print(f"[Captions] Subtítulos inyectados exitosamente en: {html_path.resolve()}")
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Generador y sincronizador de subtítulos cinéticos desde transcript.json"
-    )
+def register_captions_arguments(parser: argparse.ArgumentParser) -> None:
+    """Registra los argumentos CLI de sincronización de subtítulos en el parser indicado."""
     parser.add_argument(
         "-i", "--input", required=True, help="Ruta al archivo transcript.json de Whisper"
     )
@@ -384,6 +374,13 @@ def main():
         help="Umbral de pausa en segundos para forzar cambio de frase (defecto: 0.4s)",
     )
 
+
+def main() -> None:
+    ensure_local_venv()
+    parser = argparse.ArgumentParser(
+        description="Generador y sincronizador de subtítulos cinéticos desde transcript.json"
+    )
+    register_captions_arguments(parser)
     args = parser.parse_args()
 
     transcript_path = Path(args.input)

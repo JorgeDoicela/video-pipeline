@@ -39,7 +39,7 @@ def test_catalog_3_levels_integrity():
     assert {"standard", "asymmetric_focus", "stacked"} == set(LAYOUT_VARIANTS.keys())
     assert {"auto", "hidden", "minimal_line", "terminal_bar"} == set(CHROME_VARIANTS.keys())
     assert {"smooth", "snappy", "minimal"} == set(MOTION_PROFILES.keys())
-    assert {"highlight_pill", "minimal_clean"} == set(CAPTION_STYLES.keys())
+    assert {"minimal_clean"} == set(CAPTION_STYLES.keys())
 
 
 def test_invalid_identifiers_and_overrides():

@@ -70,3 +70,5 @@ jobs:
           pnpm exec hyperframes check templates/talking_head_9_16
           pnpm exec hyperframes check templates/editorial_16_9
           pnpm exec hyperframes check templates/talking_head_16_9
+          pnpm exec hyperframes check templates/explainer_scenes_9_16
+          pnpm exec hyperframes check templates/explainer_scenes_16_9

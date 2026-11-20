@@ -11,12 +11,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core._runtime import ensure_local_venv  # noqa: E402
+from core._runtime import ensure_local_venv, ensure_repo_root_on_path  # noqa: E402
 
+ensure_repo_root_on_path()
 ensure_local_venv()
 
 
@@ -238,8 +238,8 @@ def transcribe(
     print(f"[Whisper] Guardado en: {out_file.resolve()}")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Transcripción local con word-level timestamps")
+def register_transcribe_arguments(parser: argparse.ArgumentParser) -> None:
+    """Registra los argumentos CLI de transcripción en el parser indicado."""
     parser.add_argument("-i", "--input", required=True, help="Ruta al archivo de audio o video")
     parser.add_argument("-o", "--output", required=True, help="Ruta al archivo JSON de salida")
     parser.add_argument(
@@ -268,6 +268,11 @@ def main():
         metavar="ERRONEO=CORRECTO",
         help="Reemplazo determinista post-transcripción (ej. --replace lidis=Redis)",
     )
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Transcripción local con word-level timestamps")
+    register_transcribe_arguments(parser)
     args = parser.parse_args()
 
     transcribe(

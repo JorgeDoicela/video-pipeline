@@ -8,6 +8,7 @@ import sys
 from dataclasses import asdict
 from pathlib import Path
 
+from core._runtime import resolve_project_dir
 from core._styles_catalog import (
     CAPTION_STYLES,
     CHROME_VARIANTS,
@@ -264,7 +265,7 @@ def generate_caption_css(caption_style: CaptionStyle) -> str:
     return "\n".join(lines)
 
 
-def _upsert_marked_css_block(content: str, marker_name: str, css_block: str) -> str:
+def upsert_marked_css_block(content: str, marker_name: str, css_block: str) -> str:
     """Inserta o reemplaza de forma idempotente un bloque CSS delimitado por /* @marker:start/end */."""
     start_tag = f"/* @{marker_name}:start */"
     end_tag = f"/* @{marker_name}:end */"
@@ -308,14 +309,12 @@ def apply_style_to_html(
         design, layout, chrome_slug=chrome_slug, overrides=overrides
     )
 
-    content = _upsert_marked_css_block(content, "theme", css_vars_block)
-    content = _upsert_marked_css_block(content, "design-system", design_css_block)
+    content = upsert_marked_css_block(content, "theme", css_vars_block)
+    content = upsert_marked_css_block(content, "design-system", design_css_block)
 
     if caption_style_slug is not None:
         cap_style = get_caption_style(caption_style_slug)
-        content = _upsert_marked_css_block(
-            content, "caption-style", generate_caption_css(cap_style)
-        )
+        content = upsert_marked_css_block(content, "caption-style", generate_caption_css(cap_style))
 
     def _replace_motion_props(match: re.Match[str], ease_val: str) -> str:
         block = match.group(0)
@@ -365,15 +364,12 @@ def apply_style_to_html(
 
 def _resolve_project_html(project_or_html: str | Path) -> Path:
     target = Path(project_or_html)
-    base_dir = Path(__file__).resolve().parent.parent
-    if not target.exists():
-        candidate = base_dir / "projects" / str(project_or_html)
-        if candidate.exists():
-            target = candidate
-
-    html_file = target / "index.html" if target.is_dir() else target
+    if target.is_file():
+        return target
+    proj_dir = resolve_project_dir(project_or_html)
+    html_file = proj_dir / "index.html"
     if not html_file.exists():
-        raise FileNotFoundError(f"No se encontró index.html en '{target}'.")
+        raise FileNotFoundError(f"No se encontró index.html en '{proj_dir}'.")
     return html_file
 
 

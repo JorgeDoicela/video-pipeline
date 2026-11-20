@@ -39,6 +39,37 @@ def test_pipeline_subcommand_produce_help():
     assert "--auto-render" in res.stdout
 
 
+def test_pipeline_subcommands_delegate_full_arguments():
+    res_caps = subprocess.run(
+        [sys.executable, "core/pipeline.py", "captions", "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "--words-per-group" in res_caps.stdout
+    assert "--pause-threshold" in res_caps.stdout
+
+    res_tr = subprocess.run(
+        [sys.executable, "core/pipeline.py", "transcribe", "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "--device" in res_tr.stdout
+    assert "--replace" in res_tr.stdout
+
+    res_assets = subprocess.run(
+        [sys.executable, "core/pipeline.py", "assets", "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "seed-icons" in res_assets.stdout
+    assert "icon" in res_assets.stdout
+    assert "map" in res_assets.stdout
+    assert "audio" in res_assets.stdout
+
+
 def test_pipeline_subcommand_style_list():
     res = subprocess.run(
         [sys.executable, "core/pipeline.py", "style", "--list"],
@@ -54,7 +85,6 @@ def test_pipeline_subcommand_style_list():
     assert "paper_warm" in res.stdout
     assert "clean_light" in res.stdout
     assert "terminal_green" in res.stdout
-    assert "highlight_pill" in res.stdout
     assert "minimal_clean" in res.stdout
 
 

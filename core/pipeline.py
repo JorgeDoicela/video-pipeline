@@ -14,18 +14,23 @@ import sys
 import time
 from pathlib import Path
 
-_REPO_ROOT = str(Path(__file__).resolve().parent.parent)
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core._runtime import ensure_local_venv  # noqa: E402
+from core._runtime import (  # noqa: E402
+    ensure_local_venv,
+    ensure_repo_root_on_path,
+    resolve_project_dir,
+)
 
+ensure_repo_root_on_path()
 ensure_local_venv()
 
 from core.audio_mix import mix_storyboard_audio  # noqa: E402
 from core.create_project import (  # noqa: E402
     AVAILABLE_TEMPLATES,
     create_project,
+    register_scaffold_arguments,
     update_composition_duration,
 )
 from core.cut_silence import (  # noqa: E402
@@ -33,19 +38,15 @@ from core.cut_silence import (  # noqa: E402
     cut_and_concat,
     detect_silence,
     get_media_duration,
+    register_cut_arguments,
 )
 from core.fetch_assets import (  # noqa: E402
-    fetch_audio_cc0,
-    fetch_icon,
-    fetch_map,
-    list_local_assets,
+    dispatch_assets_action,
+    register_assets_subparsers,
 )
 from core.image_tools import (  # noqa: E402
-    ASPECT_PRESETS,
-    DEFAULT_ONNX_MODEL,
-    ONNX_REMBG_MODELS,
-    _parse_crop_box,
-    process_image_pipeline,
+    dispatch_image_action,
+    register_image_subparsers,
 )
 from core.scenes import (  # noqa: E402
     align_storyboard_to_transcript,
@@ -56,14 +57,8 @@ from core.scenes import (  # noqa: E402
     load_storyboard,
 )
 from core.styles import (  # noqa: E402
-    CAPTION_STYLES,
-    CHROME_VARIANTS,
-    DEFAULT_CAPTION_STYLE,
     DEFAULT_DESIGN,
-    DESIGN_SYSTEMS,
-    LAYOUT_VARIANTS,
-    MOTION_PROFILES,
-    THEMES,
+    add_design_arguments,
     apply_style_to_project,
     get_design_system,
     inspect_project_design,
@@ -78,8 +73,13 @@ from core.sync_captions import (  # noqa: E402
     group_words,
     inject_into_html,
     load_transcript,
+    register_captions_arguments,
 )
-from core.transcribe import parse_replacements, transcribe  # noqa: E402
+from core.transcribe import (  # noqa: E402
+    parse_replacements,
+    register_transcribe_arguments,
+    transcribe,
+)
 
 
 def resolve_pnpm() -> str:
@@ -331,50 +331,6 @@ def produce_pipeline(
     print("=" * 65 + "\n")
 
 
-def _add_design_arguments(subparser: argparse.ArgumentParser, default_design: str | None = None):
-    """Registra los argumentos de los 3 niveles de diseño en un subparser CLI."""
-    subparser.add_argument(
-        "-d",
-        "--design",
-        default=default_design,
-        choices=list(DESIGN_SYSTEMS.keys()),
-        help=f"Nivel 1: Diseño Macro completo ({', '.join(DESIGN_SYSTEMS.keys())})",
-    )
-    subparser.add_argument(
-        "-s",
-        "--style",
-        choices=list(THEMES.keys()),
-        help=f"Nivel 2: Tema cromático y tipográfico ({', '.join(THEMES.keys())})",
-    )
-    subparser.add_argument(
-        "--layout",
-        choices=list(LAYOUT_VARIANTS.keys()),
-        help=f"Nivel 2: Variante de distribución interna ({', '.join(LAYOUT_VARIANTS.keys())})",
-    )
-    subparser.add_argument(
-        "--chrome",
-        choices=list(CHROME_VARIANTS.keys()),
-        help=f"Nivel 2: Variante de marco de ventanas ({', '.join(CHROME_VARIANTS.keys())})",
-    )
-    subparser.add_argument(
-        "--motion",
-        choices=list(MOTION_PROFILES.keys()),
-        help=f"Nivel 2: Perfil de animación GSAP ({', '.join(MOTION_PROFILES.keys())})",
-    )
-    subparser.add_argument(
-        "--caption-style",
-        choices=list(CAPTION_STYLES.keys()),
-        help=f"Nivel 2: Estilo de subtítulos cinéticos ({', '.join(CAPTION_STYLES.keys())})",
-    )
-    subparser.add_argument(
-        "--set",
-        dest="overrides",
-        action="append",
-        metavar="CLAVE=VALOR",
-        help="Nivel 3: Sobreescribir propiedad puntual de este diseño (ej. --set accent_primary=#ff5500)",
-    )
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Orquestador Maestro del Pipeline de Video Programático con IA",
@@ -394,7 +350,7 @@ def main():
         choices=list(AVAILABLE_TEMPLATES.keys()),
         help="Plantilla base para el proyecto",
     )
-    _add_design_arguments(p_produce, default_design=DEFAULT_DESIGN)
+    add_design_arguments(p_produce, default_design=DEFAULT_DESIGN)
     p_produce.add_argument("--title", help="Título principal para inyectar en la composición")
     p_produce.add_argument(
         "--model", default="base", help="Modelo de Whisper (tiny, base, small, medium)"
@@ -472,55 +428,19 @@ def main():
     p_caps = subparsers.add_parser(
         "captions", help="Generar y sincronizar subtítulos desde transcript.json"
     )
-    p_caps.add_argument("-i", "--input", required=True, help="Ruta a transcript.json")
-    p_caps.add_argument("--inject", help="Ruta al index.html donde inyectar subtítulos")
-    p_caps.add_argument("--export-srt", help="Ruta de exportación SRT")
-    p_caps.add_argument("--export-vtt", help="Ruta de exportación VTT")
-    p_caps.add_argument(
-        "--caption-style",
-        default=DEFAULT_CAPTION_STYLE,
-        choices=list(CAPTION_STYLES.keys()),
-        help=f"Estilo visual y GSAP de subtítulos (defecto: {DEFAULT_CAPTION_STYLE})",
-    )
+    register_captions_arguments(p_caps)
 
     # Subcomando: cut
     p_cut = subparsers.add_parser("cut", help="Recortar silencios de un video")
-    p_cut.add_argument("-i", "--input", required=True, help="Video o audio crudo")
-    p_cut.add_argument("-o", "--output", required=True, help="Video podado de salida")
-    p_cut.add_argument("--noise-db", type=float, default=-30.0, help="Umbral de silencio en dB")
-    p_cut.add_argument(
-        "--min-silence", type=float, default=0.45, help="Duración mínima de silencio en segundos"
-    )
+    register_cut_arguments(p_cut)
 
     # Subcomando: transcribe
     p_tr = subparsers.add_parser("transcribe", help="Transcribir medios con marcas temporales")
-    p_tr.add_argument("-i", "--input", required=True, help="Archivo de audio o video")
-    p_tr.add_argument("-o", "--output", required=True, help="JSON de salida")
-    p_tr.add_argument("-m", "--model", default="base", help="Modelo de Whisper")
-    p_tr.add_argument("-l", "--language", default="es", help="Idioma")
-    p_tr.add_argument("--prompt", help="Prompt inicial con vocabulario técnico")
-    p_tr.add_argument("--hotwords", help="Palabras clave prioritarias")
-    p_tr.add_argument(
-        "--replace",
-        dest="replacements",
-        action="append",
-        metavar="ERRONEO=CORRECTO",
-        help="Corrección determinista de términos (ej. --replace lidis=Redis)",
-    )
+    register_transcribe_arguments(p_tr)
 
     # Subcomando: scaffold
     p_sc = subparsers.add_parser("scaffold", help="Crear nuevo proyecto desde plantilla")
-    p_sc.add_argument("name", help="Nombre del proyecto")
-    p_sc.add_argument(
-        "-t",
-        "--template",
-        default="short_quote_9_16",
-        choices=list(AVAILABLE_TEMPLATES.keys()),
-    )
-    _add_design_arguments(p_sc, default_design=DEFAULT_DESIGN)
-    p_sc.add_argument("--title", help="Título del video")
-    p_sc.add_argument("--duration", type=float, help="Duración en segundos")
-    p_sc.add_argument("-f", "--force", action="store_true", help="Sobrescribir")
+    register_scaffold_arguments(p_sc)
 
     # Subcomando: style
     p_st = subparsers.add_parser(
@@ -532,7 +452,7 @@ def main():
         nargs="?",
         help="Nombre o ruta del proyecto a estilizar (omitir si se usa --list)",
     )
-    _add_design_arguments(p_st, default_design=None)
+    add_design_arguments(p_st, default_design=None)
     p_st.add_argument(
         "--reset-overrides",
         action="store_true",
@@ -597,148 +517,14 @@ def main():
         "assets",
         help="Descargar y gestionar assets abiertos (Iconify SVG, mapas Natural Earth CC0 y audio CC0)",
     )
-    assets_sub = p_assets.add_subparsers(dest="asset_action", help="Acción sobre assets")
-
-    pa_list = assets_sub.add_parser("list", help="Listar inventario de assets locales")
-    pa_list.add_argument("--json", action="store_true", help="Salida en formato JSON")
-
-    pa_icon = assets_sub.add_parser(
-        "icon", help="Descargar icono o logo SVG desde Iconify (Lucide/Tabler/Simple Icons)"
-    )
-    pa_icon.add_argument(
-        "spec",
-        help="Identificador del icono (ej. 'shield-alert', 'lucide:cpu', 'tabler:radar-2', 'simple-icons:linux')",
-    )
-    pa_icon.add_argument("-n", "--name", help="Nombre destino en assets/icons/<name>.svg")
-    pa_icon.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
-
-    pa_map = assets_sub.add_parser(
-        "map", help="Compilar mapa vectorial SVG real desde Natural Earth GeoJSON (CC0)"
-    )
-    pa_map.add_argument(
-        "country",
-        help="País(es) o código(s) ISO separados por coma (ej. 'PRK', 'North Korea', 'RUS')",
-    )
-    pa_map.add_argument("-n", "--name", help="Nombre destino en assets/maps/<name>.svg")
-    pa_map.add_argument(
-        "-c", "--context", help="Países vecinos de contexto secundario separados por coma"
-    )
-    pa_map.add_argument("--geojson", help="Ruta local o URL alternativa a archivo GeoJSON")
-    pa_map.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
-
-    pa_audio = assets_sub.add_parser(
-        "audio", help="Descargar y normalizar SFX o música CC0 a WAV 48kHz 16-bit"
-    )
-    pa_audio.add_argument("name", help="Nombre destino del archivo sin extensión")
-    pa_audio.add_argument("--url", help="URL directa a muestra de audio CC0")
-    pa_audio.add_argument("--freesound", help="Consulta en Freesound API v2 (solo CC0)")
-    pa_audio.add_argument(
-        "--type",
-        choices=["sfx", "music"],
-        default="sfx",
-        help="Tipo de audio: 'sfx' (assets/audio/) o 'music' (assets/music/)",
-    )
-    pa_audio.add_argument(
-        "--max-duration",
-        type=float,
-        default=None,
-        help="Duración máxima en segundos al normalizar",
-    )
-    pa_audio.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
+    register_assets_subparsers(p_assets, dest="asset_action")
 
     # Subcomando: image
     p_image = subparsers.add_parser(
         "image",
         help="Recortar, convertir y quitar el fondo de imágenes (rembg IA local ONNX / color, crop, convert)",
     )
-    image_sub = p_image.add_subparsers(dest="image_action", help="Acción sobre imagen")
-
-    pi_conv = image_sub.add_parser(
-        "convert", help="Convertir formato (PNG, WEBP, JPG) y redimensionar con filtro Lanczos"
-    )
-    pi_conv.add_argument("-i", "--input", required=True, help="Imagen de entrada")
-    pi_conv.add_argument("-o", "--output", required=True, help="Ruta de salida (.png, .webp, .jpg)")
-    pi_conv.add_argument("--width", type=int, help="Ancho destino en píxeles")
-    pi_conv.add_argument("--height", type=int, help="Alto destino en píxeles")
-    pi_conv.add_argument(
-        "--mode",
-        choices=["cover", "contain", "stretch"],
-        default="cover",
-        help="Modo de ajuste al redimensionar (defecto: cover)",
-    )
-    pi_conv.add_argument("--quality", type=int, default=92, help="Calidad WEBP/JPEG (1-100)")
-
-    pi_crop = image_sub.add_parser(
-        "crop",
-        help="Recortar por coordenadas, aspect-ratio (9:16, 16:9, 1:1) o auto-trim de bordes",
-    )
-    pi_crop.add_argument("-i", "--input", required=True, help="Imagen de entrada")
-    pi_crop.add_argument("-o", "--output", required=True, help="Imagen de salida")
-    pi_crop.add_argument("--box", help="Caja exacta 'x,y,ancho,alto' en píxeles")
-    pi_crop.add_argument(
-        "--aspect",
-        choices=list(ASPECT_PRESETS.keys()),
-        help="Recorte centrado a relación de aspecto (9:16, 16:9, 1:1, 4:5, 4:3)",
-    )
-    pi_crop.add_argument(
-        "--trim", action="store_true", help="Recortar automáticamente bordes vacíos o sólidos"
-    )
-    pi_crop.add_argument(
-        "--padding", type=int, default=0, help="Margen extra en píxeles tras --trim"
-    )
-    pi_crop.add_argument("--width", type=int, help="Ancho final opcional")
-    pi_crop.add_argument("--height", type=int, help="Alto final opcional")
-    pi_crop.add_argument(
-        "--mode",
-        choices=["cover", "contain", "stretch"],
-        default="cover",
-        help="Modo de redimensionamiento si se indican --width/--height",
-    )
-
-    pi_bg = image_sub.add_parser(
-        "rembg",
-        help="Eliminar el fondo (por IA local ONNX U2-NetP o color) y generar cutout transparente con borde/sombra",
-    )
-    pi_bg.add_argument("-i", "--input", required=True, help="Imagen de entrada")
-    pi_bg.add_argument("-o", "--output", required=True, help="Imagen de salida (.png o .webp)")
-    pi_bg.add_argument(
-        "-m",
-        "--method",
-        choices=["color", "ai"],
-        default="color",
-        help="Método: 'color' (detecta color de esquinas o --color) o 'ai' (red neuronal ONNX local)",
-    )
-    pi_bg.add_argument(
-        "--model",
-        choices=list(ONNX_REMBG_MODELS.keys()),
-        default=DEFAULT_ONNX_MODEL,
-        help="Modelo ONNX para --method ai: isnet (1024x1024 estudio, defecto), silueta (320x320 medio) o u2netp (320x320 rápido)",
-    )
-    pi_bg.add_argument("--color", help="Color hexadecimal del fondo a eliminar (ej. '#ffffff')")
-    pi_bg.add_argument(
-        "--tolerance", type=float, default=34.0, help="Tolerancia de color (0-255, defecto: 34)"
-    )
-    pi_bg.add_argument(
-        "--feather", type=float, default=16.0, help="Suavizado de bordes (defecto: 16)"
-    )
-    pi_bg.add_argument(
-        "--trim", action="store_true", help="Ajustar caja al sujeto recortando bordes vacíos"
-    )
-    pi_bg.add_argument(
-        "--padding", type=int, default=12, help="Margen alrededor del sujeto al usar --trim"
-    )
-    pi_bg.add_argument(
-        "--outline", type=int, default=0, help="Grosor en px del borde estilo sticker/cutout"
-    )
-    pi_bg.add_argument(
-        "--outline-color", default="#ffffff", help="Color del borde cutout (defecto: #ffffff)"
-    )
-    pi_bg.add_argument(
-        "--shadow",
-        type=int,
-        default=0,
-        help="Radio de desenfoque de sombra paralela (0 = sin sombra)",
-    )
+    register_image_subparsers(p_image, dest="image_action")
 
     args = parser.parse_args()
 
@@ -790,6 +576,7 @@ def main():
             args.output,
             args.model,
             args.language,
+            device=args.device,
             initial_prompt=args.prompt,
             hotwords=args.hotwords,
             replacements=parse_replacements(args.replacements),
@@ -797,7 +584,11 @@ def main():
     elif args.subcommand == "captions":
         t_data = load_transcript(Path(args.input))
         w_list = extract_word_list(t_data)
-        grps = group_words(w_list)
+        grps = group_words(
+            w_list,
+            words_per_group=args.words_per_group,
+            pause_threshold=args.pause_threshold,
+        )
         if args.export_srt:
             export_srt(grps, Path(args.export_srt))
         if args.export_vtt:
@@ -830,8 +621,6 @@ def main():
         if args.list or not args.project:
             print_catalog(as_json=args.json)
         elif args.inspect:
-            import json
-
             state = inspect_project_design(args.project)
             print(json.dumps(state, indent=2, ensure_ascii=False))
         else:
@@ -848,26 +637,14 @@ def main():
                 reset_overrides=args.reset_overrides,
             )
     elif args.subcommand == "check":
-        p_dir = (
-            Path("projects") / args.project
-            if not Path(args.project).exists()
-            else Path(args.project)
-        )
+        p_dir = resolve_project_dir(args.project)
         run_command([resolve_pnpm(), "exec", "hyperframes", "check", str(p_dir)])
     elif args.subcommand == "render":
-        p_dir = (
-            Path("projects") / args.project
-            if not Path(args.project).exists()
-            else Path(args.project)
-        )
+        p_dir = resolve_project_dir(args.project)
         out = args.output or str(p_dir / f"video_{p_dir.name}.mp4")
         run_command([resolve_pnpm(), "exec", "hyperframes", "render", str(p_dir), "-o", out])
     elif args.subcommand == "storyboard":
-        p_dir = (
-            Path("projects") / args.project
-            if not Path(args.project).exists()
-            else Path(args.project)
-        )
+        p_dir = resolve_project_dir(args.project)
         spec_path = Path(args.spec) if args.spec else p_dir / "storyboard.json"
         html_path = p_dir / "index.html"
         sb = load_storyboard(spec_path)
@@ -888,74 +665,9 @@ def main():
             attach_audio_track_to_html(html_path, mixed_wav.name, sb.duration)
             print(f"Audio mezclado en {mixed_wav} ({len(events)} eventos SFX)")
     elif args.subcommand == "assets":
-        act = getattr(args, "asset_action", None)
-        if not act or act == "list":
-            inv = list_local_assets()
-            if getattr(args, "json", False):
-                print(json.dumps(inv, indent=2, ensure_ascii=False))
-            else:
-                for k, items in inv.items():
-                    print(f"[{k.upper()}] ({len(items)}): {', '.join(items)}")
-        elif act == "icon":
-            fetch_icon(args.spec, name=args.name, force=args.force)
-        elif act == "map":
-            fetch_map(
-                country_queries=args.country,
-                name=args.name,
-                context_queries=args.context,
-                geojson_source=args.geojson,
-                force=args.force,
-            )
-        elif act == "audio":
-            fetch_audio_cc0(
-                name=args.name,
-                url=args.url,
-                freesound_query=args.freesound,
-                kind=args.type,
-                max_duration=args.max_duration,
-                force=args.force,
-            )
+        dispatch_assets_action(args, action_attr="asset_action")
     elif args.subcommand == "image":
-        img_act = getattr(args, "image_action", None)
-        if not img_act:
-            p_image.print_help()
-            sys.exit(0)
-        elif img_act == "convert":
-            process_image_pipeline(
-                input_path=args.input,
-                output_path=args.output,
-                width=args.width,
-                height=args.height,
-                resize_mode=args.mode,
-                quality=args.quality,
-            )
-        elif img_act == "crop":
-            process_image_pipeline(
-                input_path=args.input,
-                output_path=args.output,
-                crop_box=_parse_crop_box(args.box),
-                aspect=args.aspect,
-                auto_trim=args.trim,
-                trim_padding=args.padding,
-                width=args.width,
-                height=args.height,
-                resize_mode=args.mode,
-            )
-        elif img_act == "rembg":
-            process_image_pipeline(
-                input_path=args.input,
-                output_path=args.output,
-                remove_bg=args.method,
-                ai_model=args.model,
-                key_color=args.color,
-                tolerance=args.tolerance,
-                feather=args.feather,
-                auto_trim=args.trim,
-                trim_padding=args.padding,
-                outline_width=args.outline,
-                outline_color=args.outline_color,
-                shadow_blur=args.shadow,
-            )
+        dispatch_image_action(args, parser=p_image, action_attr="image_action")
 
 
 if __name__ == "__main__":

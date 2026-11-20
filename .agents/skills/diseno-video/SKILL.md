@@ -131,9 +131,9 @@ Para incorporar nuevos iconos vectoriales, mapas geográficos reales, muestras d
   `uv run python core/pipeline.py assets map PRK -c KOR,JPN -n korea_real`
 * **SFX y música CC0 normalizados a WAV 48kHz 16-bit (URL directa o Freesound API v2 CC0):**
   `uv run python core/pipeline.py assets audio shutter_org --freesound "camera shutter" --type sfx`
-* **Eliminación de fondo (IA local ONNX `isnet` 1024x1024 / `silueta` / `u2netp` o color), recorte y conversión de imágenes (`assets/images/`):**
+* **Eliminación de fondo (IA local ONNX IS-Net 1024x1024 de estudio o color), recorte y conversión de imágenes (`assets/images/`):**
   ```bash
-  uv run python core/pipeline.py image rembg -i foto.jpg -o assets/images/sujeto.png -m ai --model isnet --trim --outline 6 --shadow 10
+  uv run python core/pipeline.py image rembg -i foto.jpg -o assets/images/sujeto.png --trim --outline 6 --shadow 10
   uv run python core/pipeline.py image crop -i captura.png -o assets/images/captura.webp --aspect 9:16 --width 1080 --height 1920
   uv run python core/pipeline.py image convert -i raw.png -o assets/images/opt.webp --width 840 --quality 92
   ```

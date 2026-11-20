@@ -491,24 +491,13 @@ MOTION_PROFILES: dict[str, MotionProfile] = {
 }
 
 # =====================================================================
-# NIVEL 2E: ESTILOS DE SUBTÍTULOS CINÉTICOS (2 ESTILOS GANADORES)
+# NIVEL 2E: ESTILO CANÓNICO DE SUBTÍTULOS CINÉTICOS (CERO PASTILLAS)
 # =====================================================================
 CAPTION_STYLES: dict[str, CaptionStyle] = {
-    "highlight_pill": CaptionStyle(
-        slug="highlight_pill",
-        name="Highlight Clean (Texto Activo)",
-        description="Resalta la palabra pronunciada mediante iluminación limpia de color y resplandor, sin cajas envolventes.",
-        word_inactive_opacity=0.45,
-        active_css=(
-            "opacity: 1;",
-            "color: var(--caption-active);",
-            "text-shadow: var(--caption-glow);",
-        ),
-    ),
     "minimal_clean": CaptionStyle(
         slug="minimal_clean",
         name="Minimal Clean (Editorial Sobrio)",
-        description="Transición limpia de opacidad y color sin adornos, orientada a lecturas bíblicas y ensayos.",
+        description="Tipografía pura sin cajas ni pastillas; resalta la palabra activa mediante color, opacidad y sombra sutil.",
         word_inactive_opacity=0.40,
         active_css=(
             "opacity: 1;",

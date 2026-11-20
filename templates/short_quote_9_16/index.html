@@ -35,7 +35,7 @@
         --accent-danger: #be123c;
         --node-fill: #fffdf7;
         --cable-idle: #94a3b8;
-        --caption-bg: rgba(253, 246, 227, 0.94);
+        --caption-bg: transparent;
         --caption-text: #073642;
         --caption-active: #0369a1;
         --caption-shadow: 0 2px 8px rgba(7, 54, 66, 0.12);
@@ -200,9 +200,9 @@
       /* Caption Style: minimal_clean */
       .caption-phrase {
         display: inline-block;
-        background: var(--caption-bg);
-        padding: 6px 18px;
-        border-radius: var(--radius-md, 12px);
+        background: transparent;
+        padding: 0;
+        border: none;
       }
       .word {
         display: inline-block;
@@ -214,6 +214,14 @@
         opacity: 1;
         color: var(--caption-active);
         text-shadow: var(--caption-shadow);
+      }
+      .word.word-emphasis.active {
+        color: var(--accent-secondary);
+        opacity: 1;
+        background: transparent;
+        border: none;
+        padding: 0;
+        text-shadow: 0 0 28px var(--accent-primary-glow), 0 4px 16px rgba(0, 0, 0, 0.72);
       }
       /* @caption-style:end */
       /* @design-system:start */

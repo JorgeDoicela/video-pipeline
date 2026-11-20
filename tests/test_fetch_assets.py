@@ -13,8 +13,10 @@ from pathlib import Path
 import pytest
 
 from core.fetch_assets import (
+    BASE_ICONS,
     build_audio_normalize_command,
     compile_geojson_to_radar_svg,
+    ensure_base_icons,
     fetch_audio_cc0,
     fetch_icon,
     fetch_map,
@@ -163,9 +165,14 @@ def test_build_audio_normalize_command_and_fetch_audio_cc0(tmp_path: Path, monke
     assert out_wav.read_bytes() == b"RIFF_NORMALIZED_WAV"
 
 
-def test_list_local_assets_inventory():
+def test_list_local_assets_inventory(tmp_path: Path):
     inv = list_local_assets()
     assert "icons" in inv and len(inv["icons"]) >= 18
     assert "maps" in inv and "korea" in inv["maps"]
     assert "audio" in inv and "shutter" in inv["audio"]
     assert "music" in inv and "tension_pulse" in inv["music"]
+
+    seeded = ensure_base_icons(icons_dir=tmp_path)
+    assert len(seeded) == len(BASE_ICONS) == 18
+    assert (tmp_path / "docker.svg").exists()
+    assert (tmp_path / "shield.svg").exists()

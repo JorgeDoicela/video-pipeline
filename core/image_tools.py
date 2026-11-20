@@ -7,12 +7,11 @@ Capacidades 100% locales (cero APIs en la nube):
   1. Conversión de formatos (PNG, WEBP, JPG, ICO, AVIF) preservando canal alfa y calidad.
   2. Recorte y encuadre inteligente (crop por caja x,y,w,h, aspect-ratio 9:16 / 16:9 / 1:1,
      resize con filtro Lanczos y modes 'contain' / 'cover', más auto-trim de bordes vacíos).
-  3. Eliminación de fondo (Background Removal) en dos modos:
-     - 'ai': Red neuronal U2-Net / Silueta ejecutada localmente sobre ONNX Runtime (ya incluido
-       en el entorno junto con faster-whisper) con descarga y caché única del modelo ONNX.
+  3. Eliminación de fondo (Background Removal) con un único modelo neuronal de estudio:
+     - 'ai' (defecto): Red neuronal DIS IS-Net General Use (isnet-general-use.onnx, 1024x1024)
+       ejecutada localmente sobre ONNX Runtime con descarga y caché única en .cache/models/.
      - 'color': Extracción cromática determinista en espacio RGB/Euclidiano con feathering suave
-       y detección automática del color de fondo en las 4 esquinas (ideal para logos, capturas,
-       diagramas y fondos sólidos o chroma).
+       para fondos sólidos o chroma.
   4. Acabado de estudio para composiciones: contorno tipo sticker/cutout editorial y sombra paralela
      suave, listos para incrustar en escenas de HyperFrames (`assets/images/`).
 """
@@ -23,60 +22,24 @@ import argparse
 import sys
 import urllib.error
 import urllib.request
-from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageFilter, ImageOps
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from core._runtime import ensure_local_venv  # noqa: E402
+from core._runtime import REPO_ROOT, ensure_local_venv, ensure_repo_root_on_path  # noqa: E402
 
+ensure_repo_root_on_path()
+_REPO_ROOT = REPO_ROOT
 
-@dataclass(frozen=True)
-class OnnxRembgModelSpec:
-    slug: str
-    filename: str
-    url: str
-    input_size: tuple[int, int]
-    mean: tuple[float, float, float]
-    std: tuple[float, float, float]
-    description: str
-
-
-ONNX_REMBG_MODELS: dict[str, OnnxRembgModelSpec] = {
-    "isnet": OnnxRembgModelSpec(
-        slug="isnet",
-        filename="isnet-general-use.onnx",
-        url="https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx",
-        input_size=(1024, 1024),
-        mean=(0.5, 0.5, 0.5),
-        std=(1.0, 1.0, 1.0),
-        description="DIS IS-Net General Use (1024x1024, calidad de estudio para bordes finos y 1080p)",
-    ),
-    "silueta": OnnxRembgModelSpec(
-        slug="silueta",
-        filename="silueta.onnx",
-        url="https://github.com/danielgatis/rembg/releases/download/v0.0.0/silueta.onnx",
-        input_size=(320, 320),
-        mean=(0.485, 0.456, 0.406),
-        std=(0.229, 0.224, 0.225),
-        description="Silueta / U2-Net compacto (320x320, equilibrio entre peso y precisión)",
-    ),
-    "u2netp": OnnxRembgModelSpec(
-        slug="u2netp",
-        filename="u2netp.onnx",
-        url="https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx",
-        input_size=(320, 320),
-        mean=(0.485, 0.456, 0.406),
-        std=(0.229, 0.224, 0.225),
-        description="U2-NetP ultraligero (320x320, 4.7 MB para ejecución rápida en CPU)",
-    ),
-}
-DEFAULT_ONNX_MODEL = "isnet"
+ISNET_MODEL_FILENAME = "isnet-general-use.onnx"
+ISNET_MODEL_URL = (
+    "https://github.com/danielgatis/rembg/releases/download/v0.0.0/isnet-general-use.onnx"
+)
+ISNET_INPUT_SIZE: tuple[int, int] = (1024, 1024)
 USER_AGENT = "video-pipeline-image-tools/1.0 (local-onnx-pillow)"
 
 ASPECT_PRESETS: dict[str, tuple[int, int]] = {
@@ -272,29 +235,22 @@ def remove_background_color_key(
     return Image.fromarray(arr.astype(np.uint8), mode="RGBA")
 
 
-def ensure_onnx_rembg_model(
-    model_slug: str = DEFAULT_ONNX_MODEL,
-    model_dir: Path | None = None,
-) -> Path:
-    """Garantiza que el modelo ONNX seleccionado ('isnet', 'silueta' o 'u2netp') esté cacheado localmente."""
-    if model_slug not in ONNX_REMBG_MODELS:
-        valid = ", ".join(ONNX_REMBG_MODELS)
-        raise ValueError(f"Modelo ONNX '{model_slug}' desconocido. Válidos: {valid}")
-    spec = ONNX_REMBG_MODELS[model_slug]
+def ensure_onnx_rembg_model(model_dir: Path | None = None) -> Path:
+    """Garantiza que el modelo ONNX de estudio IS-Net (1024x1024) esté cacheado localmente."""
     target_dir = model_dir or (_REPO_ROOT / ".cache" / "models")
     target_dir.mkdir(parents=True, exist_ok=True)
-    model_path = target_dir / spec.filename
+    model_path = target_dir / ISNET_MODEL_FILENAME
     if model_path.exists() and model_path.stat().st_size > 100_000:
         return model_path
 
-    print(f"[ImageTools] Descargando modelo ONNX '{spec.slug}' ({spec.filename})...")
-    req = urllib.request.Request(spec.url, headers={"User-Agent": USER_AGENT})
+    print(f"[ImageTools] Descargando modelo ONNX de estudio ({ISNET_MODEL_FILENAME})...")
+    req = urllib.request.Request(ISNET_MODEL_URL, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(req, timeout=120.0) as resp:  # noqa: S310
             data = resp.read()
     except urllib.error.URLError as exc:
         raise RuntimeError(
-            f"No se pudo descargar el modelo ONNX '{spec.slug}' desde {spec.url}: {exc}"
+            f"No se pudo descargar el modelo ONNX desde {ISNET_MODEL_URL}: {exc}"
         ) from exc
 
     model_path.write_bytes(data)
@@ -303,37 +259,27 @@ def ensure_onnx_rembg_model(
 
 def remove_background_onnx(
     img: Image.Image,
-    model_slug: str = DEFAULT_ONNX_MODEL,
     model_path: Path | None = None,
 ) -> Image.Image:
     """
-    Elimina el fondo de retratos, objetos o fotografías complejas ejecutando el modelo ONNX
-    seleccionado ('isnet' a 1024x1024 por defecto, 'silueta' o 'u2netp' a 320x320)
-    directamente sobre ONNX Runtime en local (cero llamadas a la nube).
+    Elimina el fondo de retratos, objetos o fotografías ejecutando el modelo de estudio
+    DIS IS-Net (1024x1024) directamente sobre ONNX Runtime en local (cero llamadas a la nube).
     """
     import onnxruntime as ort
 
-    if model_slug not in ONNX_REMBG_MODELS:
-        valid = ", ".join(ONNX_REMBG_MODELS)
-        raise ValueError(f"Modelo ONNX '{model_slug}' desconocido. Válidos: {valid}")
-    spec = ONNX_REMBG_MODELS[model_slug]
     resolved_model = (
-        model_path
-        if (model_path and model_path.exists())
-        else ensure_onnx_rembg_model(model_slug=model_slug)
+        model_path if (model_path and model_path.exists()) else ensure_onnx_rembg_model()
     )
     rgba = img.convert("RGBA")
     orig_w, orig_h = rgba.size
 
-    in_w, in_h = spec.input_size
+    in_w, in_h = ISNET_INPUT_SIZE
     resized = rgba.convert("RGB").resize((in_w, in_h), resample=Image.Resampling.BILINEAR)
     arr = np.asarray(resized, dtype=np.float32)
     max_val = float(arr.max())
     if max_val > 0.0:
         arr = arr / max_val
-    mean = np.array(spec.mean, dtype=np.float32)
-    std = np.array(spec.std, dtype=np.float32)
-    norm = (arr - mean) / std
+    norm = arr - 0.5
     tensor = np.transpose(norm, (2, 0, 1))[np.newaxis, :, :, :].astype(np.float32)
 
     sess = ort.InferenceSession(str(resolved_model), providers=["CPUExecutionProvider"])
@@ -425,7 +371,6 @@ def process_image_pipeline(
     input_path: Path | str,
     output_path: Path | str,
     remove_bg: str | None = None,
-    ai_model: str = DEFAULT_ONNX_MODEL,
     key_color: str | None = None,
     tolerance: float = 34.0,
     feather: float = 16.0,
@@ -452,9 +397,9 @@ def process_image_pipeline(
             img, key_color=key_color, tolerance=tolerance, feather=feather
         )
     elif remove_bg == "ai":
-        img = remove_background_onnx(img, model_slug=ai_model)
+        img = remove_background_onnx(img)
     elif remove_bg is not None:
-        raise ValueError(f"Modo remove_bg '{remove_bg}' inválido. Usa 'color' o 'ai'.")
+        raise ValueError(f"Modo remove_bg '{remove_bg}' inválido. Usa 'ai' o 'color'.")
 
     img = crop_and_resize_image(
         img,
@@ -480,16 +425,16 @@ def process_image_pipeline(
     return out
 
 
-def main() -> None:
-    ensure_local_venv()
-    parser = argparse.ArgumentParser(
-        description="Herramientas profesionales de recorte, conversión y eliminación de fondo de imágenes."
-    )
-    sub = parser.add_subparsers(dest="action", help="Operación sobre imagen")
+def register_image_subparsers(
+    parser: argparse.ArgumentParser,
+    dest: str = "image_action",
+) -> None:
+    """Registra los subcomandos de procesamiento de imágenes en el parser indicado."""
+    sub = parser.add_subparsers(dest=dest, help="Acción sobre imagen")
 
     # 1. Subcomando: convert
     p_conv = sub.add_parser(
-        "convert", help="Convertir formato de imagen (PNG, WEBP, JPG) y redimensionar"
+        "convert", help="Convertir formato (PNG, WEBP, JPG) y redimensionar con filtro Lanczos"
     )
     p_conv.add_argument("-i", "--input", required=True, help="Imagen de entrada")
     p_conv.add_argument("-o", "--output", required=True, help="Ruta de salida (.png, .webp, .jpg)")
@@ -505,7 +450,8 @@ def main() -> None:
 
     # 2. Subcomando: crop
     p_crop = sub.add_parser(
-        "crop", help="Recortar por coordenadas, aspect-ratio o auto-trim de bordes"
+        "crop",
+        help="Recortar por coordenadas, aspect-ratio (9:16, 16:9, 1:1) o auto-trim de bordes",
     )
     p_crop.add_argument("-i", "--input", required=True, help="Imagen de entrada")
     p_crop.add_argument("-o", "--output", required=True, help="Imagen de salida")
@@ -533,7 +479,7 @@ def main() -> None:
     # 3. Subcomando: rembg
     p_bg = sub.add_parser(
         "rembg",
-        help="Eliminar el fondo de una imagen (por IA local ONNX U2-NetP o extracción cromática) y generar cutout",
+        help="Eliminar el fondo (por IA local ONNX IS-Net 1024x1024 o extracción cromática) y generar cutout con borde/sombra",
     )
     p_bg.add_argument("-i", "--input", required=True, help="Imagen de entrada")
     p_bg.add_argument(
@@ -542,18 +488,12 @@ def main() -> None:
     p_bg.add_argument(
         "-m",
         "--method",
-        choices=["color", "ai"],
-        default="color",
-        help="Método: 'color' (rápido, detecta color de esquinas o --color) o 'ai' (red neuronal ONNX local)",
+        choices=["ai", "color"],
+        default="ai",
+        help="Método: 'ai' (red neuronal ONNX IS-Net 1024x1024 de estudio, defecto) o 'color' (fondo sólido/chroma)",
     )
     p_bg.add_argument(
-        "--model",
-        choices=list(ONNX_REMBG_MODELS.keys()),
-        default=DEFAULT_ONNX_MODEL,
-        help="Modelo ONNX para --method ai: isnet (1024x1024 estudio, defecto), silueta (320x320 medio) o u2netp (320x320 rápido)",
-    )
-    p_bg.add_argument(
-        "--color", help="Color hexadecimal del fondo a eliminar (ej. '#ffffff' o '#00ff00')"
+        "--color", help="Color hexadecimal del fondo a eliminar en modo color (ej. '#ffffff')"
     )
     p_bg.add_argument(
         "--tolerance", type=float, default=34.0, help="Tolerancia de color (0-255, defecto: 34)"
@@ -580,12 +520,18 @@ def main() -> None:
         help="Radio de desenfoque de sombra paralela (0 = sin sombra)",
     )
 
-    args = parser.parse_args()
-    if not args.action:
+
+def dispatch_image_action(
+    args: argparse.Namespace,
+    parser: argparse.ArgumentParser,
+    action_attr: str = "image_action",
+) -> None:
+    """Ejecuta la acción de procesamiento de imágenes seleccionada en un argparse.Namespace."""
+    img_act = getattr(args, action_attr, None)
+    if not img_act:
         parser.print_help()
         sys.exit(0)
-
-    if args.action == "convert":
+    elif img_act == "convert":
         process_image_pipeline(
             input_path=args.input,
             output_path=args.output,
@@ -594,7 +540,7 @@ def main() -> None:
             resize_mode=args.mode,
             quality=args.quality,
         )
-    elif args.action == "crop":
+    elif img_act == "crop":
         process_image_pipeline(
             input_path=args.input,
             output_path=args.output,
@@ -606,12 +552,11 @@ def main() -> None:
             height=args.height,
             resize_mode=args.mode,
         )
-    elif args.action == "rembg":
+    elif img_act == "rembg":
         process_image_pipeline(
             input_path=args.input,
             output_path=args.output,
             remove_bg=args.method,
-            ai_model=args.model,
             key_color=args.color,
             tolerance=args.tolerance,
             feather=args.feather,
@@ -621,6 +566,16 @@ def main() -> None:
             outline_color=args.outline_color,
             shadow_blur=args.shadow,
         )
+
+
+def main() -> None:
+    ensure_local_venv()
+    parser = argparse.ArgumentParser(
+        description="Herramientas profesionales de recorte, conversión y eliminación de fondo de imágenes."
+    )
+    register_image_subparsers(parser, dest="image_action")
+    args = parser.parse_args()
+    dispatch_image_action(args, parser=parser, action_attr="image_action")
 
 
 if __name__ == "__main__":

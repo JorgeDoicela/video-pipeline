@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Motor Multi-Escena (Storyboard) y Librería de 16 Componentes Narrativos Vectoriales.
-Orquesta secuencias temporales de escenas SVG/HTML animadas determinísticamente con GSAP 3.15,
+Motor Multi-Escena (Storyboard) y Librería de 25 Componentes Narrativos Vectoriales / Canvas / Cutouts.
+Orquesta secuencias temporales de escenas SVG/HTML/Canvas animadas determinísticamente con GSAP 3.15,
 cambios de atmósfera/acento por escena, subtítulos Hero-Top o inferiores, y sincronización
 con marcas de tiempo de voz y efectos de sonido (SFX primarios e intra-escena).
 """
@@ -10,12 +10,13 @@ import html
 import json
 import math
 import re
-import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from core._runtime import normalize_token
+from core._styles_renderer import upsert_marked_css_block
 from core.audio_mix import SfxEvent
 
 VALID_TRANSITIONS = {"snap", "zoom_in", "slide_up"}
@@ -89,7 +90,7 @@ def _resolve_accent_css(accent: str | None) -> str | None:
 
 
 # =====================================================================
-# 16 COMPONENTES NARRATIVOS SVG / HTML (100% ESTÁNDAR LIMPIO DE JORGE)
+# 25 COMPONENTES NARRATIVOS SVG / HTML / CANVAS (100% ESTÁNDAR LIMPIO DE JORGE)
 # =====================================================================
 
 
@@ -716,9 +717,9 @@ def _render_icon_spotlight(
         except Exception:
             candidate = icons_dir / f"{local_slug}.svg"
     if candidate.exists():
-        raw_svg = candidate.read_text(encoding="utf-8")
-        raw_svg = re.sub(r'\swidth="[^"]*"', "", raw_svg, count=1)
-        raw_svg = re.sub(r'\sheight="[^"]*"', "", raw_svg, count=1)
+        from core.fetch_assets import normalize_iconify_svg
+
+        raw_svg = normalize_iconify_svg(candidate.read_text(encoding="utf-8")).strip()
         icon_svg = raw_svg.replace("<svg", '<svg class="ng-bare-icon" width="120" height="120"', 1)
 
     radius = 128.0
@@ -751,35 +752,10 @@ def _render_icon_spotlight(
     return markup, gsap
 
 
-_MAP_PRESETS: dict[str, tuple[str, str]] = {
-    # (polígono/path principal resaltado, contexto geográfico secundario)
-    "korea": (
-        "M 415 95 L 485 112 L 518 165 L 495 235 L 515 295 L 478 352 L 388 362 L 348 310 L 332 248 L 368 182 L 385 128 Z",
-        "M 388 366 L 478 356 L 520 438 L 498 525 L 430 562 L 382 522 L 372 440 Z",
-    ),
-    "europe": (
-        "M 280 200 L 420 140 L 580 175 L 620 295 L 540 390 L 380 410 L 265 320 Z",
-        "M 200 280 L 260 270 L 255 370 L 195 360 Z",
-    ),
-    "americas": (
-        "M 260 110 L 440 130 L 490 230 L 410 310 L 320 290 L 245 200 Z",
-        "M 420 330 L 520 380 L 485 560 L 420 530 L 395 410 Z",
-    ),
-    "asia": (
-        "M 155 150 L 460 120 L 635 165 L 610 295 L 555 375 L 470 430 L 380 495 L 305 425 L 220 380 L 145 275 Z",
-        "M 670 250 L 710 265 L 695 340 L 655 375 L 642 355 L 675 315 Z",
-    ),
-    "world": (
-        "M 210 180 L 360 165 L 385 265 L 250 285 Z M 450 160 L 660 175 L 685 300 L 475 310 Z",
-        "M 275 315 L 365 340 L 340 495 L 280 465 Z M 500 330 L 605 355 L 575 495 L 490 450 Z",
-    ),
-}
-
-
 def _render_radar_map(
     scene_id: str, props: dict[str, Any], start: float, dur: float
 ) -> tuple[str, str]:
-    """Radar táctico y mapa vectorial con barrido angular, presets geográficos y ruta animada."""
+    """Radar táctico y mapa vectorial con barrido angular, presets geográficos en assets/maps/ y ruta animada."""
     region_title = html.escape(str(props.get("region", "ZONA DE ANÁLISIS")), quote=False)
     targets = props.get("targets") or [
         {"label": "ORIGEN", "sublabel": "NODO CENTRAL", "x": 380, "y": 290, "alert": True},
@@ -803,14 +779,6 @@ def _render_radar_map(
             )
             if inner_match:
                 zone_svg = f'<g id="{scene_id}_zone" opacity="0">{inner_match.group(1)}</g>'
-        elif map_preset in _MAP_PRESETS:
-            primary_d, secondary_d = _MAP_PRESETS[map_preset]
-            zone_svg = (
-                f'<g id="{scene_id}_zone" opacity="0">'
-                f'  <path d="{secondary_d}" fill="rgba(148,163,184,0.12)" stroke="var(--border-strong)" stroke-width="2.5" />'
-                f'  <path d="{primary_d}" fill="var(--accent-primary-soft)" stroke="var(--scene-accent, var(--accent-danger))" stroke-width="4" stroke-linejoin="round" />'
-                f"</g>"
-            )
 
     route_svg = ""
     route_gsap = ""
@@ -862,7 +830,8 @@ def _render_radar_map(
         <line x1="140" y1="340" x2="740" y2="340" stroke="var(--divider)" stroke-width="1.5" />
         <line x1="440" y1="40" x2="440" y2="640" stroke="var(--divider)" stroke-width="1.5" />
         {zone_svg}
-        <g id="{scene_id}_sweep">
+        <g id="{scene_id}_sweep" data-layout-ignore>
+          <circle cx="440" cy="340" r="280" fill="none" stroke="none" />
           <path d="M 440 340 L 680 200 A 280 280 0 0 1 720 340 Z" fill="var(--accent-primary-soft)" opacity="0.55" />
           <line x1="440" y1="340" x2="720" y2="340" stroke="var(--scene-accent, var(--accent-primary))" stroke-width="3" />
         </g>
@@ -1137,7 +1106,7 @@ def _render_padlock_denied(
     </div>"""
 
     t_in = start + 0.08
-    t_stamp = min(start + max(0.38, dur * 0.30), start + dur - 0.25)
+    t_stamp = min(start + max(0.24, dur * 0.16), start + dur - 0.25)
     gsap = "\n".join(
         [
             f'tl.fromTo("#{scene_id}_lock", {{ opacity: 0, scale: 0.90 }}, {{ opacity: 1, scale: 1, duration: 0.34, ease: "power3.out" }}, {t_in:.3f});',
@@ -1449,9 +1418,11 @@ def _render_image_cutout(
     """
     src_raw = str(props.get("src", "")).strip()
     if not src_raw:
-        src_raw = "../../assets/images/cutout.png"
+        src_raw = "assets/images/cutout.png"
+    elif src_raw.startswith("../../assets/"):
+        src_raw = src_raw.removeprefix("../../")
     elif "/" not in src_raw and "\\" not in src_raw:
-        src_raw = f"../../assets/images/{src_raw}"
+        src_raw = f"assets/images/{src_raw}"
     src_attr = html.escape(src_raw, quote=True)
 
     title = html.escape(str(props.get("title", "")), quote=False)
@@ -1564,6 +1535,28 @@ _SCENES_BASE_CSS = """      #brand-bar {
         top: 380px;
         height: 1360px;
       }
+      .ng-bare-icon {
+        background: transparent;
+        border: none;
+        padding: 0;
+        flex-shrink: 0;
+      }
+      .ng-spot-sub {
+        font-size: 28px;
+        color: var(--text-muted);
+        max-width: 820px;
+      }
+      .ret-c {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        border-color: var(--accent-danger);
+        border-style: solid;
+      }
+      .ret-tl { top: 0; left: 0; border-width: 5px 0 0 5px; }
+      .ret-tr { top: 0; right: 0; border-width: 5px 5px 0 0; }
+      .ret-bl { bottom: 0; left: 0; border-width: 0 0 5px 5px; }
+      .ret-br { bottom: 0; right: 0; border-width: 0 5px 5px 0; }
       .ng-tw-cursor {
         color: var(--scene-accent, var(--accent-warning));
         font-weight: 900;
@@ -1589,7 +1582,93 @@ _SCENES_BASE_CSS = """      #brand-bar {
       }"""
 
 _COMPONENT_CSS_BLOCKS: dict[str, str] = {
-    "phone_mockup": """      .ng-phone-hud-wrap {
+    "phone_mockup": """      .ng-phone-frame {
+        position: relative;
+        width: 620px;
+        min-height: 820px;
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        border-radius: 42px;
+        padding: 36px 32px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      #root[data-width="1920"] .ng-phone-frame {
+        width: 560px;
+        min-height: 620px;
+        border-radius: 36px;
+        padding: 28px;
+        gap: 18px;
+      }
+      .ng-phone-statusbar {
+        display: flex;
+        justify-content: space-between;
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--text-muted);
+      }
+      .ng-phone-app-title {
+        font-size: 46px;
+        font-weight: 900;
+        color: var(--text-primary);
+      }
+      #root[data-width="1920"] .ng-phone-app-title {
+        font-size: 40px;
+      }
+      .ng-phone-list {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      #root[data-width="1920"] .ng-phone-list {
+        gap: 14px;
+      }
+      .ng-phone-row {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px 24px;
+        background: var(--surface-elevated);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+      #root[data-width="1920"] .ng-phone-row {
+        gap: 18px;
+        padding: 16px 20px;
+        border-radius: 16px;
+      }
+      .ng-phone-row.phone-row-alert {
+        border-color: var(--accent-danger);
+      }
+      .ng-phone-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        text-align: left;
+      }
+      .ng-phone-lbl {
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      #root[data-width="1920"] .ng-phone-lbl {
+        font-size: 28px;
+      }
+      .ng-phone-sub {
+        font-size: 28px;
+        color: var(--text-muted);
+      }
+      .ng-focus-reticle {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        height: 118px;
+        pointer-events: none;
+        opacity: 0;
+      }
+      .ng-phone-hud-wrap {
         position: relative;
         width: 100%;
         display: flex;
@@ -1693,6 +1772,453 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
         height: 68px;
         background: var(--surface-elevated);
         border-radius: 24px;
+      }""",
+    "terminal_grid": """      .ng-term-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        width: 100%;
+      }
+      #root[data-width="1920"] .ng-term-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        max-width: 1320px;
+      }
+      .ng-term-card {
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        border-radius: var(--radius-md, 14px);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 240px;
+        font-family: var(--font-mono);
+        text-align: left;
+      }
+      #root[data-width="1920"] .ng-term-card {
+        padding: 20px;
+        min-height: 200px;
+      }
+      .ng-term-card.ng-term-alert {
+        border-color: var(--accent-danger);
+      }
+      .ng-term-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ng-term-line {
+        font-size: 28px;
+        color: var(--accent-secondary);
+        font-weight: 600;
+      }
+      .ng-term-alert .ng-term-line {
+        color: var(--accent-danger);
+      }
+      .ng-term-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 28px;
+        color: var(--text-muted);
+        margin-top: 16px;
+      }
+      .ng-term-led {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--accent-secondary);
+      }
+      .ng-term-alert .ng-term-led {
+        background: var(--accent-danger);
+      }""",
+    "connector_flow": """      .ng-flow-wrap {
+        width: 100%;
+        max-width: 1120px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .ng-flow-host {
+        position: relative;
+        width: 410px;
+        height: 460px;
+        background: var(--surface);
+        border: 2px solid var(--border-strong);
+        border-radius: 24px;
+        padding: 36px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      #root[data-width="1920"] .ng-flow-host {
+        width: 380px;
+        height: 360px;
+        padding: 32px;
+      }
+      .ng-flow-vents {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .ng-flow-vents span {
+        height: 10px;
+        width: 100%;
+        background: var(--divider);
+        border-radius: 4px;
+      }
+      .ng-flow-port {
+        position: absolute;
+        right: -14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 28px;
+        height: 68px;
+        background: var(--surface-elevated);
+        border: 2px solid var(--accent-primary);
+        border-radius: 6px;
+      }
+      .ng-flow-label {
+        font-family: var(--font-mono);
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .ng-flow-device {
+        display: flex;
+        align-items: center;
+        flex: 1;
+      }
+      .ng-flow-tip {
+        width: 72px;
+        height: 54px;
+        background: var(--text-secondary);
+        border-radius: 6px 0 0 6px;
+      }
+      .ng-flow-body {
+        flex: 1;
+        min-height: 190px;
+        background: var(--surface-elevated);
+        border: 2px solid var(--accent-primary);
+        border-radius: 20px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+        text-align: left;
+      }
+      .ng-flow-dev-title {
+        font-size: 32px;
+        font-weight: 900;
+        color: var(--text-primary);
+      }
+      .ng-flow-status {
+        font-family: var(--font-mono);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--accent-secondary);
+      }""",
+    "network_graph": """      .ng-graph-wrap {
+        width: 100%;
+        max-width: 960px;
+        display: flex;
+        justify-content: center;
+      }
+      .ng-graph-svg {
+        width: 100%;
+        height: auto;
+      }""",
+    "stat_callout": """      .ng-stat-wrap {
+        width: 100%;
+        max-width: 960px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 32px;
+        text-align: center;
+      }
+      .ng-stat-primary {
+        font-size: 112px;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--accent-primary);
+      }
+      .ng-stat-secondary {
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .ng-stat-bars {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        margin-top: 12px;
+      }
+      .ng-stat-bar-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ng-stat-bar-head {
+        display: flex;
+        justify-content: space-between;
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .ng-stat-track {
+        width: 100%;
+        height: 22px;
+        background: var(--surface-elevated);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .ng-stat-fill {
+        height: 100%;
+        border-radius: 12px;
+      }""",
+    "timeline_steps": """      .ng-timeline {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      #root[data-width="1920"] .ng-timeline {
+        max-width: 1360px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 28px;
+      }
+      .ng-tl-item {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 28px 32px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+      }
+      #root[data-width="1920"] .ng-tl-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 36px 32px;
+        border-radius: 22px;
+        text-align: left;
+      }
+      .ng-tl-item.ng-tl-highlight {
+        border: 2px solid var(--accent-primary);
+      }
+      .ng-tl-marker {
+        font-family: var(--font-mono);
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--accent-primary);
+        min-width: 72px;
+      }
+      .ng-tl-content {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        text-align: left;
+      }
+      .ng-tl-title {
+        font-size: 34px;
+        font-weight: 800;
+        color: var(--text-primary);
+      }
+      .ng-tl-detail {
+        font-size: 28px;
+        line-height: 1.35;
+        color: var(--text-muted);
+      }""",
+    "comparison_split": """      .ng-compare {
+        width: 100%;
+        max-width: 1320px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+      #root[data-width="1920"] .ng-compare {
+        gap: 40px;
+      }
+      .ng-cmp-col {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 36px 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+        text-align: left;
+      }
+      .ng-cmp-col.ng-cmp-accent {
+        border: 2px solid var(--accent-secondary);
+      }
+      .ng-cmp-title {
+        font-size: 34px;
+        font-weight: 900;
+        color: var(--text-primary);
+      }
+      .ng-cmp-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        font-size: 28px;
+        line-height: 1.35;
+        color: var(--text-secondary);
+      }""",
+    "quote_focus": """      .ng-quote-card {
+        width: 100%;
+        max-width: 1200px;
+        padding: 56px 48px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .ng-quote-mark {
+        font-size: 84px;
+        line-height: 0.8;
+        font-weight: 900;
+        color: var(--accent-primary);
+      }
+      .ng-quote-text {
+        font-size: 42px;
+        font-weight: 700;
+        line-height: 1.35;
+        color: var(--text-primary);
+      }
+      .ng-quote-author {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent-primary);
+      }
+      .ng-quote-ctx {
+        font-size: 28px;
+        color: var(--text-muted);
+      }""",
+    "bar_chart": """      .ng-bars {
+        width: 100%;
+        max-width: 1120px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+        padding: 40px 36px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+      }
+      .ng-bar-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .ng-bar-head {
+        display: flex;
+        justify-content: space-between;
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+      .ng-bar-track {
+        width: 100%;
+        height: 24px;
+        background: var(--surface-elevated);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .ng-bar-fill {
+        height: 100%;
+        background: var(--accent-primary);
+        border-radius: 12px;
+      }
+      .ng-bar-highlight .ng-bar-fill {
+        background: var(--accent-secondary);
+      }""",
+    "code_spotlight": """      .ng-code-card {
+        width: 100%;
+        max-width: 1180px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 32px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        text-align: left;
+      }
+      .ng-code-lang {
+        font-family: var(--font-mono);
+        font-size: 28px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--accent-primary);
+      }
+      .ng-code-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-family: var(--font-mono);
+        font-size: 28px;
+        line-height: 1.4;
+      }
+      .ng-code-line {
+        display: flex;
+        gap: 18px;
+        padding: 8px 14px;
+        border-radius: 10px;
+        color: var(--text-muted);
+      }
+      .ng-code-line-active {
+        background: var(--accent-primary-soft);
+        color: var(--text-primary);
+        font-weight: 700;
+      }
+      .ng-code-num {
+        color: var(--text-muted);
+        min-width: 32px;
+      }""",
+    "icon_spotlight": """      .ng-spotlight {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        text-align: center;
+      }
+      .ng-spot-ring {
+        position: relative;
+        width: 300px;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ng-ring-svg {
+        position: absolute;
+        inset: 0;
+      }
+      .ng-spot-icon {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .ng-spot-label {
+        font-size: 42px;
+        font-weight: 900;
+        color: var(--text-primary);
       }""",
     "radar_map": """      .ng-radar-wrap {
         width: 100%;
@@ -2241,12 +2767,6 @@ def load_storyboard(path: Path) -> StoryboardSpec:
     )
 
 
-def _norm_token(text: str) -> str:
-    decomposed = unicodedata.normalize("NFKD", text.lower())
-    ascii_only = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
-    return re.sub(r"[^a-z0-9]", "", ascii_only)
-
-
 def align_storyboard_to_transcript(
     storyboard: StoryboardSpec,
     transcript: dict[str, Any],
@@ -2259,7 +2779,7 @@ def align_storyboard_to_transcript(
     words: list[tuple[str, float]] = []
     for seg in transcript.get("segments", []):
         for w in seg.get("words", []):
-            norm = _norm_token(str(w.get("word", "")))
+            norm = normalize_token(str(w.get("word", "")))
             if norm:
                 words.append((norm, float(w.get("start", 0.0))))
 
@@ -2268,7 +2788,7 @@ def align_storyboard_to_transcript(
     last_t = 0.0
     for idx, scene in enumerate(adjusted):
         if scene.cue_word:
-            target = _norm_token(scene.cue_word)
+            target = normalize_token(scene.cue_word)
             min_t = 0.0 if idx == 0 else adjusted[idx - 1].start + 0.4
             matched_t = next((t for tok, t in words if tok == target and t >= min_t), None)
             if matched_t is not None:
@@ -2462,24 +2982,42 @@ def _set_root_attr(content: str, attr: str, value: str) -> str:
     return re.sub(r'<div\b[^>]*\bdata-composition-id="main"[^>]*>', _repl, content, count=1)
 
 
+def _sync_local_image_assets(project_dir: Path, storyboard: StoryboardSpec) -> None:
+    """
+    Copia los recortes de imagen referenciados por escenas 'image_cutout' desde el repositorio
+    global assets/images/ hacia <project_dir>/assets/images/ para cumplir con el StaticGuard
+    de HyperFrames (prohibido '../' fuera de la raíz del proyecto).
+    """
+    repo_images_dir = Path(__file__).resolve().parent.parent / "assets" / "images"
+    for scene in storyboard.scenes:
+        if scene.component != "image_cutout":
+            continue
+        src_raw = str(scene.props.get("src", "")).strip()
+        filename = Path(src_raw).name if src_raw else "cutout.png"
+        src_candidate = repo_images_dir / filename
+        if src_candidate.exists():
+            dest_dir = project_dir / "assets" / "images"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest_file = dest_dir / filename
+            if not dest_file.exists() or src_candidate.resolve() != dest_file.resolve():
+                import shutil
+
+                shutil.copy2(src_candidate, dest_file)
+
+
 def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> None:
     """Inyecta de forma idempotente CSS de componentes, escenas HTML y coreografía GSAP en index.html."""
     if not html_path.exists():
         raise FileNotFoundError(f"No se encontró el archivo HTML: {html_path}")
 
+    _sync_local_image_assets(html_path.parent, storyboard)
     scenes_html, scenes_gsap = build_storyboard_html_and_gsap(storyboard)
     used_components = {s.component for s in storyboard.scenes}
     scenes_css = build_scenes_css(used_components=used_components)
     content = html_path.read_text(encoding="utf-8")
 
-    # 0. Inyección idempotente del CSS de los 16 componentes
-    css_pattern = r"\s*/\* @scenes-css:start \*/.*?/\* @scenes-css:end \*/"
-    if re.search(css_pattern, content, flags=re.DOTALL):
-        content = re.sub(
-            css_pattern, lambda _: "\n" + scenes_css, content, count=1, flags=re.DOTALL
-        )
-    elif "</style>" in content:
-        content = content.replace("</style>", f"{scenes_css}\n    </style>", 1)
+    # 0. Inyección idempotente del CSS de los componentes usados (tree-shaking)
+    content = upsert_marked_css_block(content, "scenes-css", scenes_css)
 
     # 1. Reemplazo idempotente del bloque HTML de escenas
     html_pattern = r"<!-- @scenes:start -->.*?<!-- @scenes:end -->"

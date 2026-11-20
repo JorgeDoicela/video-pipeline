@@ -94,8 +94,7 @@ flowchart TD
 
 | Identificador (`--caption-style`) | Efecto sobre la Palabra Activa (`.word.active`) | Opacidad Inactiva |
 | :--- | :--- | :--- |
-| `minimal_clean` *(Defecto)* | Lectura limpia sobria sin cajas ni cápsulas; resalta mediante opacidad `1.0`, color de acento y sombra sutil. | `0.40` |
-| `highlight_pill` | Variante de iluminación tipográfica limpia con resplandor suave sin contenedores tipo caja. | `0.45` |
+| `minimal_clean` *(Estándar Único)* | Lectura limpia sobria sin cajas ni cápsulas; resalta mediante opacidad `1.0`, color de acento y sombra sutil. | `0.40` |
 
 ---
 
