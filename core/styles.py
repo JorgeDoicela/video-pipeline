@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Motor jerárquico de sistemas de diseño en 3 niveles para el pipeline de video:
-  1. Nivel Macro (DesignSystem / --design): 7 Diseños grandes estructuralmente distintos.
+  1. Nivel Macro (DesignSystem / --design): 4 Diseños canónicos estructuralmente distintos.
   2. Nivel Medio (--style, --layout, --chrome, --motion, --caption-style):
-     8 temas cromáticos WCAG AA, 4 layouts, 5 marcos de ventana, 4 perfiles GSAP y 6 estilos de subtítulos.
+     4 temas cromáticos WCAG AA, 3 layouts, 4 marcos de ventana, 3 perfiles GSAP y subtítulos minimal_clean.
   3. Nivel Micro (--set clave=valor):
      Overrides puntuales por proyecto sin alterar el catálogo global.
 """

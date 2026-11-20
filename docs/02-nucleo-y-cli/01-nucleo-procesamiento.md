@@ -91,7 +91,7 @@ El script [create_project.py](../../core/create_project.py) genera de manera lim
 
 ### 3.1. Funcionalidades Principales
 * **Clonacion Segura:** Copia recursivamente la plantilla excluyendo caches temporales (`.hyperframes`, `frames`, `node_modules`).
-* **Sincronizacion de Metadatos:** Actualiza el nombre del paquete en `package.json` (`project-<slug>`) y configura `hyperframes.json`.
+* **Sincronizacion de Metadatos:** Actualiza el nombre del paquete y la configuración `videoDesign` en `package.json` (`project-<slug>`).
 * **Inyeccion de Parametros:** Permite fijar el titulo principal (`<h1>`) y la duracion total del video (`data-duration`) directamente por linea de comandos.
 
 ### 3.2. Argumentos de Linea de Comandos
@@ -105,7 +105,7 @@ El script [create_project.py](../../core/create_project.py) genera de manera lim
 | `--layout` | `string` | `None` *(hereda del diseño)* | Variante de distribución (`standard`, `asymmetric_focus`, `stacked`). |
 | `--chrome` | `string` | `auto` | Marco de contenedores (`auto`, `hidden`, `minimal_line`, `terminal_bar`). |
 | `--motion` | `string` | `None` *(hereda del diseño)* | Perfil de animación GSAP (`smooth`, `snappy`, `minimal`). |
-| `--caption-style` | `string` | `None` *(hereda del diseño)* | Estilo de subtítulos cinéticos (`highlight_pill`, `minimal_clean`). |
+| `--caption-style` | `string` | `None` *(hereda del diseño)* | Estilo de subtítulos cinéticos (`minimal_clean`). |
 | `--set` | `list[k=v]` | `None` | Overrides granulares de Nivel 3 (`--set accent_primary=#ff5500 --set stage_gap=56px`). |
 | `--title` | `string` | `None` | Titulo principal para inyectar en la etiqueta `<h1>` o `#card-title` de `index.html`. |
 | `--duration` | `float` | `None` | Duracion total en segundos para el atributo `data-duration`. |
@@ -130,7 +130,7 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
    * **Distribución de Escenario (`--layout`):** `standard` (2 columnas simétricas, lower-third izquierda), `asymmetric_focus` (proporción 60/40, lower-third derecha), `stacked` (filas apiladas verticales).
    * **Marco de Ventanas (`--chrome`):** `auto`, `hidden`, `minimal_line`, `terminal_bar`.
    * **Perfil de Animación GSAP (`--motion`):** `smooth`, `snappy`, `minimal`.
-   * **Estilo de Subtítulos (`--caption-style`):** `highlight_pill`, `minimal_clean`.
+   * **Estilo de Subtítulos (`--caption-style`):** `minimal_clean` (estándar único limpio sin pastillas).
 
 3. **Nivel 3 — Ajustes Granulares sobre un solo Diseño (`--set clave=valor`):**
    Permite modificar propiedades específicas únicamente en el proyecto/diseño actual (persistidas en `package.json` bajo `videoDesign.overrides`) e inspeccionar la configuración activa con `--inspect`:

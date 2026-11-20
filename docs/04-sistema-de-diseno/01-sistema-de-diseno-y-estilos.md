@@ -22,7 +22,7 @@ flowchart TD
         L["Distribución (--layout): 3 Layouts"]
         C["Marco de Ventana (--chrome): 4 Variantes"]
         M["Coreografía GSAP (--motion): 3 Perfiles"]
-        K["Subtítulos (--caption-style): 2 Estilos"]
+        K["Subtítulos (--caption-style): minimal_clean"]
     end
 
     subgraph N3 ["Nivel 3: Overrides Granulares (--set clave=valor)"]

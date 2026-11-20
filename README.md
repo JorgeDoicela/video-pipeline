@@ -99,12 +99,12 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
-  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 24 componentes vectoriales/Canvas animados (incluidos `toggle_alert`, `conveyor_factory`, `cta_card`, `canvas_fx` determinista y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz + música/cama con *ducking* + 15 SFX.
+  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 25 componentes vectoriales/Canvas/Cutouts animados (incluidos `toggle_alert`, `conveyor_factory`, `cta_card`, `canvas_fx` determinista, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz + música/cama con *ducking* + 15 SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y terminal vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
 * **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
-  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena con las mismas 24 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
+  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena con las mismas 25 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
   * `editorial_16_9`: Narrativa widescreen para ensayos, historia, teología o divulgación con puntos clave.
   * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 
@@ -228,7 +228,7 @@ Consulta el catalogo maestro:
 2. [02 — Núcleo de Procesamiento y CLI](docs/02-nucleo-y-cli/01-nucleo-procesamiento.md): Especificacion de `faster-whisper`, esquema de `transcript.json`, filtros de corte en FFmpeg y CLI de orquestacion.
 3. [03.1 — Motor de Renderizado (HyperFrames)](docs/03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md): Modelo temporal en segundos, Chromium Headless Shell y aceleracion por hardware GPU.
 4. [03.2 — Formatos de Video Soportados](docs/03-renderizado-y-formatos/02-formatos-de-video.md): Contratos de diseño y catalogo de las 7 plantillas esenciales (9:16 y 16:9).
-5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (4 Diseños Macro, 4 Temas WCAG AA, 3 Layouts, 4 Marcos, 3 Perfiles Motion, 2 Estilos de Subtítulos y Overrides `--set`).
+5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (4 Diseños Macro, 4 Temas WCAG AA, 3 Layouts, 4 Marcos, 3 Perfiles Motion, subtítulos `minimal_clean` y Overrides `--set`).
 6. [04.2 — Recursos Estáticos y Assets](docs/04-sistema-de-diseno/02-recursos-y-assets.md): Efectos de sonido WAV, iconografia tecnica SVG y tipografias locales.
 7. [05 — Guía Operativa y Flujos de Trabajo](docs/05-operacion-y-flujos/01-guia-operativa-y-flujos.md): Runbooks secuenciales desde la grabacion hasta la exportacion final.
 
