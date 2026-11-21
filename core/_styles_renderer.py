@@ -91,6 +91,7 @@ def build_root_css_block(
         f"        --text-secondary: {pick('text_secondary', theme.text_secondary)};",
         f"        --text-muted: {pick('text_muted', theme.text_muted)};",
         f"        --title-gradient: {theme.title_gradient};",
+        f"        --font-display: {pick('font_display', theme.font_display)};",
         f"        --font-sans: {pick('font_sans', theme.font_sans)};",
         f"        --font-mono: {pick('font_mono', theme.font_mono)};",
         f"        --accent-primary: {pick('accent_primary', theme.accent_primary)};",
@@ -157,6 +158,9 @@ def generate_design_structural_css(
     lines = [
         "      /* @design-system:start */",
         f"      /* Macro Design: {design.slug} | Layout: {layout.slug} */",
+        "      h1, h2, .main-title, .scene-headline, .ng-quote-text, .quote-text {",
+        "        font-family: var(--font-display);",
+        "      }",
         "      .panel, #main-card {",
         "        border-radius: var(--radius-lg);",
         "        border: var(--border-width) solid var(--border);",

@@ -176,6 +176,6 @@ Para cubrir producción vertical (TikTok/Reels/Shorts) y horizontal (YouTube/Pre
 
 ## 5. Enlaces Relacionados
 
-* Consultar el catálogo de Diseños Macro y Temas en [06-sistema-de-diseno-y-estilos.md](../04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md).
-* Consultar los runbooks paso a paso en [05-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
+* Consultar el catálogo de Diseños Macro y Temas en [01-sistema-de-diseno-y-estilos.md](../04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md).
+* Consultar los runbooks paso a paso en [01-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
 * Volver al indice general en [00-indice-general.md](../00-indice-general.md).

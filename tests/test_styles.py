@@ -91,9 +91,11 @@ def test_level1_macro_design_switching(tmp_path):
     html_ed = html_file.read_text(encoding="utf-8")
     assert 'data-design="editorial"' in html_ed
     assert 'data-style="paper_warm"' in html_ed
-    assert "--radius-lg: 4px;" in html_ed
+    assert "--radius-lg: 20px;" in html_ed
+    assert "--font-display: 'Lora', Georgia, serif;" in html_ed
+    assert "font-family: var(--font-display);" in html_ed
     assert "border-top: 3px solid" not in html_ed
-    assert "border: 2px solid var(--text-primary);" in html_ed
+    assert "border: 1px solid var(--border);" in html_ed
     assert "<h1>Título Intacto</h1>" in html_ed
 
     # 2. Cambiar a Diseño Macro cinematic

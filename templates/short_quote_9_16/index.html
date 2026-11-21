@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1920" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&family=JetBrains+Mono:wght@500;700&family=Lora:wght@600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+    />
     <style>
       /* @theme:start */
       /* Design: editorial | Theme: paper_warm | Layout: standard */
@@ -11,41 +15,42 @@
         --design-slug: "editorial";
         --theme-slug: "paper_warm";
         --layout-slug: "standard";
-        --bg: #fdf6e3;
-        --bg-gradient: radial-gradient(circle at 50% 20%, rgba(3, 105, 161, 0.06) 0%, transparent 70%);
-        --surface: rgba(255, 252, 240, 0.96);
-        --surface-elevated: #eee8d5;
-        --border: rgba(7, 54, 66, 0.18);
-        --border-strong: rgba(3, 105, 161, 0.60);
-        --divider: rgba(7, 54, 66, 0.12);
-        --shadow: none;
-        --text-primary: #073642;
-        --text-secondary: #1e293b;
-        --text-muted: #475569;
-        --title-gradient: linear-gradient(135deg, #073642 40%, #0369a1 100%);
-        --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Georgia, serif;
+        --bg: #f5f1ea;
+        --bg-gradient: radial-gradient(circle at 50% 18%, rgba(186, 147, 89, 0.14) 0%, transparent 68%);
+        --surface: rgba(255, 253, 249, 0.94);
+        --surface-elevated: #ebe4d8;
+        --border: rgba(135, 92, 34, 0.20);
+        --border-strong: rgba(135, 92, 34, 0.50);
+        --divider: rgba(43, 35, 29, 0.10);
+        --shadow: 0 20px 48px rgba(43, 35, 29, 0.08);
+        --text-primary: #2b231d;
+        --text-secondary: #4a3f35;
+        --text-muted: #63564b;
+        --title-gradient: linear-gradient(135deg, #2b231d 42%, #875c22 100%);
+        --font-display: 'Lora', Georgia, serif;
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         --font-mono: 'JetBrains Mono', monospace;
-        --accent-primary: #0369a1;
-        --accent-primary-soft: rgba(3, 105, 161, 0.10);
-        --accent-primary-glow: rgba(3, 105, 161, 0.25);
-        --accent-secondary: #047857;
-        --accent-secondary-soft: rgba(4, 120, 87, 0.10);
-        --accent-tertiary: #6d28d9;
-        --accent-warning: #b45309;
-        --accent-danger: #be123c;
-        --node-fill: #fffdf7;
-        --cable-idle: #94a3b8;
+        --accent-primary: #875c22;
+        --accent-primary-soft: rgba(135, 92, 34, 0.10);
+        --accent-primary-glow: rgba(186, 147, 89, 0.28);
+        --accent-secondary: #3b6147;
+        --accent-secondary-soft: rgba(59, 97, 71, 0.10);
+        --accent-tertiary: #7c4d3a;
+        --accent-warning: #8f5410;
+        --accent-danger: #a32f2f;
+        --node-fill: #fffdf9;
+        --cable-idle: #b8aa96;
         --caption-bg: transparent;
-        --caption-text: #073642;
-        --caption-active: #0369a1;
-        --caption-shadow: 0 2px 8px rgba(7, 54, 66, 0.12);
+        --caption-text: #2b231d;
+        --caption-active: #875c22;
+        --caption-shadow: 0 2px 10px rgba(43, 35, 29, 0.12);
         --caption-glow: none;
         /* Tokens estructurales de Diseño Macro y Layout */
-        --radius-lg: 4px;
-        --radius-md: 4px;
-        --radius-sm: 2px;
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --radius-sm: 8px;
         --border-width: 1px;
-        --panel-backdrop: none;
+        --panel-backdrop: blur(16px);
         --stage-padding: 80px 100px;
         --stage-gap: 40px;
         --split-columns: 1fr 1fr;
@@ -225,6 +230,9 @@
       /* @caption-style:end */
       /* @design-system:start */
       /* Macro Design: editorial | Layout: standard */
+      h1, h2, .main-title, .scene-headline, .ng-quote-text, .quote-text {
+        font-family: var(--font-display);
+      }
       .panel, #main-card {
         border-radius: var(--radius-lg);
         border: var(--border-width) solid var(--border);
@@ -257,7 +265,9 @@
         font-size: var(--caption-size);
       }
       .panel, #main-card {
-        border: 2px solid var(--text-primary);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
       }
       .lower-third {
         left: 80px;

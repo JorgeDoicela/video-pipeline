@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=1080, height=1920" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;800;900&family=JetBrains+Mono:wght@500;700&family=Lora:wght@600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap"
+    />
     <style>
       /* @theme:start */
       /* Design: cinematic | Theme: dark_violet | Layout: standard */
@@ -23,7 +27,8 @@
         --text-secondary: #e4e4e7;
         --text-muted: #a1a1aa;
         --title-gradient: linear-gradient(135deg, #fafafa 40%, #a78bfa 100%);
-        --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+        --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         --font-mono: 'JetBrains Mono', monospace;
         --accent-primary: #a78bfa;
         --accent-primary-soft: rgba(167, 139, 250, 0.14);
@@ -183,6 +188,9 @@
       /* @caption-style:end */
       /* @design-system:start */
       /* Macro Design: cinematic | Layout: standard */
+      h1, h2, .main-title, .scene-headline, .ng-quote-text, .quote-text {
+        font-family: var(--font-display);
+      }
       .panel, #main-card {
         border-radius: var(--radius-lg);
         border: var(--border-width) solid var(--border);

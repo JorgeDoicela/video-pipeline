@@ -12,7 +12,7 @@ El sistema desacopla la presentación visual del contenido semántico mediante t
 flowchart TD
     subgraph N1 ["Nivel 1: Diseños Macro (--design)"]
         D1["cinematic (Oscuro Premium)"]
-        D2["editorial (Cálido / Pergamino)"]
+        D2["editorial (Marfil y Latón)"]
         D3["clean (Claro Minimalista)"]
     end
 
@@ -46,7 +46,7 @@ flowchart TD
 | Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Motion / Captions Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y bordes simétricos limpios. | `dark_violet` | `smooth` / `minimal_clean` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
-| `editorial` | Editorial (Cálido / Pergamino) | Estética clásica de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), tipografía limpia sin filetes y cero desenfoque. | `paper_warm` | `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
+| `editorial` | Editorial (Marfil y Latón) | Estética cálida y serena con fondo marfil, esquinas orgánicas (`20px`), borde fino (`1px`), desenfoque suave (`blur(16px)`) y sombra difusa. | `paper_warm` | `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
 | `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `smooth` / `minimal_clean` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
 
 ---
@@ -58,7 +58,7 @@ flowchart TD
 | Identificador (`-s`) | Nombre | Fondo Principal (`--bg`) | Acento Primario (`--accent-primary`) | Acento Secundario (`--accent-secondary`) | Naturaleza Cromática |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `dark_violet` *(Defecto)* | Dark Violet (Obsidiana y Cristal) | `#09090b` | `#a78bfa` (Violeta) | `#34d399` (Esmeralda) | Oscuro atmosférico de alto contraste |
-| `paper_warm` | Paper Warm (Pergamino Cálido) | `#fdf6e3` | `#0369a1` (Cobalto) | `#047857` (Esmeralda) | Claro cálido antirreflejo para lectura |
+| `paper_warm` | Paper Warm (Marfil, Arena y Latón) | `#f5f1ea` | `#875c22` (Latón Dorado) | `#3b6147` (Verde Olivo) | Claro cálido sereno de alta legibilidad |
 | `clean_light` | Clean Light (Blanco Neutro) | `#f8fafc` | `#0369a1` (Azul) | `#047857` (Verde) | Claro limpio calibrado WCAG AA |
 
 ### 3.2. Variantes de Distribución (`--layout`)
@@ -94,7 +94,7 @@ El Nivel 3 permite ajustar tokens geométricos o cromáticos específicos en un 
 | **Geometría** | `radius_lg`, `radius_md`, `radius_sm`, `border_width` | `--radius-lg`, `--radius-md`, `--radius-sm`, `--border-width` | `--set radius_lg=0px` |
 | **Espaciado / Layout** | `stage_padding`, `stage_gap`, `split_columns`, `header_align`, `lower_third_side` | `--stage-padding`, `--stage-gap`, `--split-columns`, posición lower-third | `--set stage_gap=56px` |
 | **Subtítulos** | `caption_bottom`, `caption_size`, `caption_bg`, `caption_text`, `caption_active` | Variables de subtítulos en `:root` | `--set caption_size=48px` |
-| **Tipografía y Color** | `font_sans`, `font_mono`, `bg`, `surface`, `accent_primary`, `text_primary`, etc. | Tokens semánticos en `:root` | `--set accent_primary=#f43f5e` |
+| **Tipografía y Color** | `font_display`, `font_sans`, `font_mono`, `bg`, `surface`, `accent_primary`, `text_primary`, etc. | Tokens semánticos en `:root` | `--set accent_primary=#f43f5e` |
 
 ---
 

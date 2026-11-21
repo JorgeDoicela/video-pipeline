@@ -123,5 +123,5 @@ sequenceDiagram
 
 ## 5. Enlaces Relacionados
 
-* Ver la especificacion de los formatos visuales en [04-formatos-de-video.md](./02-formatos-de-video.md).
-* Ver los procedimientos paso a paso en [05-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
+* Ver la especificacion de los formatos visuales en [02-formatos-de-video.md](./02-formatos-de-video.md).
+* Ver los procedimientos paso a paso en [01-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).

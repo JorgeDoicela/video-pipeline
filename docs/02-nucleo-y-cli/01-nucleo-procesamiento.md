@@ -99,7 +99,7 @@ El script [create_project.py](../../core/create_project.py) genera de manera lim
 | Parametro | Tipo | Defecto | Descripcion |
 | :--- | :--- | :--- | :--- |
 | `name` | `string` | *(Requerido)* | Nombre o slug del nuevo proyecto a crear en `projects/`. |
-| `-t, --template` | `string` | `short_quote_9_16` | Plantilla base (`short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`). |
+| `-t, --template` | `string` | `short_quote_9_16` | Plantilla base (`explainer_scenes_9_16`, `explainer_scenes_16_9`, `short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`). |
 | `-d, --design` | `string` | `cinematic` | Diseño Macro de Nivel 1 (`cinematic`, `editorial`, `clean`). |
 | `-s, --style` | `string` | `None` *(hereda del diseño)* | Tema cromático de Nivel 2 (`dark_violet`, `paper_warm`, `clean_light`). |
 | `--layout` | `string` | `None` *(hereda del diseño)* | Variante de distribución (`standard`, `asymmetric_focus`, `stacked`). |
@@ -114,12 +114,12 @@ El script [create_project.py](../../core/create_project.py) genera de manera lim
 
 ## 3.3. Motor Jerárquico de Sistemas de Diseño en 3 Niveles (`core/styles.py`)
 
-El módulo [styles.py](../../core/styles.py) implementa una arquitectura componible en 3 niveles que desacopla los **Diseños Macro**, las **Opciones Internas de cada diseño** y los **Ajustes Puntuales (Overrides)** sin alterar el contenido del proyecto. Para la especificación completa de tokens y tablas de referencia, consulta [06-sistema-de-diseno-y-estilos.md](../04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md):
+El módulo [styles.py](../../core/styles.py) implementa una arquitectura componible en 3 niveles que desacopla los **Diseños Macro**, las **Opciones Internas de cada diseño** y los **Ajustes Puntuales (Overrides)** sin alterar el contenido del proyecto. Para la especificación completa de tokens y tablas de referencia, consulta [01-sistema-de-diseno-y-estilos.md](../04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md):
 
 1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
    * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), bordes simétricos limpios, tema nativo `dark_violet` y subtítulos `minimal_clean`.
-   * `editorial`: Estética cálida de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), tipografía limpia sin filetes decorativos, tema cálido `paper_warm` y subtítulos `minimal_clean`.
+   * `editorial`: Estética cálida y serena de lectura con fondo marfil (`#f5f1ea`), esquinas suaves (`20px`), bordes finos (`1px`), sombra difusa cálida, tema `paper_warm` (latón dorado y verde olivo) y subtítulos `minimal_clean`.
    * `clean`: Tarjetas blancas minimalistas con radios de `24px`, sombras multicapa suaves, tema nativo `clean_light` y animación `smooth`.
 
 2. **Nivel 2 — Opciones Internas dentro de un mismo Diseño:**
@@ -219,5 +219,5 @@ python3 core/pipeline.py storyboard mi-explainer --mix-sfx
 
 ## 6. Enlaces Relacionados
 
-* Consultar la arquitectura del motor de render en [03-motor-renderizado-hyperframes.md](../03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md).
-* Ver la guia operativa para ejecucion de estos scripts en [05-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).
+* Consultar la arquitectura del motor de render en [01-motor-renderizado-hyperframes.md](../03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md).
+* Ver la guia operativa para ejecucion de estos scripts en [01-guia-operativa-y-flujos.md](../05-operacion-y-flujos/01-guia-operativa-y-flujos.md).

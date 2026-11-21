@@ -89,6 +89,6 @@ El pipeline se adhiere a una politica estricta de **cero costes adicionales**:
 
 ## 5. Enlaces Relacionados
 
-* Consultar la especificacion del nucleo de audio en [02-nucleo-procesamiento.md](../02-nucleo-y-cli/01-nucleo-procesamiento.md).
-* Consultar la arquitectura de HyperFrames en [03-motor-renderizado-hyperframes.md](../03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md).
+* Consultar la especificacion del nucleo de audio en [01-nucleo-procesamiento.md](../02-nucleo-y-cli/01-nucleo-procesamiento.md).
+* Consultar la arquitectura de HyperFrames en [01-motor-renderizado-hyperframes.md](../03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md).
 * Volver al catalogo maestro en [00-indice-general.md](../00-indice-general.md).
