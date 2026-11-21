@@ -1,8 +1,8 @@
 """
 Catálogo declarativo de tokens y variantes para el sistema de diseño en 3 niveles:
-  - Nivel 1: Diseños Macro (DESIGN_SYSTEMS: 4 estilos canónicos)
-  - Nivel 2: Temas cromáticos (THEMES: 4 paletas WCAG AA), Layouts (LAYOUT_VARIANTS: 3),
-             Marcos (CHROME_VARIANTS: 4), Perfiles GSAP (MOTION_PROFILES: 3) y Subtítulos (CAPTION_STYLES: 2)
+  - Nivel 1: Diseños Macro (DESIGN_SYSTEMS: 3 diseños canónicos)
+  - Nivel 2: Temas cromáticos (THEMES: 3 paletas WCAG AA), Layouts (LAYOUT_VARIANTS: 3),
+             Perfiles GSAP (MOTION_PROFILES: 3) y Subtítulos (CAPTION_STYLES: 1)
   - Nivel 3: Claves configurables mediante --set (OVERRIDABLE_KEYS)
 """
 
@@ -62,7 +62,6 @@ class DesignSystem:
     name: str
     description: str
     default_theme: str
-    default_chrome: str
     default_motion: str
     default_caption_style: str
     radius_lg: str
@@ -70,8 +69,7 @@ class DesignSystem:
     radius_sm: str
     border_width: str
     panel_backdrop: str
-    badge_radius: str
-    shadow_mode: str = "theme"  # "theme" | "hard" | "none"
+    shadow_mode: str = "theme"  # "theme" | "none"
     structural_css: tuple[str, ...] = ()
 
 
@@ -89,16 +87,6 @@ class LayoutVariant:
     lower_third_side: str
     caption_bottom: str
     caption_size: str
-
-
-@dataclass(frozen=True)
-class ChromeVariant:
-    """Nivel 2 (Opción interna de Marco/Ventana): Controla la decoración de cabeceras de tarjetas."""
-
-    slug: str
-    name: str
-    description: str
-    css_rules: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -128,12 +116,11 @@ class CaptionStyle:
 DEFAULT_DESIGN = "cinematic"
 DEFAULT_THEME = "dark_violet"
 DEFAULT_LAYOUT = "standard"
-DEFAULT_CHROME = "auto"
 DEFAULT_MOTION = "smooth"
 DEFAULT_CAPTION_STYLE = "minimal_clean"
 
 # =====================================================================
-# NIVEL 1: CATÁLOGO DE DISEÑOS MACRO (4 DISEÑOS CANÓNICOS)
+# NIVEL 1: CATÁLOGO DE DISEÑOS MACRO (3 DISEÑOS CANÓNICOS)
 # =====================================================================
 DESIGN_SYSTEMS: dict[str, DesignSystem] = {
     "cinematic": DesignSystem(
@@ -141,7 +128,6 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         name="Cinematic (Oscuro Premium)",
         description="Superficie oscura con curvas amplias, desenfoque suave, bordes simétricos y alto impacto visual.",
         default_theme="dark_violet",
-        default_chrome="hidden",
         default_motion="smooth",
         default_caption_style="minimal_clean",
         radius_lg="28px",
@@ -149,7 +135,6 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         radius_sm="999px",
         border_width="1px",
         panel_backdrop="blur(24px)",
-        badge_radius="0px",
         shadow_mode="theme",
         structural_css=(),
     ),
@@ -158,7 +143,6 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         name="Editorial (Cálido / Pergamino)",
         description="Formato clásico de lectura y ensayo con fondo cálido antirreflejo, filetes sobrios y alto contraste.",
         default_theme="paper_warm",
-        default_chrome="hidden",
         default_motion="minimal",
         default_caption_style="minimal_clean",
         radius_lg="4px",
@@ -166,7 +150,6 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         radius_sm="2px",
         border_width="1px",
         panel_backdrop="none",
-        badge_radius="0px",
         shadow_mode="none",
         structural_css=(
             ".panel, #main-card {",
@@ -179,7 +162,6 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         name="Clean (Claro Minimalista)",
         description="Diseño luminoso con sombras suaves multicapa, tarjetas blancas puras y estética minimalista.",
         default_theme="clean_light",
-        default_chrome="hidden",
         default_motion="smooth",
         default_caption_style="minimal_clean",
         radius_lg="24px",
@@ -187,7 +169,6 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
         radius_sm="999px",
         border_width="1px",
         panel_backdrop="blur(24px)",
-        badge_radius="0px",
         shadow_mode="theme",
         structural_css=(
             ".panel, #main-card {",
@@ -199,32 +180,10 @@ DESIGN_SYSTEMS: dict[str, DesignSystem] = {
             "}",
         ),
     ),
-    "terminal": DesignSystem(
-        slug="terminal",
-        name="Terminal (Brutalismo Técnico TUI)",
-        description="Estética de consola técnica con esquinas a 90 grados, bordes marcados y sombra dura desplazada.",
-        default_theme="terminal_green",
-        default_chrome="terminal_bar",
-        default_motion="snappy",
-        default_caption_style="minimal_clean",
-        radius_lg="0px",
-        radius_md="0px",
-        radius_sm="0px",
-        border_width="2px",
-        panel_backdrop="none",
-        badge_radius="0px",
-        shadow_mode="hard",
-        structural_css=(
-            ".panel, #main-card, .lower-third {",
-            "  border: 2px solid var(--accent-primary);",
-            "  box-shadow: var(--shadow);",
-            "}",
-        ),
-    ),
 }
 
 # =====================================================================
-# NIVEL 2A: CATÁLOGO DE TEMAS VISUALES (4 PALETAS WCAG AA)
+# NIVEL 2A: CATÁLOGO DE TEMAS VISUALES (3 PALETAS WCAG AA)
 # =====================================================================
 THEMES: dict[str, VisualTheme] = {
     "dark_violet": VisualTheme(
@@ -332,41 +291,6 @@ THEMES: dict[str, VisualTheme] = {
         caption_shadow="0 2px 10px rgba(15, 23, 42, 0.12)",
         caption_glow="none",
     ),
-    "terminal_green": VisualTheme(
-        slug="terminal_green",
-        name="Terminal Green (Consola CRT)",
-        description="Estética de consola de bajo nivel con negro profundo, verde fósforo y ámbar técnico.",
-        color_scheme="dark",
-        bg="#050a06",
-        bg_gradient="radial-gradient(circle at 50% 20%, rgba(34, 197, 94, 0.12) 0%, transparent 70%)",
-        surface="rgba(9, 20, 12, 0.92)",
-        surface_elevated="rgba(34, 197, 94, 0.05)",
-        border="rgba(34, 197, 94, 0.28)",
-        border_strong="rgba(34, 197, 94, 0.70)",
-        divider="rgba(34, 197, 94, 0.14)",
-        shadow="0 20px 50px rgba(0, 0, 0, 0.80)",
-        text_primary="#ecfdf5",
-        text_secondary="#a7f3d0",
-        text_muted="#6ee7b7",
-        title_gradient="linear-gradient(135deg, #ecfdf5 35%, #22c55e 100%)",
-        font_sans="'JetBrains Mono', monospace",
-        font_mono="'JetBrains Mono', monospace",
-        accent_primary="#22c55e",
-        accent_primary_soft="rgba(34, 197, 94, 0.14)",
-        accent_primary_glow="rgba(34, 197, 94, 0.35)",
-        accent_secondary="#f59e0b",
-        accent_secondary_soft="rgba(245, 158, 11, 0.14)",
-        accent_tertiary="#38bdf8",
-        accent_warning="#facc15",
-        accent_danger="#f43f5e",
-        node_fill="#09140c",
-        cable_idle="#14532d",
-        caption_bg="transparent",
-        caption_text="#ecfdf5",
-        caption_active="#22c55e",
-        caption_shadow="0 4px 20px rgba(0, 0, 0, 0.95)",
-        caption_glow="0 0 16px #22c55e",
-    ),
 }
 
 # =====================================================================
@@ -412,53 +336,7 @@ LAYOUT_VARIANTS: dict[str, LayoutVariant] = {
 }
 
 # =====================================================================
-# NIVEL 2C: VARIANTES DE MARCO / VENTANA (--chrome)
-# =====================================================================
-CHROME_VARIANTS: dict[str, ChromeVariant] = {
-    "auto": ChromeVariant(
-        slug="auto",
-        name="Auto (Heredado del Diseño Macro)",
-        description="Utiliza el marco de ventana nativo del Diseño Macro seleccionado.",
-    ),
-    "hidden": ChromeVariant(
-        slug="hidden",
-        name="Clean Card (Sin Barra de Ventana)",
-        description="Oculta por completo la barra superior de ventana dejando tarjetas puras.",
-        css_rules=(
-            ".window-header {",
-            "  display: none;",
-            "}",
-        ),
-    ),
-    "minimal_line": ChromeVariant(
-        slug="minimal_line",
-        name="Minimal Editorial Line",
-        description="Oculta los botones de ventana y deja únicamente la barra tipográfica limpia.",
-        css_rules=(
-            ".window-dots {",
-            "  display: none;",
-            "}",
-        ),
-    ),
-    "terminal_bar": ChromeVariant(
-        slug="terminal_bar",
-        name="Terminal TUI Block",
-        description="Controles cuadrados angulares tipo terminal técnica con borde superior marcado.",
-        css_rules=(
-            ".dot {",
-            "  border-radius: 0px;",
-            "  width: 12px;",
-            "  height: 12px;",
-            "}",
-            ".window-header {",
-            "  border-bottom: 2px solid var(--accent-primary);",
-            "}",
-        ),
-    ),
-}
-
-# =====================================================================
-# NIVEL 2D: PERFILES DE MOVIMIENTO GSAP (--motion)
+# NIVEL 2C: PERFILES DE MOVIMIENTO GSAP (--motion)
 # =====================================================================
 MOTION_PROFILES: dict[str, MotionProfile] = {
     "smooth": MotionProfile(
@@ -473,7 +351,7 @@ MOTION_PROFILES: dict[str, MotionProfile] = {
     "snappy": MotionProfile(
         slug="snappy",
         name="Snappy High-Energy (Rápido)",
-        description="Transiciones rápidas y directas ideales para Shorts, Reels y terminal.",
+        description="Transiciones rápidas y directas ideales para Shorts y Reels.",
         entry_ease="power4.out",
         panel_ease="back.out(2.0)",
         entry_duration=0.45,
@@ -562,10 +440,6 @@ def get_theme(slug: str) -> VisualTheme:
 
 def get_layout_variant(slug: str) -> LayoutVariant:
     return _get_entry(LAYOUT_VARIANTS, slug, "La variante de layout")
-
-
-def get_chrome_variant(slug: str) -> ChromeVariant:
-    return _get_entry(CHROME_VARIANTS, slug, "La variante de marco")
 
 
 def get_motion_profile(slug: str) -> MotionProfile:

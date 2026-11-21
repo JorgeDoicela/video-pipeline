@@ -100,10 +100,9 @@ El script [create_project.py](../../core/create_project.py) genera de manera lim
 | :--- | :--- | :--- | :--- |
 | `name` | `string` | *(Requerido)* | Nombre o slug del nuevo proyecto a crear en `projects/`. |
 | `-t, --template` | `string` | `short_quote_9_16` | Plantilla base (`short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`). |
-| `-d, --design` | `string` | `cinematic` | Diseño Macro de Nivel 1 (`cinematic`, `editorial`, `clean`, `terminal`). |
-| `-s, --style` | `string` | `None` *(hereda del diseño)* | Tema cromático de Nivel 2 (`dark_violet`, `paper_warm`, `clean_light`, `terminal_green`). |
+| `-d, --design` | `string` | `cinematic` | Diseño Macro de Nivel 1 (`cinematic`, `editorial`, `clean`). |
+| `-s, --style` | `string` | `None` *(hereda del diseño)* | Tema cromático de Nivel 2 (`dark_violet`, `paper_warm`, `clean_light`). |
 | `--layout` | `string` | `None` *(hereda del diseño)* | Variante de distribución (`standard`, `asymmetric_focus`, `stacked`). |
-| `--chrome` | `string` | `auto` | Marco de contenedores (`auto`, `hidden`, `minimal_line`, `terminal_bar`). |
 | `--motion` | `string` | `None` *(hereda del diseño)* | Perfil de animación GSAP (`smooth`, `snappy`, `minimal`). |
 | `--caption-style` | `string` | `None` *(hereda del diseño)* | Estilo de subtítulos cinéticos (`minimal_clean`). |
 | `--set` | `list[k=v]` | `None` | Overrides granulares de Nivel 3 (`--set accent_primary=#ff5500 --set stage_gap=56px`). |
@@ -119,16 +118,14 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 
 1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
-   * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), bordes simétricos limpios, tarjetas limpias (`hidden`), tema nativo `dark_violet` y subtítulos `minimal_clean`.
+   * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), bordes simétricos limpios, tema nativo `dark_violet` y subtítulos `minimal_clean`.
    * `editorial`: Estética cálida de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), tipografía limpia sin filetes decorativos, tema cálido `paper_warm` y subtítulos `minimal_clean`.
    * `clean`: Tarjetas blancas minimalistas con radios de `24px`, sombras multicapa suaves, tema nativo `clean_light` y animación `smooth`.
-   * `terminal`: Estética TUI con esquinas a 90 grados (`0px`), bordes de `2px`, sombra dura desplazada (`8px 8px 0px`), barra `terminal_bar`, tema nativo `terminal_green` y animación `snappy`.
 
 2. **Nivel 2 — Opciones Internas dentro de un mismo Diseño:**
    Permite personalizar sub-dimensiones manteniendo el Diseño Macro activo:
-   * **Temas Cromáticos (`-s, --style`):** `dark_violet`, `paper_warm`, `clean_light`, `terminal_green`.
+   * **Temas Cromáticos (`-s, --style`):** `dark_violet`, `paper_warm`, `clean_light`.
    * **Distribución de Escenario (`--layout`):** `standard` (2 columnas simétricas, lower-third izquierda), `asymmetric_focus` (proporción 60/40, lower-third derecha), `stacked` (filas apiladas verticales).
-   * **Marco de Ventanas (`--chrome`):** `auto`, `hidden`, `minimal_line`, `terminal_bar`.
    * **Perfil de Animación GSAP (`--motion`):** `smooth`, `snappy`, `minimal`.
    * **Estilo de Subtítulos (`--caption-style`):** `minimal_clean` (estándar único limpio sin pastillas).
 
@@ -139,11 +136,11 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 # Listar catálogo completo de los 3 niveles (o en JSON con --json)
 python3 core/pipeline.py style --list
 
-# Nivel 1: Cambiar todo el proyecto a otro Diseño Macro diferente (ej. editorial o terminal)
+# Nivel 1: Cambiar todo el proyecto a otro Diseño Macro diferente (ej. editorial o clean)
 python3 core/pipeline.py style mi-proyecto -d editorial
 
-# Nivel 2: Dentro de ese mismo diseño, elegir opciones internas (layout, marco, paleta o motion)
-python3 core/pipeline.py style mi-proyecto --layout asymmetric_focus --chrome hidden --motion smooth
+# Nivel 2: Dentro de ese mismo diseño, elegir opciones internas (layout, paleta o motion)
+python3 core/pipeline.py style mi-proyecto --layout asymmetric_focus --motion smooth
 
 # Nivel 3: Ajustar propiedades puntuales solo para ese diseño
 python3 core/pipeline.py style mi-proyecto --set accent_primary=#e11d48 --set stage_gap=56px

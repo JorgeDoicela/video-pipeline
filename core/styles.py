@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 Motor jerárquico de sistemas de diseño en 3 niveles para el pipeline de video:
-  1. Nivel Macro (DesignSystem / --design): 4 Diseños canónicos estructuralmente distintos.
-  2. Nivel Medio (--style, --layout, --chrome, --motion, --caption-style):
-     4 temas cromáticos WCAG AA, 3 layouts, 4 marcos de ventana, 3 perfiles GSAP y subtítulos minimal_clean.
+  1. Nivel Macro (DesignSystem / --design): 3 Diseños canónicos estructuralmente distintos.
+  2. Nivel Medio (--style, --layout, --motion, --caption-style):
+     3 temas cromáticos WCAG AA, 3 layouts, 3 perfiles GSAP y subtítulos minimal_clean.
   3. Nivel Micro (--set clave=valor):
      Overrides puntuales por proyecto sin alterar el catálogo global.
 """
@@ -22,9 +22,7 @@ ensure_repo_root_on_path()
 
 from core._styles_catalog import (  # noqa: E402
     CAPTION_STYLES,
-    CHROME_VARIANTS,
     DEFAULT_CAPTION_STYLE,
-    DEFAULT_CHROME,
     DEFAULT_DESIGN,
     DEFAULT_LAYOUT,
     DEFAULT_MOTION,
@@ -35,13 +33,11 @@ from core._styles_catalog import (  # noqa: E402
     OVERRIDABLE_KEYS,
     THEMES,
     CaptionStyle,
-    ChromeVariant,
     DesignSystem,
     LayoutVariant,
     MotionProfile,
     VisualTheme,
     get_caption_style,
-    get_chrome_variant,
     get_design_system,
     get_layout_variant,
     get_motion_profile,
@@ -61,9 +57,7 @@ from core._styles_renderer import (  # noqa: E402
 
 __all__ = [
     "CAPTION_STYLES",
-    "CHROME_VARIANTS",
     "DEFAULT_CAPTION_STYLE",
-    "DEFAULT_CHROME",
     "DEFAULT_DESIGN",
     "DEFAULT_LAYOUT",
     "DEFAULT_MOTION",
@@ -74,7 +68,6 @@ __all__ = [
     "OVERRIDABLE_KEYS",
     "THEMES",
     "CaptionStyle",
-    "ChromeVariant",
     "DesignSystem",
     "LayoutVariant",
     "MotionProfile",
@@ -86,7 +79,6 @@ __all__ = [
     "generate_caption_css",
     "generate_design_structural_css",
     "get_caption_style",
-    "get_chrome_variant",
     "get_design_system",
     "get_layout_variant",
     "get_motion_profile",
@@ -120,11 +112,6 @@ def add_design_arguments(
         "--layout",
         choices=list(LAYOUT_VARIANTS.keys()),
         help=f"Nivel 2: Variante de distribución interna ({', '.join(LAYOUT_VARIANTS.keys())})",
-    )
-    subparser.add_argument(
-        "--chrome",
-        choices=list(CHROME_VARIANTS.keys()),
-        help=f"Nivel 2: Variante de marco de ventanas ({', '.join(CHROME_VARIANTS.keys())})",
     )
     subparser.add_argument(
         "--motion",
@@ -195,7 +182,6 @@ def main() -> None:
                 caption_style_slug=args.caption_style,
                 design_slug=args.design,
                 layout_slug=args.layout,
-                chrome_slug=args.chrome,
                 motion_slug=args.motion,
                 overrides=parsed_overrides,
                 reset_overrides=args.reset_overrides,

@@ -14,13 +14,11 @@ flowchart TD
         D1["cinematic (Oscuro Premium)"]
         D2["editorial (Cálido / Pergamino)"]
         D3["clean (Claro Minimalista)"]
-        D4["terminal (Brutalismo Técnico TUI)"]
     end
 
     subgraph N2 ["Nivel 2: Opciones Internas del Diseño"]
-        S["Paleta Cromática (--style): 4 Temas WCAG AA"]
+        S["Paleta Cromática (--style): 3 Temas WCAG AA"]
         L["Distribución (--layout): 3 Layouts"]
-        C["Marco de Ventana (--chrome): 4 Variantes"]
         M["Coreografía GSAP (--motion): 3 Perfiles"]
         K["Subtítulos (--caption-style): minimal_clean"]
     end
@@ -45,12 +43,11 @@ flowchart TD
 
 ## 2. Nivel 1: Catálogo de Diseños Macro (`--design` / `-d`)
 
-| Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Chrome / Motion / Captions Nativo | Caso de Uso Principal |
+| Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Motion / Captions Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y bordes simétricos limpios. | `dark_violet` | `hidden` / `smooth` / `minimal_clean` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
-| `editorial` | Editorial (Cálido / Pergamino) | Estética clásica de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), tipografía limpia sin filetes y cero desenfoque. | `paper_warm` | `hidden` / `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
-| `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `hidden` / `smooth` / `minimal_clean` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
-| `terminal` | Terminal (Brutalismo Técnico TUI) | Esquinas a 90 grados (`0px`), bordes sólidos de `2px` en color de acento y sombra dura desplazada (`8px 8px 0px`). | `terminal_green` | `terminal_bar` / `snappy` / `minimal_clean` | Linux, DevOps, ciberseguridad, CLI y tutoriales de consola. |
+| `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y bordes simétricos limpios. | `dark_violet` | `smooth` / `minimal_clean` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
+| `editorial` | Editorial (Cálido / Pergamino) | Estética clásica de lectura con esquinas sobrias (`4px`), bordes sólidos (`2px`), tipografía limpia sin filetes y cero desenfoque. | `paper_warm` | `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
+| `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `smooth` / `minimal_clean` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
 
 ---
 
@@ -63,7 +60,6 @@ flowchart TD
 | `dark_violet` *(Defecto)* | Dark Violet (Obsidiana y Cristal) | `#09090b` | `#a78bfa` (Violeta) | `#34d399` (Esmeralda) | Oscuro atmosférico de alto contraste |
 | `paper_warm` | Paper Warm (Pergamino Cálido) | `#fdf6e3` | `#0369a1` (Cobalto) | `#047857` (Esmeralda) | Claro cálido antirreflejo para lectura |
 | `clean_light` | Clean Light (Blanco Neutro) | `#f8fafc` | `#0369a1` (Azul) | `#047857` (Verde) | Claro limpio calibrado WCAG AA |
-| `terminal_green` | Terminal Green (Consola CRT) | `#050a06` | `#22c55e` (Verde CRT) | `#f59e0b` (Ámbar) | Oscuro monocromático de consola |
 
 ### 3.2. Variantes de Distribución (`--layout`)
 
@@ -73,24 +69,15 @@ flowchart TD
 | `asymmetric_focus` | Foco asimétrico: columna principal `1.35fr` y secundaria `0.85fr`; tarjeta lower-third alineada a la derecha (`right: 80px`). |
 | `stacked` | Disposición vertical apilada (`grid-template-columns: 1fr`) y cabecera centrada. |
 
-### 3.3. Variantes de Marco de Ventana (`--chrome`)
-
-| Identificador (`--chrome`) | Descripción Visual |
-| :--- | :--- |
-| `auto` *(Defecto)* | Adopta automáticamente el marco nativo del Diseño Macro seleccionado en el Nivel 1. |
-| `hidden` | Oculta por completo la barra superior (`.window-header`, `.win-bar`, `.code-header`) para tarjetas limpias. |
-| `minimal_line` | Oculta los botones circulares y deja únicamente una línea divisoria limpia con el título del bloque. |
-| `terminal_bar` | Controles cuadrados angulares tipo terminal técnica con borde inferior marcado. |
-
-### 3.4. Perfiles de Coreografía GSAP (`--motion`)
+### 3.3. Perfiles de Coreografía GSAP (`--motion`)
 
 | Identificador (`--motion`) | Curva de Entrada (`ease`) | Duración Base | Comportamiento Visual |
 | :--- | :--- | :--- | :--- |
 | `smooth` *(Defecto)* | `power2.out` / `power3.out` | `0.95s` | Desaceleración progresiva y fluida de estilo editorial/cinematográfico. |
-| `snappy` | `power4.out` / `back.out(2.0)` | `0.45s` | Transición rápida y enérgica ideal para Shorts, Reels y estilo terminal. |
+| `snappy` | `power4.out` / `back.out(2.0)` | `0.45s` | Transición rápida y enérgica ideal para Shorts y Reels. |
 | `minimal` | `power1.out` | `0.35s` | Aparición sobria y discreta para lectura tranquila. |
 
-### 3.5. Estilos de Subtítulos Cinéticos (`--caption-style`)
+### 3.4. Estilos de Subtítulos Cinéticos (`--caption-style`)
 
 | Identificador (`--caption-style`) | Efecto sobre la Palabra Activa (`.word.active`) | Opacidad Inactiva |
 | :--- | :--- | :--- |
@@ -118,9 +105,9 @@ El Nivel 3 permite ajustar tokens geométricos o cromáticos específicos en un 
 python3 core/pipeline.py style --list
 python3 core/pipeline.py style --list --json
 
-# Cambiar a Diseño Macro editorial (cálido pergamino) o terminal
+# Cambiar a Diseño Macro editorial (cálido pergamino) o clean (blanco neutro)
 python3 core/pipeline.py style mi-proyecto -d editorial
-python3 core/pipeline.py style mi-proyecto -d terminal
+python3 core/pipeline.py style mi-proyecto -d clean
 
 # Combinar diseño editorial con paleta limpia y foco asimétrico
 python3 core/pipeline.py style mi-proyecto -d editorial -s clean_light --layout asymmetric_focus

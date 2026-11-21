@@ -24,7 +24,7 @@ python3 core/pipeline.py produce \
 ```
 
 > [!TIP]
-> Puedes elegir cualquiera de los **4 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`, `-d terminal`), cualquiera de las **4 paletas cromáticas** (`-s`) y cualquiera de las **7 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
+> Puedes elegir cualquiera de los **3 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`), cualquiera de las **3 paletas cromáticas** (`-s`) y cualquiera de las **7 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
 > `python3 core/pipeline.py style tutorial-kubernetes -d editorial --layout asymmetric_focus --caption-style minimal_clean`
 
 Este comando ejecuta automáticamente:
@@ -55,7 +55,7 @@ flowchart TD
 ---
 
 ### Paso 1: Inicializar el Proyecto mediante Scaffolding
-Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **7 plantillas esenciales** y los **4 Diseños Macro**:
+Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera de las **7 plantillas esenciales** y los **3 Diseños Macro**:
 
 ```bash
 cd video-pipeline

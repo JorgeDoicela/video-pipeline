@@ -46,7 +46,6 @@
         --radius-sm: 999px;
         --border-width: 1px;
         --panel-backdrop: blur(24px);
-        --badge-radius: 0px;
         --stage-padding: 80px 100px;
         --stage-gap: 40px;
         --split-columns: 1fr 1fr;
@@ -154,24 +153,6 @@
         flex-direction: column;
       }
 
-      .window-header {
-        padding: 18px 24px;
-        background: var(--surface-elevated);
-        border-bottom: 1px solid var(--divider);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-
-      .window-dots {
-        display: flex;
-        gap: 8px;
-      }
-      .dot { width: 14px; height: 14px; border-radius: 50%; }
-      .dot-r { background: #ef4444; }
-      .dot-y { background: #f59e0b; }
-      .dot-g { background: #10b981; }
-
       .card-content {
         padding: 32px;
         flex: 1;
@@ -252,7 +233,7 @@
       }
       /* @caption-style:end */
       /* @design-system:start */
-      /* Macro Design: cinematic | Layout: standard | Chrome: hidden */
+      /* Macro Design: cinematic | Layout: standard */
       .panel, #main-card {
         border-radius: var(--radius-lg);
         border: var(--border-width) solid var(--border);
@@ -289,9 +270,6 @@
         right: auto;
         border: var(--border-width) solid var(--border);
         border-radius: var(--radius-md);
-      }
-      .window-header {
-        display: none;
       }
       /* @design-system:end */
     
@@ -356,16 +334,6 @@
 
       <!-- Tarjeta Central de Contenido -->
       <div id="main-card">
-        <div class="window-header" data-layout-ignore>
-          <div class="window-dots">
-            <span class="dot dot-r"></span>
-            <span class="dot dot-y"></span>
-            <span class="dot dot-g"></span>
-          </div>
-          <span style="font-size:16px; color:var(--text-muted);">cluster-engine.sh</span>
-          <span style="font-size:15px; color:var(--accent-secondary); font-weight:700;">ACTIVE</span>
-        </div>
-
         <div class="card-content">
           <p><span class="code-highlight">1.</span> Ingress Balanceador distribuye el tráfico.</p>
           <p><span class="code-highlight">2.</span> Caché Redis valida sesiones en &lt; 1ms.</p>

@@ -11,7 +11,6 @@
     "design": "cinematic",
     "style": "dark_violet",
     "layout": "standard",
-    "chrome": "hidden",
     "motion": "smooth",
     "captionStyle": "minimal_clean",
     "overrides": {}

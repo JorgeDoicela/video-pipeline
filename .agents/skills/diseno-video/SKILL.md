@@ -23,7 +23,7 @@ Queda terminantemente prohibido implementar o reintroducir cualquiera de los sig
 
 ---
 
-## 2. Catálogo de Diseño Autorizado (Matriz 4x4x3)
+## 2. Catálogo de Diseño Autorizado (Matriz 3x3x3)
 
 Toda composición debe ensamblarse utilizando los bloques canónicos del catálogo centralizado en `core/styles.py`:
 
@@ -31,21 +31,19 @@ Toda composición debe ensamblarse utilizando los bloques canónicos del catálo
 * `cinematic`: Superficie oscura profunda con curvas amplias (`--radius-lg: 28px`), desenfoque backdrop suave y bordes simétricos limpios.
 * `editorial`: Formato sobrio de lectura y ensayo, esquinas casi rectas (`--radius-lg: 4px`), filetes tipográficos y fondo antirreflejo.
 * `clean`: Luminoso, minimalista, tarjetas blancas o traslúcidas puras con sombras multicapa y estética moderna.
-* `terminal`: Brutalismo técnico TUI, esquinas a 90° (`--radius-lg: 0px`), bordes marcados de 2px y sombras desplazadas sólidas.
 
 ### Nivel 2: Variantes Canónicas
 * **Paletas de Color (Accesibles WCAG AA):**
   * `dark_violet`: Oscuro refinado con acento violeta neón y cian.
   * `paper_warm`: Pergamino suave cálido con tinta azul marino profunda y acentos terracota.
   * `clean_light`: Base blanca/gris perla con texto negro azulado y acento azul eléctrico.
-  * `terminal_green`: Fondo negro carbón con fósforo verde terminal y verde menta.
 * **Layouts Estructurales:**
   * `standard`: Centrado armónico para explicación técnica directa.
   * `asymmetric_focus`: Columna gráfica dominante con panel de apoyo.
   * `stacked`: Disposición vertical apilada para pantallas densas.
 * **Perfiles de Movimiento (GSAP):**
   * `smooth`: Curvas suaves `power2.out` / `power3.out` para tono documental y editorial.
-  * `snappy`: Transiciones enérgicas `power4.out` / `back.out(2.0)` para Shorts y terminal.
+  * `snappy`: Transiciones enérgicas `power4.out` / `back.out(2.0)` para Shorts y Reels.
   * `minimal`: Aparición sobria `power1.out` con mínima traslación para lectura tranquila.
 * **Estilo de Subtítulos:**
   * `minimal_clean`: Estándar único oficial sin cápsulas ni artefactos de caja.

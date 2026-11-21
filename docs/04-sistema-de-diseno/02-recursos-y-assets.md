@@ -14,9 +14,9 @@ Todos los archivos son WAV PCM estéreo a 48,000 Hz, 16 bits, sintetizados matem
 | `pop.wav` | `0.09s` | Aparición de badges, tags, burbujas o elementos flotantes. |
 | `click.wav` | `0.03s` | Clicks táctiles de botones, toggles o selección de pestañas. |
 | `chime.wav` | `0.85s` | Conclusión de procesos, transacciones exitosas o métricas clave. |
-| `beep.wav` | `0.08s` | Logs de terminal, llegada de paquetes de red o comandos CLI. |
+| `beep.wav` | `0.08s` | Logs de consola, llegada de paquetes de red o comandos CLI. |
 | `sub_hit.wav` | `0.55s` | Impacto sub-grave para apertura de escena, títulos hook o revelaciones. |
-| `glitch.wav` | `0.16s` | Alertas críticas, errores de terminal o cambios bruscos de estado. |
+| `glitch.wav` | `0.16s` | Alertas críticas, errores de sistema o cambios bruscos de estado. |
 | `scan.wav` | `0.34s` | Barridos de radar táctico, escáneres láser HUD e inspección de rayos X. |
 | `drone.wav` | `4.00s` | Cama ambiental grave armónica (ciclo exacto loopable con *ducking* automático). |
 | `shutter.wav` | `0.14s` | Doble clic mecánico de obturador de cámara para capturas de pantalla (`phone_mockup`). |

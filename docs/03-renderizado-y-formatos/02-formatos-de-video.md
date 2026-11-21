@@ -154,7 +154,7 @@ El pipeline permite renderizar en cualquier relacion de aspecto ajustando los at
 | Formato | Resolucion | Aspect Ratio | Plataformas Destino | Consideraciones de Zona Segura (Safe Zones) |
 | :--- | :--- | :--- | :--- | :--- |
 | **Portrait (Vertical)** | `1080x1920` | 9:16 | TikTok, Instagram Reels, YouTube Shorts | Reservar 220px arriba (interfaz de usuario), 350px abajo (descripcion y perfil) y 140px a la derecha (botones de interaccion social). |
-| **Landscape (Horizontal)** | `1920x1080` | 16:9 | YouTube, LinkedIn Video, X (Twitter), Web | Widescreen completo. Ideal para terminales anchas, arquitectura de sistemas y presentaciones de diapositivas. |
+| **Landscape (Horizontal)** | `1920x1080` | 16:9 | YouTube, LinkedIn Video, X (Twitter), Web | Widescreen completo. Ideal para diagramas anchos, arquitectura de sistemas y presentaciones de diapositivas. |
 | **Square (Cuadrado)** | `1080x1080` | 1:1 | Instagram Feed, LinkedIn Feed | Lectura equilibrada en timelines de escritorio y movil. Maxima atencion en publicaciones estaticas con video integrado. |
 | **Feed Portrait** | `1080x1350` | 4:5 | Instagram Post Feed | Maxima cobertura vertical dentro del feed estandar de Instagram sin entrar al visor de Reels. |
 

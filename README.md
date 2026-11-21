@@ -95,13 +95,13 @@ El video final quedará disponible en `projects/mi-primer-video/video_mi-primer-
 
 ## 3. Modelos de Video, Plantillas y Sistemas de Diseño
 
-El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--chrome`, `--motion`, `--caption-style`, `--set`):
+El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de diseño componible en 3 niveles** (`-d`, `-s`, `--layout`, `--motion`, `--caption-style`, `--set`):
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
   * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 25 componentes vectoriales/Canvas/Cutouts animados (incluidos `toggle_alert`, `conveyor_factory`, `cta_card`, `canvas_fx` determinista, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz + música/cama con *ducking* + 15 SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
-  * `short_tech_9_16`: Tarjeta de código y terminal vertical con subtítulos cinéticos.
+  * `short_tech_9_16`: Tarjeta de código y consola vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
 * **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
   * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena con las mismas 25 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
@@ -109,11 +109,10 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
   * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 
 ### 3.2. Arquitectura de Diseño Componible en 3 Niveles (`core/styles.py`)
-1. **Nivel 1 — Diseños Macro (`-d, --design`):** `cinematic` (defecto), `editorial`, `clean`, `terminal`.
+1. **Nivel 1 — Diseños Macro (`-d, --design`):** `cinematic` (defecto), `editorial`, `clean`.
 2. **Nivel 2 — Opciones Internas:**
-   * **4 Paletas WCAG AA (`-s, --style`):** `dark_violet`, `paper_warm`, `clean_light`, `terminal_green`.
+   * **3 Paletas WCAG AA (`-s, --style`):** `dark_violet`, `paper_warm`, `clean_light`.
    * **3 Layouts (`--layout`):** `standard`, `asymmetric_focus`, `stacked`.
-   * **4 Marcos de Ventana (`--chrome`):** `auto`, `hidden`, `minimal_line`, `terminal_bar`.
    * **3 Perfiles GSAP (`--motion`):** `smooth`, `snappy`, `minimal`.
    * **Estilo de Subtítulos (`--caption-style`):** `minimal_clean` (estándar único limpio sin pastillas).
 3. **Nivel 3 — Overrides Granulares (`--set clave=valor`):** Ajuste puntual por proyecto (`accent_primary`, `radius_lg`, `stage_gap`, etc.) persistido en `package.json` (`videoDesign`).
@@ -128,7 +127,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | **Compilar Storyboard** | `python3 core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
 | **Gestor de Assets CC0** | `python3 core/pipeline.py assets <list\|icon\|map\|audio> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON) o normaliza audio CC0 (URL/Freesound) en `assets/`. |
 | **Procesador de Imágenes** | `python3 core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
-| **Catálogo de Diseños** | `python3 core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--chrome`, `--motion`) y Overrides (`--set`). |
+| **Catálogo de Diseños** | `python3 core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
 | **Cambiar Diseño/Opciones** | `python3 core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
 | **Inspeccionar Diseño** | `python3 core/pipeline.py style <slug> --inspect` | Muestra la configuración efectiva de los 3 niveles aplicada sobre un proyecto. |
 | **Diagnostico** | `pnpm run doctor` | Verifica dependencias del sistema, GPU, FFmpeg y Chrome cache. |
@@ -228,7 +227,7 @@ Consulta el catalogo maestro:
 2. [02 — Núcleo de Procesamiento y CLI](docs/02-nucleo-y-cli/01-nucleo-procesamiento.md): Especificacion de `faster-whisper`, esquema de `transcript.json`, filtros de corte en FFmpeg y CLI de orquestacion.
 3. [03.1 — Motor de Renderizado (HyperFrames)](docs/03-renderizado-y-formatos/01-motor-renderizado-hyperframes.md): Modelo temporal en segundos, Chromium Headless Shell y aceleracion por hardware GPU.
 4. [03.2 — Formatos de Video Soportados](docs/03-renderizado-y-formatos/02-formatos-de-video.md): Contratos de diseño y catalogo de las 7 plantillas esenciales (9:16 y 16:9).
-5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (4 Diseños Macro, 4 Temas WCAG AA, 3 Layouts, 4 Marcos, 3 Perfiles Motion, subtítulos `minimal_clean` y Overrides `--set`).
+5. [04.1 — Sistema de Diseño y Estilos Componibles](docs/04-sistema-de-diseno/01-sistema-de-diseno-y-estilos.md): Arquitectura de 3 niveles (3 Diseños Macro, 3 Temas WCAG AA, 3 Layouts, 3 Perfiles Motion, subtítulos `minimal_clean` y Overrides `--set`).
 6. [04.2 — Recursos Estáticos y Assets](docs/04-sistema-de-diseno/02-recursos-y-assets.md): Efectos de sonido WAV, iconografia tecnica SVG y tipografias locales.
 7. [05 — Guía Operativa y Flujos de Trabajo](docs/05-operacion-y-flujos/01-guia-operativa-y-flujos.md): Runbooks secuenciales desde la grabacion hasta la exportacion final.
 

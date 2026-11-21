@@ -1,7 +1,7 @@
 """
 Pruebas unitarias para la arquitectura jerárquica de diseño en 3 niveles:
-  - Nivel 1: Diseños Macro (DESIGN_SYSTEMS: cinematic, editorial, clean, terminal)
-  - Nivel 2: Variantes internas (THEMES, LAYOUT_VARIANTS, CHROME_VARIANTS, MOTION_PROFILES, CAPTION_STYLES)
+  - Nivel 1: Diseños Macro (DESIGN_SYSTEMS: cinematic, editorial, clean)
+  - Nivel 2: Variantes internas (THEMES, LAYOUT_VARIANTS, MOTION_PROFILES, CAPTION_STYLES)
   - Nivel 3: Overrides granulares (--set clave=valor)
 """
 
@@ -11,7 +11,6 @@ import pytest
 
 from core.styles import (
     CAPTION_STYLES,
-    CHROME_VARIANTS,
     DEFAULT_CAPTION_STYLE,
     DEFAULT_DESIGN,
     DEFAULT_THEME,
@@ -34,10 +33,9 @@ def test_catalog_3_levels_integrity():
     assert DEFAULT_THEME == "dark_violet"
     assert DEFAULT_CAPTION_STYLE == "minimal_clean"
 
-    assert {"cinematic", "editorial", "clean", "terminal"} == set(DESIGN_SYSTEMS.keys())
-    assert {"dark_violet", "paper_warm", "clean_light", "terminal_green"} == set(THEMES.keys())
+    assert {"cinematic", "editorial", "clean"} == set(DESIGN_SYSTEMS.keys())
+    assert {"dark_violet", "paper_warm", "clean_light"} == set(THEMES.keys())
     assert {"standard", "asymmetric_focus", "stacked"} == set(LAYOUT_VARIANTS.keys())
-    assert {"auto", "hidden", "minimal_line", "terminal_bar"} == set(CHROME_VARIANTS.keys())
     assert {"smooth", "snappy", "minimal"} == set(MOTION_PROFILES.keys())
     assert {"minimal_clean"} == set(CAPTION_STYLES.keys())
 
@@ -61,7 +59,7 @@ def test_invalid_identifiers_and_overrides():
 
 def test_level1_macro_design_switching(tmp_path):
     """
-    Nivel 1: Verifica que cambiar entre los 4 Diseños Macro transforme la geometría,
+    Nivel 1: Verifica que cambiar entre los 3 Diseños Macro transforme la geometría,
     sombras, bordes, preset cromático y coreografía GSAP sin perder el contenido del proyecto.
     """
     html_file = tmp_path / "index.html"
@@ -98,16 +96,7 @@ def test_level1_macro_design_switching(tmp_path):
     assert "border: 2px solid var(--text-primary);" in html_ed
     assert "<h1>Título Intacto</h1>" in html_ed
 
-    # 2. Cambiar a Diseño Macro terminal
-    apply_style_to_project(tmp_path, design_slug="terminal")
-    html_term = html_file.read_text(encoding="utf-8")
-    assert 'data-design="terminal"' in html_term
-    assert 'data-style="terminal_green"' in html_term
-    assert "--radius-lg: 0px;" in html_term
-    assert "8px 8px 0px" in html_term
-    assert 'ease: "back.out(2.0)"' in html_term
-
-    # 3. Cambiar a Diseño Macro cinematic
+    # 2. Cambiar a Diseño Macro cinematic
     apply_style_to_project(tmp_path, design_slug="cinematic")
     html_cinema = html_file.read_text(encoding="utf-8")
     assert 'data-design="cinematic"' in html_cinema
@@ -116,14 +105,14 @@ def test_level1_macro_design_switching(tmp_path):
     assert "border-left: 6px solid" not in html_cinema
     assert ".badge, .hook-badge {" in html_cinema
 
-    # 4. Cambiar a Diseño Macro clean
+    # 3. Cambiar a Diseño Macro clean
     apply_style_to_project(tmp_path, design_slug="clean")
     html_clean = html_file.read_text(encoding="utf-8")
     assert 'data-design="clean"' in html_clean
     assert 'data-style="clean_light"' in html_clean
     assert "--radius-lg: 24px;" in html_clean
 
-    # 5. Inspeccionar estado efectivo del proyecto
+    # 4. Inspeccionar estado efectivo del proyecto
     inspected = inspect_project_design(tmp_path)
     assert inspected["design"] == "clean"
     assert inspected["style"] == "clean_light"
@@ -132,7 +121,7 @@ def test_level1_macro_design_switching(tmp_path):
 def test_level2_intra_design_options_and_level3_overrides(tmp_path):
     """
     Nivel 2 y Nivel 3: Verifica que dentro de un mismo Diseño Macro se puedan
-    modificar opciones internas (layout, chrome, motion, style) y overrides puntuales (--set)
+    modificar opciones internas (layout, motion, style) y overrides puntuales (--set)
     sin perder el Diseño Macro seleccionado.
     """
     html_file = tmp_path / "index.html"
@@ -149,13 +138,13 @@ def test_level2_intra_design_options_and_level3_overrides(tmp_path):
         tmp_path,
         theme_slug="clean_light",
         layout_slug="asymmetric_focus",
-        chrome_slug="minimal_line",
+        motion_slug="snappy",
     )
     pkg_data = json.loads(pkg_file.read_text(encoding="utf-8"))
     assert pkg_data["videoDesign"]["design"] == "editorial"
     assert pkg_data["videoDesign"]["style"] == "clean_light"
     assert pkg_data["videoDesign"]["layout"] == "asymmetric_focus"
-    assert pkg_data["videoDesign"]["chrome"] == "minimal_line"
+    assert pkg_data["videoDesign"]["motion"] == "snappy"
 
     overrides = parse_set_overrides(["accent_primary=#ff5500", "stage_gap=64px"])
     apply_style_to_project(tmp_path, overrides=overrides)

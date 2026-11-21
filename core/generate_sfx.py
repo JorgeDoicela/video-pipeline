@@ -134,7 +134,7 @@ def generate_sub_hit(path: Path) -> None:
 
 
 def generate_glitch(path: Path) -> None:
-    """Genera un pulso digital corto tipo interferencia/alerta para terminales."""
+    """Genera un pulso digital corto tipo interferencia/alerta para consolas."""
     duration = 0.16
     num_samples = int(SAMPLE_RATE * duration)
     samples: list[float] = []

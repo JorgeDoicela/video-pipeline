@@ -80,11 +80,9 @@ def test_pipeline_subcommand_style_list():
     assert "cinematic" in res.stdout
     assert "editorial" in res.stdout
     assert "clean" in res.stdout
-    assert "terminal" in res.stdout
     assert "dark_violet" in res.stdout
     assert "paper_warm" in res.stdout
     assert "clean_light" in res.stdout
-    assert "terminal_green" in res.stdout
     assert "minimal_clean" in res.stdout
 
 

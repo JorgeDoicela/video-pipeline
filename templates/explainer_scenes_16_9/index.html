@@ -45,18 +45,34 @@
         --caption-active: #a78bfa;
         --caption-shadow: 0 4px 20px rgba(0, 0, 0, 0.9);
         --caption-glow: 0 0 16px #a78bfa;
+        /* Tokens estructurales de Diseño Macro y Layout */
         --radius-lg: 28px;
         --radius-md: 16px;
         --radius-sm: 999px;
         --border-width: 1px;
         --panel-backdrop: blur(24px);
-        --badge-radius: 0px;
-        --stage-padding: 64px 120px;
-        --stage-gap: 36px;
+        --stage-padding: 80px 100px;
+        --stage-gap: 40px;
         --split-columns: 1fr 1fr;
-        --header-align: center;
-        --caption-bottom: 64px;
-        --caption-size: 46px;
+        --header-align: left;
+        --caption-bottom: 220px;
+        --caption-size: 52px;
+        /* Alias de compatibilidad con plantillas existentes */
+        --card: var(--surface);
+        --card-bg: var(--surface);
+        --panel-bg: var(--surface);
+        --border-color: var(--border);
+        --card-border: var(--border);
+        --panel-border: var(--border);
+        --text: var(--text-primary);
+        --text-sub: var(--text-muted);
+        --text-code: var(--text-secondary);
+        --cyan: var(--accent-primary);
+        --cyan-glow: var(--accent-primary-glow);
+        --green: var(--accent-secondary);
+        --purple: var(--accent-tertiary);
+        --gold: var(--accent-warning);
+        --red: var(--accent-danger);
       }
       /* @theme:end */
 
@@ -206,7 +222,6 @@
         z-index: 30;
         pointer-events: none;
       }
-
       /* @caption-style:start */
       /* Caption Style: minimal_clean */
       .caption-phrase {
@@ -235,9 +250,8 @@
         text-shadow: 0 0 28px var(--accent-primary-glow), 0 4px 16px rgba(0, 0, 0, 0.72);
       }
       /* @caption-style:end */
-
       /* @design-system:start */
-      /* Macro Design: cinematic | Layout: standard | Chrome: hidden */
+      /* Macro Design: cinematic | Layout: standard */
       .panel, #main-card {
         border-radius: var(--radius-lg);
         border: var(--border-width) solid var(--border);
@@ -261,11 +275,20 @@
         border: none;
         padding: 0;
       }
+      .split-stage {
+        grid-template-columns: var(--split-columns);
+        gap: var(--stage-gap);
+      }
       .caption-bar {
         bottom: var(--caption-bottom);
         font-size: var(--caption-size);
       }
-      .window-header { display: none; }
+      .lower-third {
+        left: 80px;
+        right: auto;
+        border: var(--border-width) solid var(--border);
+        border-radius: var(--radius-md);
+      }
       /* @design-system:end */
       /* @scenes-css:start */
       #brand-bar {
@@ -530,6 +553,9 @@
     <div
       id="root"
       data-composition-id="main"
+      data-layout="standard"
+      data-style="dark_violet"
+      data-design="cinematic"
       data-caption-style="minimal_clean"
       data-motion="snappy"
       data-start="0"

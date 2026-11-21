@@ -11,9 +11,7 @@ from pathlib import Path
 from core._runtime import resolve_project_dir
 from core._styles_catalog import (
     CAPTION_STYLES,
-    CHROME_VARIANTS,
     DEFAULT_CAPTION_STYLE,
-    DEFAULT_CHROME,
     DEFAULT_DESIGN,
     DEFAULT_LAYOUT,
     DEFAULT_MOTION,
@@ -28,7 +26,6 @@ from core._styles_catalog import (
     LayoutVariant,
     VisualTheme,
     get_caption_style,
-    get_chrome_variant,
     get_design_system,
     get_layout_variant,
     get_motion_profile,
@@ -73,12 +70,7 @@ def build_root_css_block(
     def pick(key: str, default_val: str) -> str:
         return ov.get(key, default_val)
 
-    if design.shadow_mode == "hard":
-        card_shadow = f"8px 8px 0px {pick('accent_primary', theme.accent_primary)}"
-    elif design.shadow_mode == "none":
-        card_shadow = "none"
-    else:
-        card_shadow = pick("shadow", theme.shadow)
+    card_shadow = "none" if design.shadow_mode == "none" else pick("shadow", theme.shadow)
 
     lines = [
         "      /* @theme:start */",
@@ -122,7 +114,6 @@ def build_root_css_block(
         f"        --radius-sm: {pick('radius_sm', design.radius_sm)};",
         f"        --border-width: {pick('border_width', design.border_width)};",
         f"        --panel-backdrop: {design.panel_backdrop};",
-        f"        --badge-radius: {design.badge_radius};",
         f"        --stage-padding: {pick('stage_padding', layout.stage_padding)};",
         f"        --stage-gap: {pick('stage_gap', layout.stage_gap)};",
         f"        --split-columns: {pick('split_columns', layout.split_columns)};",
@@ -154,21 +145,18 @@ def build_root_css_block(
 def generate_design_structural_css(
     design: DesignSystem,
     layout: LayoutVariant,
-    chrome_slug: str = DEFAULT_CHROME,
     overrides: dict[str, str] | None = None,
 ) -> str:
     """
     Genera de forma declarativa el bloque de reglas estructurales CSS combinando
-    el Diseño Macro (Nivel 1), el Layout y Chrome (Nivel 2) y los Overrides (Nivel 3).
+    el Diseño Macro (Nivel 1), el Layout (Nivel 2) y los Overrides (Nivel 3).
     """
     ov = overrides or {}
-    effective_chrome = design.default_chrome if chrome_slug == "auto" else chrome_slug
-    chrome_cfg = get_chrome_variant(effective_chrome)
     lower_side = ov.get("lower_third_side", layout.lower_third_side)
 
     lines = [
         "      /* @design-system:start */",
-        f"      /* Macro Design: {design.slug} | Layout: {layout.slug} | Chrome: {effective_chrome} */",
+        f"      /* Macro Design: {design.slug} | Layout: {layout.slug} */",
         "      .panel, #main-card {",
         "        border-radius: var(--radius-lg);",
         "        border: var(--border-width) solid var(--border);",
@@ -227,7 +215,6 @@ def generate_design_structural_css(
             ]
         )
 
-    lines.extend(f"      {rule}" for rule in chrome_cfg.css_rules)
     lines.append("      /* @design-system:end */")
     return "\n".join(lines)
 
@@ -287,7 +274,6 @@ def apply_style_to_html(
     caption_style_slug: str | None = None,
     design_slug: str = DEFAULT_DESIGN,
     layout_slug: str = DEFAULT_LAYOUT,
-    chrome_slug: str = DEFAULT_CHROME,
     motion_slug: str = DEFAULT_MOTION,
     overrides: dict[str, str] | None = None,
 ) -> None:
@@ -300,14 +286,11 @@ def apply_style_to_html(
     design = get_design_system(design_slug)
     theme = get_theme(theme_slug)
     layout = get_layout_variant(layout_slug)
-    get_chrome_variant(chrome_slug)
     motion = get_motion_profile(motion_slug)
 
     content = html_path.read_text(encoding="utf-8")
     css_vars_block = build_root_css_block(theme, design, layout, overrides=overrides)
-    design_css_block = generate_design_structural_css(
-        design, layout, chrome_slug=chrome_slug, overrides=overrides
-    )
+    design_css_block = generate_design_structural_css(design, layout, overrides=overrides)
 
     content = upsert_marked_css_block(content, "theme", css_vars_block)
     content = upsert_marked_css_block(content, "design-system", design_css_block)
@@ -395,7 +378,6 @@ def inspect_project_design(project_or_html: str | Path) -> dict:
         "design": extract_attr("data-design", DEFAULT_DESIGN),
         "style": extract_attr("data-style", DEFAULT_THEME),
         "layout": extract_attr("data-layout", DEFAULT_LAYOUT),
-        "chrome": DEFAULT_CHROME,
         "motion": extract_attr("data-motion", DEFAULT_MOTION),
         "captionStyle": extract_attr("data-caption-style", DEFAULT_CAPTION_STYLE),
         "overrides": {},
@@ -408,7 +390,6 @@ def apply_style_to_project(
     caption_style_slug: str | None = None,
     design_slug: str | None = None,
     layout_slug: str | None = None,
-    chrome_slug: str | None = None,
     motion_slug: str | None = None,
     overrides: dict[str, str] | None = None,
     reset_overrides: bool = False,
@@ -438,11 +419,6 @@ def apply_style_to_project(
         else saved_state.get("style", pkg_data.get("videoStyle", design_obj.default_theme))
     )
     resolved_layout = layout_slug or saved_state.get("layout", DEFAULT_LAYOUT)
-    resolved_chrome = chrome_slug or (
-        design_obj.default_chrome
-        if design_changed
-        else saved_state.get("chrome", design_obj.default_chrome)
-    )
     resolved_motion = motion_slug or (
         design_obj.default_motion
         if design_changed
@@ -468,7 +444,6 @@ def apply_style_to_project(
         caption_style_slug=resolved_caption,
         design_slug=resolved_design_slug,
         layout_slug=resolved_layout,
-        chrome_slug=resolved_chrome,
         motion_slug=resolved_motion,
         overrides=merged_overrides,
     )
@@ -481,7 +456,6 @@ def apply_style_to_project(
                 "design": resolved_design_slug,
                 "style": resolved_theme,
                 "layout": resolved_layout,
-                "chrome": resolved_chrome,
                 "motion": resolved_motion,
                 "captionStyle": resolved_caption,
                 "overrides": merged_overrides,
@@ -492,7 +466,7 @@ def apply_style_to_project(
 
     print(
         f"[Design] Aplicado Diseño='{resolved_design_slug}' | Tema='{resolved_theme}' | "
-        f"Layout='{resolved_layout}' | Chrome='{resolved_chrome}' | Motion='{resolved_motion}' | "
+        f"Layout='{resolved_layout}' | Motion='{resolved_motion}' | "
         f"Captions='{resolved_caption}'"
         + (f" | Overrides={merged_overrides}" if merged_overrides else "")
         + f" -> {html_file.resolve()}"
@@ -507,7 +481,6 @@ def print_catalog(as_json: bool = False) -> None:
             "designs": {k: asdict(v) for k, v in DESIGN_SYSTEMS.items()},
             "themes": {k: asdict(v) for k, v in THEMES.items()},
             "layouts": {k: asdict(v) for k, v in LAYOUT_VARIANTS.items()},
-            "chromes": {k: asdict(v) for k, v in CHROME_VARIANTS.items()},
             "motions": {k: asdict(v) for k, v in MOTION_PROFILES.items()},
             "caption_styles": {k: asdict(v) for k, v in CAPTION_STYLES.items()},
             "overridable_keys": sorted(OVERRIDABLE_KEYS),
@@ -520,7 +493,7 @@ def print_catalog(as_json: bool = False) -> None:
         default_tag = " [POR DEFECTO]" if slug == DEFAULT_DESIGN else ""
         print(f"  * {slug:<20} : {d.name}{default_tag}")
         print(
-            f"    Preset nativo        : style={d.default_theme}, chrome={d.default_chrome}, motion={d.default_motion}, captions={d.default_caption_style}"
+            f"    Preset nativo        : style={d.default_theme}, motion={d.default_motion}, captions={d.default_caption_style}"
         )
         print(f"    Descripción          : {d.description}")
 
@@ -537,15 +510,11 @@ def print_catalog(as_json: bool = False) -> None:
     for slug, ly in LAYOUT_VARIANTS.items():
         print(f"  * {slug:<20} : {ly.name} — {ly.description}")
 
-    print("\n=== NIVEL 2C: VARIANTES DE MARCO DE TARJETAS (--chrome) ===")
-    for slug, ch in CHROME_VARIANTS.items():
-        print(f"  * {slug:<20} : {ch.name} — {ch.description}")
-
-    print("\n=== NIVEL 2D: PERFILES DE ANIMACIÓN GSAP (--motion) ===")
+    print("\n=== NIVEL 2C: PERFILES DE ANIMACIÓN GSAP (--motion) ===")
     for slug, mo in MOTION_PROFILES.items():
         print(f"  * {slug:<20} : {mo.name} — {mo.description}")
 
-    print("\n=== NIVEL 2E: ESTILOS DE SUBTÍTULOS CINÉTICOS (--caption-style) ===")
+    print("\n=== NIVEL 2D: ESTILOS DE SUBTÍTULOS CINÉTICOS (--caption-style) ===")
     for slug, c in CAPTION_STYLES.items():
         print(f"  * {slug:<20} : {c.name} — {c.description}")
 

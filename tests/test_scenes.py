@@ -35,7 +35,7 @@ def _sample_storyboard_dict() -> dict:
                 "start": 0.0,
                 "end": 3.5,
                 "badge": "01 · ALERTA",
-                "headline": "Sin acceso al terminal",
+                "headline": "Sin acceso al servidor",
                 "component": "phone_mockup",
                 "transition": "snap",
                 "sfx": "sub_hit",
