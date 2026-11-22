@@ -13,8 +13,17 @@
 *.svg text eol=lf
 
 *.mp4 binary
+*.mov binary
+*.webm binary
 *.wav binary
+*.mp3 binary
+*.ogg binary
 *.png binary
 *.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.glb binary
+*.onnx binary
 *.woff2 binary
 *.ttf binary

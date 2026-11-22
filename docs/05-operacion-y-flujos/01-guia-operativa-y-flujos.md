@@ -184,7 +184,7 @@ Para recompilar únicamente el storyboard y mezclar SFX + cama con *ducking* y l
 uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav --ambient-bed --voice-polish
 ```
 
-### 3.3. Catálogo de los 28 Componentes Narrativos (`COMPONENT_REGISTRY`)
+### 3.3. Catálogo de los 29 Componentes Narrativos (`COMPONENT_REGISTRY`)
 
 | Componente | Uso Principal | Propiedades Clave (`props`) |
 | :--- | :--- | :--- |
@@ -214,7 +214,8 @@ uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio project
 | `image_cutout` | Recorte transparente o imagen procesada (`assets/images/`) con entrada elástica y flotación | `src`, `title`, `subtitle`, `max_width`, `float_motion` |
 | `infinite_canvas` | Cámara virtual 2D sobre lienzo continuo con nodos conectados por curvas Bezier y zoom-out panorámico | `world_width`, `world_height`, `zoom_out_end`, `show_connectors`, `writing_head`, `nodes: [{tag, title, detail, items, x, y, scale, at, highlight}]` |
 | `svg_draw` | Trazos SVG progresivos sincronizados con timestamps (`stroke-dashoffset` + `MotionPathPlugin`) | `view_box`, `title`, `subtitle`, `writing_head`, `paths: [{d, color, stroke_width, dashed, at, duration, label}]`, `labels`, `strike_through` |
-| `scene_3d` | Motor WebGL 3D determinista sobre Three.js (`onUpdate`, sin `requestAnimationFrame`) con primitivos procedurales y `.glb`/`.gltf` | `preset` (`cross` \| `altar` \| `scales` \| `gavel` \| `bars` \| `columns` \| `cube` \| `torus` \| `sphere`), `model` (`assets/models/*.glb`), `render_style` (`edges` \| `wireframe` \| `solid`), `dot_grid`, `camera_orbit`, `camera_distance`, `rotation_turns`, `color`, `title` |
+| `scene_3d` | Motor WebGL 3D determinista sobre Three.js (`onUpdate`, sin `requestAnimationFrame`) con primitivos procedurales y `.glb`/`.gltf` | `preset` (`cross` \| `altar` \| `scales` \| `gavel` \| `bars` \| `columns` \| `cube` \| `torus` \| `sphere`), `model` (`assets/models/*.glb`: `shield_3d.glb`, `gear_3d.glb`, `crown_3d.glb`, `open_book_3d.glb`, `lock_3d.glb`, `globe_3d.glb`, etc.), `render_style` (`edges` \| `wireframe` \| `solid`), `dot_grid`, `camera_orbit`, `camera_distance`, `rotation_turns`, `color`, `title` |
+| `video_clip` | Clip de video real (presentador a cámara `cut.mp4`, screencast o B-roll en `assets/videos/`) dentro de un storyboard híbrido | `src` (`cut.mp4` o `assets/videos/*.mp4`), `layout_mode` (`card` \| `full` \| `pip`), `tag`, `title`, `subtitle`, `items`, `muted` |
 | `custom_scene` | Escena abierta para inyectar cualquier composición SVG/HTML y coreografía GSAP a medida | `html` (con marcador `{scene_id}`), `gsap` (con `{scene_id}` y `{start}`) |
 
 ### 3.4. Ejemplo de Escena 3D Determinista con Modelo de Blender (`scene_3d`)

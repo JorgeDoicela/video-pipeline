@@ -189,6 +189,7 @@ def test_component_registry_includes_universal_primitives():
         "infinite_canvas",
         "svg_draw",
         "scene_3d",
+        "video_clip",
         "custom_scene",
     }
     assert expected == set(COMPONENT_REGISTRY.keys())
@@ -607,3 +608,65 @@ def test_infinite_canvas_svg_draw_and_scene_3d_deterministic(tmp_path: Path):
     assert ".ng-3d-canvas" in injected
     assert (proj_dir / "assets" / "vendor" / "three.module.js").exists()
     assert (proj_dir / "assets" / "vendor" / "three.core.js").exists()
+
+
+def test_video_clip_hybrid_component_modes_and_asset_sync(tmp_path: Path):
+    sb = StoryboardSpec(
+        title="Hybrid Video + Explainer",
+        duration=12.0,
+        scenes=[
+            SceneSpec(
+                id="sc_vfull",
+                start=0.0,
+                end=4.0,
+                headline="Intro Presentador",
+                component="video_clip",
+                props={"src": "cut.mp4", "layout_mode": "full", "title": "Bienvenida"},
+            ),
+            SceneSpec(
+                id="sc_vpip",
+                start=4.0,
+                end=8.0,
+                headline="Análisis en Vivo",
+                component="video_clip",
+                props={
+                    "src": "cut.mp4",
+                    "layout_mode": "pip",
+                    "tag": "EN VIVO",
+                    "title": "Puntos Clave",
+                    "items": ["Paso 1", "Paso 2"],
+                },
+            ),
+            SceneSpec(
+                id="sc_vcard",
+                start=8.0,
+                end=12.0,
+                headline="Demostración",
+                component="video_clip",
+                props={"src": "demo.mp4", "layout_mode": "card", "subtitle": "Clip B-Roll"},
+            ),
+        ],
+    )
+    html_out, gsap_out = build_storyboard_html_and_gsap(sb)
+    assert 'data-start="0.00" data-duration="4.00"' in html_out
+    assert 'data-start="4.00" data-duration="4.00"' in html_out
+    assert 'data-start="8.00" data-duration="4.00"' in html_out
+    assert "ng-vid-mode-full" in html_out
+    assert "ng-vid-mode-pip" in html_out
+    assert "ng-vid-mode-card" in html_out
+    assert "sc_vpip_vitem_0" in gsap_out
+
+    src_html = (
+        Path(__file__).resolve().parent.parent
+        / "templates"
+        / "explainer_scenes_9_16"
+        / "index.html"
+    )
+    proj_dir = tmp_path / "proj_hybrid"
+    proj_dir.mkdir()
+    html_file = proj_dir / "index.html"
+    html_file.write_text(src_html.read_text(encoding="utf-8"), encoding="utf-8")
+
+    inject_storyboard_into_html(html_file, sb)
+    assert (proj_dir / "cut.mp4").exists()
+    assert (proj_dir / "assets" / "videos" / "demo.mp4").exists()

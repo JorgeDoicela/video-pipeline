@@ -99,12 +99,12 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
-  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 28 componentes vectoriales/Canvas/3D/Cutouts animados (incluidos `infinite_canvas`, `svg_draw`, `scene_3d` con Three.js/WebGL y modelos `.glb`, `canvas_fx`, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz (`--voice-polish`) + música/cama con *ducking* + 15 SFX.
+  * `explainer_scenes_9_16`: Explainer *faceless* o híbrido multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 29 componentes vectoriales/Canvas/3D/Video/Cutouts animados (incluidos `infinite_canvas`, `svg_draw`, `scene_3d` con Three.js/WebGL y modelos `.glb` de Blender, `video_clip` para presentador/B-roll híbrido, `canvas_fx`, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz (`--voice-polish`) + música/cama con *ducking* + 15 SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y consola vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
 * **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
-  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena con las mismas 28 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
+  * `explainer_scenes_16_9`: Explainer widescreen *faceless* o híbrido multi-escena con las mismas 29 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
   * `editorial_16_9`: Narrativa widescreen para ensayos, historia, teología o divulgación con puntos clave.
   * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 

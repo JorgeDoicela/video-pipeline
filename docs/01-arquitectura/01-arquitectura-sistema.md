@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph Generacion ["3. Orquestacion Multi-Escena y Diseño"]
-        C --> F["scenes.py (28 Primitivas + 2D/3D + cue_word) / styles.py / fetch_assets.py / image_tools.py"]
+        C --> F["scenes.py (29 Primitivas + 2D/3D/Video + cue_word) / styles.py / fetch_assets.py / image_tools.py"]
         F --> G["index.html (Composicion GSAP / SVG / Canvas 2D)"]
     end
 
@@ -42,8 +42,8 @@ Para garantizar la estabilidad grafica y la reproducibilidad en ambas estaciones
 
 | Nivel | Debian (Nix Flakes) | Windows 11 Nativo | Justificacion de Ingenieria |
 | :--- | :--- | :--- | :--- |
-| **Capa 1: Sistema Base** | `apt` (`/usr/bin/ffmpeg 7.1.5`), Mesa (`radeonsi_dri.so`), VA-API y DRM. | `winget` (`Gyan.FFmpeg`), drivers GPU nativos (AMF/NVENC) o CPU. | **Acceso nativo a GPU sin desajuste de ABI:** La codificacion y decodificacion acelerada por hardware enlaza directamente con los controladores graficos del sistema anfitrion. |
-| **Capa 2: Entorno Declarativo** | Nix Flakes + Home Manager (`nodejs_22`, `pnpm`, `uv` en `modules/apps.nix`). | `winget` (`astral-sh.uv`, `OpenJS.NodeJS.LTS`) y `pnpm`. | **Hermetismo y Reproducibilidad:** Runtimes CLI estandarizados para que ambos SO ejecuten exactamente el mismo `pyproject.toml` y `pnpm-lock.yaml`. |
+| **Capa 1: Sistema Base** | `apt` (`/usr/bin/ffmpeg 7.1.5`), Mesa (`radeonsi_dri.so`), VA-API y DRM. | `winget` (`Gyan.FFmpeg`), drivers GPU nativos (Direct3D11/AMF/NVENC) o CPU. | **Acceso nativo a GPU sin desajuste de ABI:** La codificacion y el renderizado WebGL/Three.js enlazan directamente con los controladores graficos del sistema anfitrion. |
+| **Capa 2: Entorno Declarativo** | Nix Flakes + Home Manager (`nodejs_22`, `pnpm`, `uv`, `blender` opcional en `modules/apps.nix` o `/opt/blender*`). | `winget` (`astral-sh.uv`, `OpenJS.NodeJS.LTS`, `BlenderFoundation.Blender`) y `pnpm`. | **Hermetismo y Reproducibilidad Multiplataforma:** Runtimes CLI estandarizados y autodeteccion multiplataforma (`resolve_blender`, `resolve_pnpm`, `resolve_ffmpeg`) para que Linux y Windows ejecuten exactamente el mismo codigo. |
 | **Capa 3: Espacio de Proyecto** | `.venv/` + `node_modules/` + `projects/` + `assets/`. | `.venv\` + `node_modules\` + `projects\` + `assets\`. | **Cero Contaminacion:** Las librerias de IA y dependencias web quedan aisladas dentro del repositorio sin requerir privilegios de administrador. |
 
 ---

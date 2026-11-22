@@ -200,3 +200,38 @@ def test_fetch_model_validates_glb_and_gltf(tmp_path: Path):
 
     with pytest.raises(ValueError, match="asset"):
         validate_3d_model_bytes(b'{"meshes": []}', ".gltf")
+
+
+def test_resolve_blender_and_compile_blender_to_glb(tmp_path: Path, monkeypatch):
+    from core.fetch_assets import BASE_BLENDER_MODELS, compile_blender_to_glb, resolve_blender
+
+    fake_blender = tmp_path / "blender.exe"
+    fake_blender.write_bytes(b"EXE")
+    monkeypatch.setenv("BLENDER_BIN", str(fake_blender))
+    assert resolve_blender() == str(fake_blender.resolve())
+
+    monkeypatch.delenv("BLENDER_BIN", raising=False)
+    monkeypatch.setattr("core.fetch_assets.shutil.which", lambda name: "/usr/bin/blender")
+    assert resolve_blender() == "/usr/bin/blender"
+
+    def fake_run(cmd_list: list[str], check: bool = True, **kwargs):
+        script_file = Path(cmd_list[-1])
+        text = script_file.read_text(encoding="utf-8")
+        assert "export_scene.gltf" in text
+        out_file = tmp_path / "models" / "custom_shield.glb"
+        out_file.parent.mkdir(parents=True, exist_ok=True)
+        out_file.write_bytes(
+            b"glTF" + b"\x02\x00\x00\x00" + b"\x10\x00\x00\x00" + b"\x00\x00\x00\x00"
+        )
+
+    monkeypatch.setattr("core.fetch_assets.subprocess.run", fake_run)
+    out = compile_blender_to_glb(
+        name="custom_shield",
+        blender_code=BASE_BLENDER_MODELS["shield_3d"],
+        decimate_ratio=0.5,
+        models_dir=tmp_path / "models",
+        force=True,
+    )
+    assert out == tmp_path / "models" / "custom_shield.glb"
+    assert out.exists()
+    assert len(BASE_BLENDER_MODELS) == 6

@@ -144,8 +144,15 @@ El módulo [`core/fetch_assets.py`](../../core/fetch_assets.py) (integrado como 
 4. **Modelos 3D Abiertos glTF/GLB (`assets/models/`) — Flujo Oficial con Blender:**
    Valida la cabecera glTF 2.0 (bytes mágicos `glTF` en `.glb` o JSON `asset` en `.gltf`) y guarda modelos 3D en `assets/models/` para ser consumidos de forma 100% offline por el componente `scene_3d` mediante `GLTFLoader` (copiados automáticamente al proyecto junto con el runtime ESM local de Three.js):
    ```bash
-   # Importar modelo local creado o editado en Blender (.glb recomendado)
-   uv run python core/pipeline.py assets model cordero --file ./export_blender/cordero.glb
+   # Generar los 6 modelos 3D universales semilla (.glb) con Blender headless:
+   # shield_3d.glb, gear_3d.glb, crown_3d.glb, open_book_3d.glb, lock_3d.glb, globe_3d.glb
+   uv run python core/pipeline.py assets seed-models
+
+   # Compilar un modelo 3D propio ejecutando un script Python (bpy) en Blender headless
+   uv run python core/pipeline.py assets model mi_escultura --blender-script ./crear_malla.py
+
+   # Convertir/normalizar cualquier archivo .blend, .obj, .fbx o .stl a .glb con simplificación opcional
+   uv run python core/pipeline.py assets model cordero --file ./export_blender/cordero.blend --decimate 0.5
 
    # Descargar modelo abierto desde URL directa CC0
    uv run python core/pipeline.py assets model olive_branch --url https://ejemplo.org/olive_branch.glb

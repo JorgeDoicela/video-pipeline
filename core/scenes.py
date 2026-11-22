@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Motor Multi-Escena (Storyboard) y Librería de 28 Componentes Narrativos Vectoriales / Canvas / 3D / Cutouts.
-Orquesta secuencias temporales de escenas SVG/HTML/Canvas/Three.js animadas determinísticamente con GSAP 3.15
-y MotionPathPlugin, cámara virtual 2D sobre lienzo continuo, trazos SVG progresivos, cambios de atmósfera/acento
-por escena, subtítulos Hero-Top o inferiores, y sincronización con marcas de tiempo de voz y efectos de sonido.
+Motor Multi-Escena (Storyboard) y Librería de 29 Componentes Narrativos Vectoriales / Canvas / 3D / Video / Cutouts.
+Orquesta secuencias temporales de escenas SVG/HTML/Canvas/Three.js/Video animadas determinísticamente con GSAP 3.15
+y MotionPathPlugin, cámara virtual 2D sobre lienzo continuo, trazos SVG progresivos, clips híbridos de presentador/B-roll,
+cambios de atmósfera/acento por escena, subtítulos Hero-Top o inferiores, y sincronización con voz y efectos de sonido.
 """
 
 import html
@@ -2102,6 +2102,116 @@ if (canvas) {{
     return markup, gsap
 
 
+def _render_video_clip(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Componente híbrido para integrar clips de video reales (presentador a cámara 'cut.mp4',
+    screencasts de terminal/IDE o B-roll en assets/videos/) dentro de un storyboard multi-escena.
+    Soporta layout_mode: 'card' (marco centrado simétrico), 'full' (escenario completo) y
+    'pip' (ventana combinada con panel de puntos clave), cumpliendo el contrato data-start /
+    data-duration determinista de HyperFrames.
+    """
+    src_raw = str(props.get("src", "cut.mp4")).strip() or "cut.mp4"
+    if src_raw.startswith("../../assets/"):
+        src_raw = src_raw.removeprefix("../../")
+    elif src_raw != "cut.mp4" and "/" not in src_raw and "\\" not in src_raw:
+        src_raw = f"assets/videos/{src_raw}"
+    src_attr = html.escape(src_raw, quote=True)
+
+    layout_mode = str(props.get("layout_mode", "card")).strip().lower()
+    if layout_mode not in {"card", "full", "pip"}:
+        layout_mode = "card"
+
+    tag = html.escape(str(props.get("tag", "")).strip(), quote=False)
+    title = html.escape(str(props.get("title", "")).strip(), quote=False)
+    subtitle = html.escape(str(props.get("subtitle", "")).strip(), quote=False)
+    raw_items = [html.escape(str(it), quote=False) for it in (props.get("items") or [])[:5]]
+    muted_attr = " muted" if bool(props.get("muted", True)) else ""
+
+    video_el = (
+        f'<video id="{scene_id}_vid_el" class="ng-vid-el" src="{src_attr}" '
+        f'data-start="{start:.2f}" data-duration="{dur:.2f}"{muted_attr} playsinline></video>'
+    )
+    tag_html = f'<div class="ng-vid-tag" data-layout-ignore>{tag}</div>' if tag else ""
+    title_html = f'<h3 class="ng-vid-title">{title}</h3>' if title else ""
+    sub_html = f'<p class="ng-vid-sub">{subtitle}</p>' if subtitle else ""
+
+    t_in = start + 0.06
+    gsap_lines: list[str] = []
+
+    if layout_mode == "full":
+        caption_block = (
+            f'<div id="{scene_id}_vid_overlay" class="ng-vid-overlay">{tag_html}{title_html}{sub_html}</div>'
+            if (tag or title or subtitle)
+            else ""
+        )
+        markup = f"""
+    <div id="{scene_id}_vid_wrap" class="ng-vid-wrap ng-vid-mode-full">
+      <div id="{scene_id}_vid_frame" class="ng-vid-frame ng-vid-frame-full">
+        {video_el}
+        {caption_block}
+      </div>
+    </div>"""
+        gsap_lines.append(
+            f'tl.fromTo("#{scene_id}_vid_frame", {{ opacity: 0, scale: 0.96 }}, {{ opacity: 1, scale: 1, duration: 0.38, ease: "power2.out" }}, {t_in:.3f});'
+        )
+        if caption_block:
+            gsap_lines.append(
+                f'tl.fromTo("#{scene_id}_vid_overlay", {{ opacity: 0, y: 18 }}, {{ opacity: 1, y: 0, duration: 0.36, ease: "power2.out" }}, {t_in + 0.16:.3f});'
+            )
+    elif layout_mode == "pip":
+        items_li = "".join(
+            f'<li id="{scene_id}_vitem_{idx}" class="ng-vid-item" style="opacity: 0;">{it}</li>'
+            for idx, it in enumerate(raw_items)
+        )
+        list_html = f'<ul class="ng-vid-list">{items_li}</ul>' if raw_items else ""
+        markup = f"""
+    <div id="{scene_id}_vid_wrap" class="ng-vid-wrap ng-vid-mode-pip">
+      <div id="{scene_id}_vid_frame" class="ng-vid-frame ng-vid-frame-pip">
+        {video_el}
+      </div>
+      <div id="{scene_id}_vid_panel" class="ng-vid-panel">
+        {tag_html}
+        {title_html}
+        {sub_html}
+        {list_html}
+      </div>
+    </div>"""
+        gsap_lines.append(
+            f'tl.fromTo("#{scene_id}_vid_frame", {{ opacity: 0, y: 24, scale: 0.94 }}, {{ opacity: 1, y: 0, scale: 1, duration: 0.4, ease: "power2.out" }}, {t_in:.3f});'
+        )
+        gsap_lines.append(
+            f'tl.fromTo("#{scene_id}_vid_panel", {{ opacity: 0, y: 20 }}, {{ opacity: 1, y: 0, duration: 0.38, ease: "power2.out" }}, {t_in + 0.12:.3f});'
+        )
+        for idx in range(len(raw_items)):
+            gsap_lines.append(
+                f'tl.fromTo("#{scene_id}_vitem_{idx}", {{ opacity: 0, x: -14 }}, {{ opacity: 1, x: 0, duration: 0.3, ease: "power2.out" }}, {t_in + 0.24 + idx * 0.18:.3f});'
+            )
+    else:
+        meta_block = (
+            f'<div id="{scene_id}_vid_meta" class="ng-vid-meta">{tag_html}{title_html}{sub_html}</div>'
+            if (tag or title or subtitle)
+            else ""
+        )
+        markup = f"""
+    <div id="{scene_id}_vid_wrap" class="ng-vid-wrap ng-vid-mode-card">
+      <div id="{scene_id}_vid_frame" class="ng-vid-frame ng-vid-frame-card">
+        {video_el}
+      </div>
+      {meta_block}
+    </div>"""
+        gsap_lines.append(
+            f'tl.fromTo("#{scene_id}_vid_frame", {{ opacity: 0, y: 28, scale: 0.94 }}, {{ opacity: 1, y: 0, scale: 1, duration: 0.42, ease: "power2.out" }}, {t_in:.3f});'
+        )
+        if meta_block:
+            gsap_lines.append(
+                f'tl.fromTo("#{scene_id}_vid_meta", {{ opacity: 0, y: 14 }}, {{ opacity: 1, y: 0, duration: 0.34, ease: "power2.out" }}, {t_in + 0.16:.3f});'
+            )
+
+    return markup, "\n".join(gsap_lines)
+
+
 ComponentRenderer = Callable[[str, dict[str, Any], float, float], tuple[str, str]]
 
 COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
@@ -2132,6 +2242,7 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
     "infinite_canvas": _render_infinite_canvas,
     "svg_draw": _render_svg_draw,
     "scene_3d": _render_scene_3d,
+    "video_clip": _render_video_clip,
     "custom_scene": _render_custom_scene,
 }
 
@@ -3431,6 +3542,131 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
         color: var(--text-primary);
         text-align: center;
       }""",
+    "video_clip": """      .ng-vid-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 24px;
+      }
+      .ng-vid-mode-pip {
+        max-width: 880px;
+      }
+      #root[data-width="1920"] .ng-vid-mode-pip {
+        flex-direction: row;
+        max-width: 1480px;
+        gap: 36px;
+      }
+      .ng-vid-frame {
+        position: relative;
+        overflow: hidden;
+        background: var(--surface);
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius-lg, 24px);
+        box-shadow: var(--shadow);
+      }
+      .ng-vid-frame-card {
+        width: 100%;
+        max-width: 820px;
+        max-height: 760px;
+      }
+      #root[data-width="1920"] .ng-vid-frame-card {
+        max-width: 1040px;
+        max-height: 540px;
+      }
+      .ng-vid-frame-full {
+        width: 100%;
+        max-width: 920px;
+        max-height: 980px;
+      }
+      #root[data-width="1920"] .ng-vid-frame-full {
+        max-width: 1480px;
+        max-height: 620px;
+      }
+      .ng-vid-frame-pip {
+        width: 100%;
+        max-width: 580px;
+        max-height: 480px;
+      }
+      #root[data-width="1920"] .ng-vid-frame-pip {
+        flex: 1.05;
+        max-width: 720px;
+        max-height: 520px;
+      }
+      .ng-vid-el {
+        width: 100%;
+        height: 100%;
+        max-height: inherit;
+        object-fit: cover;
+        display: block;
+      }
+      .ng-vid-meta, .ng-vid-panel {
+        width: 100%;
+        max-width: 820px;
+        background: var(--surface);
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius-lg, 20px);
+        padding: 30px 36px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        text-align: left;
+      }
+      #root[data-width="1920"] .ng-vid-panel {
+        flex: 1;
+      }
+      .ng-vid-overlay {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        bottom: 28px;
+        background: var(--surface);
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius-md, 16px);
+        padding: 24px 30px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        text-align: left;
+      }
+      .ng-vid-tag {
+        font-family: var(--font-mono);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--scene-accent, var(--accent-primary));
+        background: transparent;
+        border: none;
+        padding: 0;
+      }
+      .ng-vid-title {
+        font-family: var(--font-display);
+        font-size: 38px;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1.2;
+      }
+      .ng-vid-sub {
+        font-size: 28px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+      .ng-vid-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .ng-vid-item {
+        font-size: 28px;
+        color: var(--text-primary);
+        line-height: 1.35;
+      }""",
 }
 
 
@@ -3866,6 +4102,41 @@ def _ensure_runtime_scripts(content: str, used_components: set[str]) -> str:
     return content
 
 
+def _sync_local_video_assets(project_dir: Path, storyboard: StoryboardSpec) -> None:
+    """
+    Asegura que los archivos de video referenciados por escenas 'video_clip' existan dentro de
+    <project_dir>, copiándolos desde assets/videos/ (o utilizando el fixture base cut.mp4 si
+    no se ha grabado un clip aún) para cumplir el StaticGuard y media check de HyperFrames.
+    """
+    import shutil
+
+    repo_root = Path(__file__).resolve().parent.parent
+    repo_videos_dir = repo_root / "assets" / "videos"
+    fallback_cut = repo_root / "templates" / "talking_head_9_16" / "cut.mp4"
+
+    for scene in storyboard.scenes:
+        if scene.component != "video_clip":
+            continue
+        src_raw = str(scene.props.get("src", "cut.mp4")).strip() or "cut.mp4"
+        if src_raw == "cut.mp4":
+            dest_cut = project_dir / "cut.mp4"
+            if not dest_cut.exists() and fallback_cut.exists():
+                shutil.copy2(fallback_cut, dest_cut)
+            continue
+
+        filename = Path(src_raw).name
+        src_candidate = repo_videos_dir / filename
+        dest_dir = project_dir / "assets" / "videos"
+        dest_file = dest_dir / filename
+        if src_candidate.exists():
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            if not dest_file.exists() or src_candidate.resolve() != dest_file.resolve():
+                shutil.copy2(src_candidate, dest_file)
+        elif not dest_file.exists() and fallback_cut.exists():
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(fallback_cut, dest_file)
+
+
 def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> None:
     """Inyecta de forma idempotente CSS de componentes, escenas HTML y coreografía GSAP en index.html."""
     if not html_path.exists():
@@ -3873,6 +4144,7 @@ def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> 
 
     _sync_local_image_assets(html_path.parent, storyboard)
     _sync_local_3d_assets(html_path.parent, storyboard)
+    _sync_local_video_assets(html_path.parent, storyboard)
     scenes_html, scenes_gsap = build_storyboard_html_and_gsap(storyboard)
     used_components = {s.component for s in storyboard.scenes}
     scenes_css = build_scenes_css(used_components=used_components)

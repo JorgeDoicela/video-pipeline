@@ -12,13 +12,31 @@ import subprocess
 import sys
 from pathlib import Path
 
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from core._runtime import ensure_local_venv, ensure_repo_root_on_path  # noqa: E402
+
+ensure_repo_root_on_path()
+
+
+def _resolve_media_bin(binary_name: str) -> str:
+    """Resuelve ffmpeg o ffprobe en PATH con mensaje de diagnóstico claro si no está instalado."""
+    resolved = shutil.which(binary_name)
+    if not resolved:
+        raise FileNotFoundError(
+            f"No se encontró '{binary_name}' en PATH. Instala FFmpeg "
+            "(Linux: 'sudo apt install ffmpeg', Windows: 'winget install Gyan.FFmpeg')."
+        )
+    return resolved
+
 
 def detect_silence(input_file: str, noise_db: float = -30.0, min_duration: float = 0.5):
     """
     Ejecuta ffmpeg con el filtro silencedetect y extrae los intervalos de silencio.
     """
     cmd = [
-        "ffmpeg",
+        _resolve_media_bin("ffmpeg"),
         "-hide_banner",
         "-i",
         input_file,
@@ -55,7 +73,7 @@ def detect_silence(input_file: str, noise_db: float = -30.0, min_duration: float
 
 def get_media_duration(input_file: str) -> float:
     cmd = [
-        "ffprobe",
+        _resolve_media_bin("ffprobe"),
         "-v",
         "error",
         "-show_entries",
@@ -71,7 +89,7 @@ def get_media_duration(input_file: str) -> float:
 def has_video_stream(input_file: str) -> bool:
     """Verifica mediante ffprobe si el archivo de entrada contiene al menos un stream de video."""
     cmd = [
-        "ffprobe",
+        _resolve_media_bin("ffprobe"),
         "-v",
         "error",
         "-select_streams",
@@ -168,7 +186,7 @@ def cut_and_concat(
     concat_filter = build_concat_filter(keep_intervals, include_video=video_present)
 
     cmd = [
-        "ffmpeg",
+        _resolve_media_bin("ffmpeg"),
         "-hide_banner",
         "-y",
         "-i",
@@ -178,7 +196,20 @@ def cut_and_concat(
     ]
     if video_present:
         cmd.extend(
-            ["-map", "[outv]", "-map", "[outa]", "-c:v", "libx264", "-preset", "fast", "-crf", "18"]
+            [
+                "-map",
+                "[outv]",
+                "-map",
+                "[outa]",
+                "-c:v",
+                "libx264",
+                "-pix_fmt",
+                "yuv420p",
+                "-preset",
+                "fast",
+                "-crf",
+                "18",
+            ]
         )
     else:
         cmd.extend(["-map", "[outa]"])
@@ -209,6 +240,7 @@ def register_cut_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def main():
+    ensure_local_venv()
     parser = argparse.ArgumentParser(
         description="Recorte de pausas y silencios en video/audio con FFmpeg"
     )

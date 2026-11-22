@@ -555,6 +555,284 @@ def fetch_audio_cc0(
     return out_path
 
 
+BASE_BLENDER_MODELS: dict[str, str] = {
+    "shield_3d": """
+import bpy, bmesh, math
+bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=1.15, depth=0.22, location=(0, 0, 0.1))
+obj = bpy.context.active_object
+obj.rotation_euler = (math.radians(90), 0, 0)
+obj.scale = (0.95, 1.25, 1.0)
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+bev = obj.modifiers.new(name="Bevel", type='BEVEL')
+bev.width = 0.08
+bev.segments = 2
+bpy.ops.object.modifier_apply(modifier=bev.name)
+""",
+    "gear_3d": """
+import bpy, math
+bpy.ops.mesh.primitive_cylinder_add(vertices=24, radius=1.1, depth=0.32, location=(0, 0, 0))
+gear = bpy.context.active_object
+gear.rotation_euler = (math.radians(90), 0, 0)
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.42, depth=0.8, location=(0, 0, 0))
+cutter = bpy.context.active_object
+cutter.rotation_euler = (math.radians(90), 0, 0)
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+mod = gear.modifiers.new(name="Hole", type='BOOLEAN')
+mod.operation = 'DIFFERENCE'
+mod.object = cutter
+bpy.context.view_layer.objects.active = gear
+bpy.ops.object.modifier_apply(modifier=mod.name)
+bpy.data.objects.remove(cutter, do_unlink=True)
+for i in range(8):
+    ang = i * (math.pi / 4.0)
+    bpy.ops.mesh.primitive_cube_add(size=0.32, location=(math.cos(ang) * 1.12, 0, math.sin(ang) * 1.12))
+    t = bpy.context.active_object
+    t.rotation_euler = (0, -ang, 0)
+""",
+    "crown_3d": """
+import bpy, math
+bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=1.05, depth=0.36, location=(0, 0, -0.25))
+base = bpy.context.active_object
+bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.92, depth=0.5, location=(0, 0, -0.25))
+inner = bpy.context.active_object
+mod = base.modifiers.new(name="Hollow", type='BOOLEAN')
+mod.operation = 'DIFFERENCE'
+mod.object = inner
+bpy.context.view_layer.objects.active = base
+bpy.ops.object.modifier_apply(modifier=mod.name)
+bpy.data.objects.remove(inner, do_unlink=True)
+for i in range(6):
+    ang = i * (math.pi / 3.0)
+    bpy.ops.mesh.primitive_cone_add(vertices=4, radius1=0.22, radius2=0.02, depth=0.55, location=(math.cos(ang) * 0.98, math.sin(ang) * 0.98, 0.2))
+""",
+    "open_book_3d": """
+import bpy, math
+for side in (-1, 1):
+    bpy.ops.mesh.primitive_cube_add(size=1.0, location=(side * 0.62, 0, 0.08 * abs(side)))
+    page = bpy.context.active_object
+    page.scale = (0.58, 0.82, 0.08)
+    page.rotation_euler = (0, side * math.radians(-14), 0)
+    bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+    bev = page.modifiers.new(name="Bevel", type='BEVEL')
+    bev.width = 0.025
+    bev.segments = 2
+    bpy.ops.object.modifier_apply(modifier=bev.name)
+bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=0.1, depth=1.64, location=(0, 0, -0.02))
+spine = bpy.context.active_object
+spine.rotation_euler = (math.radians(90), 0, 0)
+""",
+    "lock_3d": """
+import bpy, math
+bpy.ops.mesh.primitive_cube_add(size=1.2, location=(0, 0, -0.35))
+body = bpy.context.active_object
+body.scale = (0.95, 0.45, 0.82)
+bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
+bev = body.modifiers.new(name="Bevel", type='BEVEL')
+bev.width = 0.09
+bev.segments = 2
+bpy.ops.object.modifier_apply(modifier=bev.name)
+bpy.ops.mesh.primitive_torus_add(major_radius=0.52, minor_radius=0.11, major_segments=20, minor_segments=10, location=(0, 0, 0.45))
+shackle = bpy.context.active_object
+shackle.rotation_euler = (math.radians(90), 0, 0)
+""",
+    "globe_3d": """
+import bpy, math
+bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=0.95, location=(0, 0, 0))
+bpy.ops.mesh.primitive_torus_add(major_radius=1.28, minor_radius=0.035, major_segments=32, minor_segments=8, location=(0, 0, 0))
+r1 = bpy.context.active_object
+r1.rotation_euler = (math.radians(28), math.radians(15), 0)
+bpy.ops.mesh.primitive_torus_add(major_radius=1.36, minor_radius=0.03, major_segments=32, minor_segments=8, location=(0, 0, 0))
+r2 = bpy.context.active_object
+r2.rotation_euler = (math.radians(-52), math.radians(-20), 0)
+""",
+}
+
+
+def resolve_blender() -> str:
+    """
+    Resuelve el ejecutable de Blender de forma multiplataforma (Linux, Windows, macOS):
+      1. Variable de entorno BLENDER_BIN.
+      2. Binario 'blender' en PATH (cubre apt /usr/bin/blender, Nix Flakes / Home Manager, Snap).
+      3. Rutas estándar de Linux (/opt/blender*/blender, Nix profiles, Flatpak, ~/.local/bin).
+      4. Rutas estándar de Windows (C:\\Program Files\\Blender Foundation\\Blender *\\blender.exe).
+      5. Ruta estándar de macOS (/Applications/Blender.app/Contents/MacOS/Blender).
+    """
+    env_bin = os.environ.get("BLENDER_BIN", "").strip()
+    if env_bin and Path(env_bin).exists():
+        return str(Path(env_bin).resolve())
+
+    path_bin = shutil.which("blender")
+    if path_bin:
+        return path_bin
+
+    candidates: list[Path] = []
+    home = Path.home()
+
+    # Rutas frecuentes en Linux (Debian, Nix Flakes / Home Manager, tarballs en /opt, Flatpak, Snap)
+    candidates.extend(
+        [
+            home / ".nix-profile" / "bin" / "blender",
+            Path("/run/current-system/sw/bin/blender"),
+            home / ".local" / "bin" / "blender",
+            Path("/usr/local/bin/blender"),
+            Path("/usr/bin/blender"),
+            Path("/snap/bin/blender"),
+            Path("/var/lib/flatpak/exports/bin/org.blender.Blender"),
+            home / ".local" / "share" / "flatpak" / "exports" / "bin" / "org.blender.Blender",
+        ]
+    )
+    opt_dir = Path("/opt")
+    if opt_dir.exists():
+        candidates.extend(sorted(opt_dir.glob("blender*/blender"), reverse=True))
+    local_share = home / ".local" / "share"
+    if local_share.exists():
+        candidates.extend(sorted(local_share.glob("blender*/blender"), reverse=True))
+
+    # Rutas estándar en Windows
+    prog_files = Path(os.environ.get("PROGRAMFILES", r"C:\Program Files")) / "Blender Foundation"
+    if prog_files.exists():
+        candidates.extend(sorted(prog_files.glob("Blender*/blender.exe"), reverse=True))
+
+    # Ruta estándar en macOS
+    mac_bin = Path("/Applications/Blender.app/Contents/MacOS/Blender")
+    if mac_bin.exists():
+        candidates.append(mac_bin)
+
+    for cand in candidates:
+        if cand.exists() and cand.is_file():
+            return str(cand.resolve())
+
+    raise FileNotFoundError(
+        "No se encontró 'blender' en PATH ni en ubicaciones estándar de Linux (/usr/bin, /opt, Nix, Flatpak), "
+        "Windows ('C:\\Program Files\\Blender Foundation') o macOS. "
+        "Instala Blender (ej. 'sudo apt install blender' o Nix 'pkgs.blender') o define BLENDER_BIN."
+    )
+
+
+def compile_blender_to_glb(
+    name: str,
+    blender_script: str | Path | None = None,
+    blender_code: str | None = None,
+    input_mesh: str | Path | None = None,
+    decimate_ratio: float | None = None,
+    models_dir: Path | None = None,
+    force: bool = False,
+) -> Path:
+    """
+    Ejecuta Blender en modo headless (--background --factory-startup) para compilar un script bpy
+    o convertir/normalizar un archivo 3D (.blend, .obj, .fbx, .stl, .ply, .glb) a glTF Binary (.glb)
+    en assets/models/<slug>.glb con orientación +Y Up, centrado en origen y decimación opcional.
+    """
+    target_dir = models_dir or (_REPO_ROOT / "assets" / "models")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    slug = _sanitize_slug(name)
+    out_path = target_dir / f"{slug}.glb"
+    if out_path.exists() and not force:
+        print(f"[Assets:Blender] En caché local: {out_path.name}")
+        return out_path
+
+    blender_bin = resolve_blender()
+    user_code = ""
+    if blender_script is not None:
+        script_p = Path(blender_script).resolve()
+        if not script_p.exists():
+            raise FileNotFoundError(f"No se encontró el script de Blender: {script_p}")
+        user_code = script_p.read_text(encoding="utf-8")
+    elif blender_code is not None:
+        user_code = blender_code
+    elif input_mesh is None:
+        raise ValueError(
+            "Debes especificar 'blender_script', 'blender_code' o 'input_mesh' para compilar con Blender."
+        )
+
+    mesh_path_str = str(Path(input_mesh).resolve()) if input_mesh is not None else ""
+    if input_mesh is not None and not Path(mesh_path_str).exists():
+        raise FileNotFoundError(f"No se encontró el archivo 3D de entrada: {mesh_path_str}")
+
+    dec_val = float(decimate_ratio) if decimate_ratio is not None else 0.0
+
+    driver_code = f"""import bpy
+from pathlib import Path
+
+mesh_in = {json.dumps(mesh_path_str)}
+out_glb = {json.dumps(str(out_path.resolve()))}
+dec_ratio = {dec_val}
+
+if mesh_in and mesh_in.lower().endswith(".blend"):
+    bpy.ops.wm.open_mainfile(filepath=mesh_in)
+else:
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    if mesh_in:
+        low = mesh_in.lower()
+        if low.endswith(".obj"):
+            bpy.ops.wm.obj_import(filepath=mesh_in)
+        elif low.endswith(".fbx"):
+            bpy.ops.import_scene.fbx(filepath=mesh_in)
+        elif low.endswith(".stl"):
+            bpy.ops.wm.stl_import(filepath=mesh_in)
+        elif low.endswith(".ply"):
+            bpy.ops.wm.ply_import(filepath=mesh_in)
+        elif low.endswith((".glb", ".gltf")):
+            bpy.ops.import_scene.gltf(filepath=mesh_in)
+        else:
+            raise ValueError(f"Formato de malla no soportado en Blender: {{mesh_in}}")
+
+{user_code}
+
+for obj in list(bpy.data.objects):
+    if obj.type not in {{'MESH', 'CURVE', 'SURFACE', 'FONT', 'EMPTY'}}:
+        bpy.data.objects.remove(obj, do_unlink=True)
+
+for obj in list(bpy.data.objects):
+    if obj.type == 'MESH' and 0.01 <= dec_ratio < 1.0:
+        bpy.context.view_layer.objects.active = obj
+        mod = obj.modifiers.new(name="AutoDecimate", type='DECIMATE')
+        mod.ratio = dec_ratio
+        bpy.ops.object.modifier_apply(modifier=mod.name)
+
+bpy.ops.export_scene.gltf(
+    filepath=out_glb,
+    export_format='GLB',
+    export_yup=True,
+    export_apply=True,
+)
+"""
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        driver_file = Path(tmp_dir) / "blender_export_driver.py"
+        driver_file.write_text(driver_code, encoding="utf-8")
+        cmd = [
+            blender_bin,
+            "--background",
+            "--factory-startup",
+            "--python-exit-code",
+            "1",
+            "--python",
+            str(driver_file),
+        ]
+        subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
+
+    raw_bytes = out_path.read_bytes()
+    validate_3d_model_bytes(raw_bytes, ".glb")
+    print(f"[Assets:Blender] Exportado GLB ({len(raw_bytes):,} bytes): {out_path.name}")
+    return out_path
+
+
+def ensure_base_models(models_dir: Path | None = None, force: bool = False) -> dict[str, Path]:
+    """Genera el catálogo base de 6 modelos 3D universales (.glb) mediante Blender headless."""
+    target_dir = models_dir or (_REPO_ROOT / "assets" / "models")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    generated: dict[str, Path] = {}
+    for slug, code in BASE_BLENDER_MODELS.items():
+        generated[slug] = compile_blender_to_glb(
+            name=slug,
+            blender_code=code,
+            models_dir=target_dir,
+            force=force,
+        )
+    return generated
+
+
 def validate_3d_model_bytes(raw_bytes: bytes, suffix: str) -> None:
     """Valida integridad básica de un modelo 3D glTF 2.0 (.glb binario o .gltf JSON)."""
     ext = suffix.lower()
@@ -578,25 +856,47 @@ def fetch_model(
     name: str,
     url: str | None = None,
     source_path: str | Path | None = None,
+    blender_script: str | Path | None = None,
+    decimate_ratio: float | None = None,
     models_dir: Path | None = None,
     force: bool = False,
 ) -> Path:
     """
-    Descarga o importa un modelo 3D abierto (.glb / .gltf) hacia assets/models/<slug>.<ext>,
-    validando su cabecera glTF 2.0 antes de guardarlo en caché local.
+    Descarga, importa o compila con Blender un modelo 3D abierto (.glb / .gltf / .blend / .obj / .fbx / .stl)
+    hacia assets/models/<slug>.<ext>, validando su cabecera glTF 2.0 antes de guardarlo en caché local.
     """
-    if not url and not source_path:
-        raise ValueError("Debes proporcionar '--url' (descarga CC0) o '--file' (archivo local).")
+    if not url and not source_path and not blender_script:
+        raise ValueError(
+            "Debes proporcionar '--url' (descarga CC0), '--file' (archivo 3D local) o '--blender-script' (script bpy)."
+        )
 
     target_dir = models_dir or (_REPO_ROOT / "assets" / "models")
     target_dir.mkdir(parents=True, exist_ok=True)
     slug = _sanitize_slug(name)
+
+    if blender_script is not None:
+        return compile_blender_to_glb(
+            name=slug,
+            blender_script=blender_script,
+            input_mesh=source_path,
+            decimate_ratio=decimate_ratio,
+            models_dir=target_dir,
+            force=force,
+        )
 
     if source_path is not None:
         src = Path(source_path).resolve()
         if not src.exists():
             raise FileNotFoundError(f"No se encontró el modelo 3D local: {src}")
         ext = src.suffix.lower() or ".glb"
+        if ext in {".blend", ".obj", ".fbx", ".stl", ".ply"} or decimate_ratio is not None:
+            return compile_blender_to_glb(
+                name=slug,
+                input_mesh=src,
+                decimate_ratio=decimate_ratio,
+                models_dir=target_dir,
+                force=force,
+            )
         raw_bytes = src.read_bytes()
     else:
         assert url is not None
@@ -726,16 +1026,35 @@ def register_assets_subparsers(
     p_audio.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
 
     p_model = sub.add_parser(
-        "model", help="Descargar o importar modelo 3D glTF/GLB hacia assets/models/"
+        "model",
+        help="Descargar, importar o compilar con Blender modelo 3D glTF/GLB hacia assets/models/",
     )
-    p_model.add_argument("name", help="Nombre destino del modelo (ej. 'lamb' o 'olive_branch')")
+    p_model.add_argument("name", help="Nombre destino del modelo (ej. 'shield_3d' o 'lamb')")
     p_model.add_argument("--url", help="URL directa al modelo 3D abierto (.glb o .gltf)")
     p_model.add_argument(
         "--file",
         dest="source_path",
-        help="Ruta a un archivo local .glb/.gltf (ej. exportado desde Blender)",
+        help="Ruta a un archivo local .glb/.gltf/.blend/.obj/.fbx/.stl",
+    )
+    p_model.add_argument(
+        "--blender-script",
+        help="Ruta a un script Python (bpy) para generar y exportar el modelo .glb con Blender headless",
+    )
+    p_model.add_argument(
+        "--decimate",
+        type=float,
+        default=None,
+        help="Ratio opcional de simplificación poligonal en Blender (0.05 a 1.0) para wireframe limpio",
     )
     p_model.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
+
+    p_seed_models = sub.add_parser(
+        "seed-models",
+        help="Generar los 6 modelos 3D universales base (.glb) en assets/models/ usando Blender headless",
+    )
+    p_seed_models.add_argument(
+        "-f", "--force", action="store_true", help="Sobrescribir si ya existen"
+    )
 
 
 def dispatch_assets_action(args: argparse.Namespace, action_attr: str = "asset_action") -> None:
@@ -752,6 +1071,8 @@ def dispatch_assets_action(args: argparse.Namespace, action_attr: str = "asset_a
 
     if act == "seed-icons":
         ensure_base_icons(force=getattr(args, "force", False))
+    elif act == "seed-models":
+        ensure_base_models(force=getattr(args, "force", False))
     elif act == "icon":
         fetch_icon(args.spec, name=args.name, force=args.force)
     elif act == "map":
@@ -776,6 +1097,8 @@ def dispatch_assets_action(args: argparse.Namespace, action_attr: str = "asset_a
             name=args.name,
             url=args.url,
             source_path=args.source_path,
+            blender_script=getattr(args, "blender_script", None),
+            decimate_ratio=getattr(args, "decimate", None),
             force=args.force,
         )
 

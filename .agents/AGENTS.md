@@ -69,7 +69,7 @@ video-pipeline/
 │       └── diseno-video/ # Estándares visuales limpios, tipografía y HyperFrames
 ├── core/              # Scripts CLI de procesamiento y orquestación
 │   ├── pipeline.py       # Orquestador maestro end-to-end (--voice-polish, --no-cut-silence, --no-sfx, --words-per-group, assets, image)
-│   ├── scenes.py         # Motor multi-escena (28 componentes SVG/HTML/Canvas/3D: infinite_canvas, svg_draw, scene_3d, image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
+│   ├── scenes.py         # Motor multi-escena (29 componentes SVG/HTML/Canvas/3D/Video: infinite_canvas, svg_draw, scene_3d, video_clip, image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
 │   ├── audio_mix.py      # Mezclador determinista de voz (--voice-polish), música/cama con ducking y 15 SFX (FFmpeg)
 │   ├── styles.py         # Fachada del motor de diseño en 3 niveles y estilos de subtítulos
 │   ├── _styles_catalog.py# Catálogo declarativo de diseños, temas, layouts y tokens
@@ -79,7 +79,7 @@ video-pipeline/
 │   ├── transcribe.py     # Transcripción con word timestamps y reemplazos multi-palabra (faster-whisper)
 │   ├── create_project.py # Scaffolding automatizado de proyectos
 │   ├── generate_sfx.py   # Síntesis matemática de 15 efectos de sonido WAV y 3 pistas musicales loopables
-│   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth GeoJSON CC0, audio CC0 y modelos 3D glTF/GLB de Blender)
+│   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth GeoJSON CC0, audio CC0 y conector Blender headless + 6 modelos 3D semilla .glb)
 │   └── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
 ├── templates/         # Catálogo de 7 plantillas esenciales (9:16 y 16:9)
 │   ├── explainer_scenes_9_16/ # Explainer faceless multi-escena vertical 9:16 (1080x1920)

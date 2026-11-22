@@ -66,6 +66,7 @@ def test_pipeline_subcommands_delegate_full_arguments():
         check=True,
     )
     assert "seed-icons" in res_assets.stdout
+    assert "seed-models" in res_assets.stdout
     assert "icon" in res_assets.stdout
     assert "map" in res_assets.stdout
     assert "audio" in res_assets.stdout
