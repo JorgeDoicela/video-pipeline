@@ -279,6 +279,22 @@ def produce_pipeline(
                 ambient_bed=use_ambient,
             )
             attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, sb.duration)
+    else:
+        effective_music = music_path
+        use_ambient = ambient_bed
+        if not effective_music and not use_ambient:
+            attach_audio_track_to_html(project_dir / "index.html", cut_video_path.name, cut_dur)
+        else:
+            mixed_wav = mix_storyboard_audio(
+                project_dir=project_dir,
+                events=[],
+                total_duration=cut_dur,
+                voice_path=cut_video_path,
+                music_path=effective_music,
+                music_volume=music_volume,
+                ambient_bed=use_ambient,
+            )
+            attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, cut_dur)
 
     # 5. Auditoría de Estándares HyperFrames (WCAG AA, Motion, Layout)
     print("\n--> [Paso 5/5] Auditando estándares con hyperframes check...")
