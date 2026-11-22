@@ -96,6 +96,9 @@ def test_level1_macro_design_switching(tmp_path):
     assert "font-family: var(--font-display);" in html_ed
     assert "border-top: 3px solid" not in html_ed
     assert "border: 1px solid var(--border);" in html_ed
+    assert "--accent-secondary: #8c2d19;" in html_ed
+    assert "#progress-bar, #brand-bar { display: none !important; }" in html_ed
+    assert "text-wrap: balance;" in html_ed
     assert "<h1>Título Intacto</h1>" in html_ed
 
     # 2. Cambiar a Diseño Macro cinematic

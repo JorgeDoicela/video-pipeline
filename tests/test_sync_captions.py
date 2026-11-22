@@ -200,7 +200,7 @@ def test_group_words_splits_on_punctuation_and_emphasis_words():
     assert 'className: "word word-emphasis active"' in gsap_out
 
 
-def test_consecutive_groups_never_overlap_in_time_and_respect_max_chars():
+def test_consecutive_groups_never_overlap_in_time_and_default_words_per_group():
     words = [
         {"word": "y", "start": 18.0, "end": 18.2},
         {"word": "ninguna", "start": 18.2, "end": 18.6},
@@ -211,10 +211,13 @@ def test_consecutive_groups_never_overlap_in_time_and_respect_max_chars():
         {"word": "puede", "start": 19.9, "end": 20.2},
         {"word": "borrar", "start": 20.2, "end": 20.6},
     ]
-    groups = group_words(words, words_per_group=4, pause_threshold=0.4, max_chars=28)
+    # Con el valor por defecto words_per_group=6, agrupa en bloques balanceados de hasta 6 palabras (1-2 líneas)
+    groups = group_words(words, pause_threshold=0.4)
     assert len(groups) == 2
+    assert len(groups[0]) == 6
+    assert len(groups[1]) == 2
     _, gsap_code = generate_html_and_gsap(groups, caption_style="minimal_clean")
 
-    # El grupo cg_0 debe ocultarse exactamente en 19.300 (cuando empieza cg_1), nunca en 19.450
-    assert 'tl.set("#cg_0", { opacity: 0, display: "none" }, 19.300);' in gsap_code
-    assert 'tl.set("#cg_1", { display: "inline-block", opacity: 1 }, 19.300);' in gsap_code
+    # El grupo cg_0 debe ocultarse exactamente en 19.900 (cuando empieza cg_1), nunca en 20.050
+    assert 'tl.set("#cg_0", { opacity: 0, display: "none" }, 19.900);' in gsap_code
+    assert 'tl.set("#cg_1", { display: "inline-block", opacity: 1 }, 19.900);' in gsap_code

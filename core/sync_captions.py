@@ -376,8 +376,8 @@ def register_captions_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--words-per-group",
         type=int,
-        default=4,
-        help="Número máximo de palabras por frase visible (defecto: 4)",
+        default=6,
+        help="Número máximo de palabras por frase visible de 1-2 líneas balanceadas (defecto: 6)",
     )
     parser.add_argument(
         "--pause-threshold",

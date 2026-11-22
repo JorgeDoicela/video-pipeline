@@ -220,7 +220,7 @@ def produce_pipeline(
     effective_wpg = (
         words_per_group
         if words_per_group is not None
-        else (preloaded_sb.words_per_group if preloaded_sb and preloaded_sb.words_per_group else 4)
+        else (preloaded_sb.words_per_group if preloaded_sb and preloaded_sb.words_per_group else 6)
     )
     emphasis_words = preloaded_sb.emphasis_words if preloaded_sb else None
     if words:
@@ -438,7 +438,7 @@ def main():
         "--words-per-group",
         type=int,
         default=None,
-        help="Máximo de palabras por bloque de subtítulo (defecto: storyboard o 4)",
+        help="Máximo de palabras por bloque de subtítulo de 1-2 líneas balanceadas (defecto: storyboard o 6)",
     )
     p_produce.add_argument(
         "--auto-render", action="store_true", help="Compilar MP4 automáticamente al concluir"

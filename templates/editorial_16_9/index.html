@@ -33,8 +33,8 @@
         --accent-primary: #875c22;
         --accent-primary-soft: rgba(135, 92, 34, 0.10);
         --accent-primary-glow: rgba(186, 147, 89, 0.28);
-        --accent-secondary: #3b6147;
-        --accent-secondary-soft: rgba(59, 97, 71, 0.10);
+        --accent-secondary: #8c2d19;
+        --accent-secondary-soft: rgba(140, 45, 25, 0.10);
         --accent-tertiary: #7c4d3a;
         --accent-warning: #8f5410;
         --accent-danger: #a32f2f;
@@ -203,9 +203,14 @@
       /* Caption Style: minimal_clean */
       .caption-phrase {
         display: inline-block;
+        max-width: 780px;
+        text-wrap: balance;
         background: transparent;
         padding: 0;
         border: none;
+      }
+      #root[data-width="1920"] .caption-phrase {
+        max-width: 1180px;
       }
       .word {
         display: inline-block;
@@ -224,7 +229,7 @@
         background: transparent;
         border: none;
         padding: 0;
-        text-shadow: 0 0 28px var(--accent-primary-glow), 0 4px 16px rgba(0, 0, 0, 0.72);
+        text-shadow: var(--caption-shadow);
       }
       /* @caption-style:end */
       /* @design-system:start */
@@ -267,6 +272,9 @@
         background: var(--surface);
         border: 1px solid var(--border);
         box-shadow: var(--shadow);
+      }
+      #progress-bar, #brand-bar {
+        display: none !important;
       }
       .lower-third {
         left: 80px;

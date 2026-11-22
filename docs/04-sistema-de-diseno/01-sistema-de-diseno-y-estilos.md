@@ -46,7 +46,7 @@ flowchart TD
 | Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Motion / Captions Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y bordes simétricos limpios. | `dark_violet` | `smooth` / `minimal_clean` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
-| `editorial` | Editorial (Marfil y Latón) | Estética cálida y serena con fondo marfil, esquinas orgánicas (`20px`), borde fino (`1px`), desenfoque suave (`blur(16px)`) y sombra difusa. | `paper_warm` | `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
+| `editorial` | Editorial (Marfil y Latón) | Estética cálida y serena con fondo marfil, esquinas orgánicas (`20px`), borde fino (`1px`), desenfoque suave (`blur(16px)`), sombra difusa y lienzo superior despejado (`#progress-bar` y `#brand-bar` ocultos). | `paper_warm` | `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
 | `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `smooth` / `minimal_clean` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
 
 ---
@@ -58,7 +58,7 @@ flowchart TD
 | Identificador (`-s`) | Nombre | Fondo Principal (`--bg`) | Acento Primario (`--accent-primary`) | Acento Secundario (`--accent-secondary`) | Naturaleza Cromática |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `dark_violet` *(Defecto)* | Dark Violet (Obsidiana y Cristal) | `#09090b` | `#a78bfa` (Violeta) | `#34d399` (Esmeralda) | Oscuro atmosférico de alto contraste |
-| `paper_warm` | Paper Warm (Marfil, Arena y Latón) | `#f5f1ea` | `#875c22` (Latón Dorado) | `#3b6147` (Verde Olivo) | Claro cálido sereno de alta legibilidad |
+| `paper_warm` | Paper Warm (Marfil, Arena y Latón) | `#f5f1ea` | `#875c22` (Latón Dorado) | `#8c2d19` (Carmesí Terracota) | Claro cálido sereno de alta legibilidad |
 | `clean_light` | Clean Light (Blanco Neutro) | `#f8fafc` | `#0369a1` (Azul) | `#047857` (Verde) | Claro limpio calibrado WCAG AA |
 
 ### 3.2. Variantes de Distribución (`--layout`)
@@ -81,7 +81,7 @@ flowchart TD
 
 | Identificador (`--caption-style`) | Efecto sobre la Palabra Activa (`.word.active`) | Opacidad Inactiva |
 | :--- | :--- | :--- |
-| `minimal_clean` *(Estándar Único)* | Lectura limpia sobria sin cajas ni cápsulas; resalta mediante opacidad `1.0`, color de acento y sombra sutil. | `0.40` |
+| `minimal_clean` *(Estándar Único)* | Lectura limpia sobria sin cajas ni cápsulas; bloques de 1 a 2 líneas balanceadas (`text-wrap: balance`, `max-width: 780px` en 9:16 y `1180px` en 16:9) sin solapamiento temporal entre frases; resalta mediante opacidad `1.0`, color de acento (`--accent-secondary` en `.word-emphasis`) y `var(--caption-shadow)`. | `0.40` |
 
 ---
 

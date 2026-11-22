@@ -15,7 +15,7 @@ Queda terminantemente prohibido implementar o reintroducir cualquiera de los sig
 
 | Elemento Gráfico | Patrón Prohibido (Rechazado) | Estándar Obligatorio (Limpio) |
 |---|---|---|
-| **Subtítulos cinéticos** | Encerrar palabras activas en cápsulas o pastillas con fondo sólido/translúcido, bordes y padding (`background`, `border`, `padding`, `border-radius` en `.word.active`). | Tipografía pura (`minimal_clean`). La palabra activa se ilumina exclusivamente con color de texto (`var(--caption-active)`), opacidad completa (`1.0`) y sombra tipográfica sutil. Cero cajas envolventes. |
+| **Subtítulos cinéticos** | Encerrar palabras activas en cápsulas o pastillas con fondo sólido/translúcido, bordes y padding (`background`, `border`, `padding`, `border-radius` en `.word.active`), o permitir que dos bloques consecutivos (`.caption-phrase`) se solapen temporalmente causando saltos verticales. | Tipografía pura (`minimal_clean`) en bloques estáticos de 1 a 2 líneas balanceadas (`text-wrap: balance`, `max-width: 780px` en 9:16 y `1180px` en 16:9, `words_per_group: 6` por defecto) sin solapamiento temporal (`hide_time = min(g_end + 0.15, next_start)`). La palabra activa se ilumina exclusivamente con color de texto (`var(--caption-active)` o `var(--accent-secondary)` en `.word-emphasis`), opacidad completa (`1.0`) y `text-shadow: var(--caption-shadow)`. Cero cajas envolventes. |
 | **Badges y Etiquetas** | Envolver texto de categoría (`.hook-badge`, `.badge`) en pastillas redondeadas con fondos o bordes. | Tipografía limpia sin contenedor: `background: transparent; border: none; padding: 0; display: inline-flex;` en mayúsculas, tracking amplio (`0.12em - 0.15em`) y peso 700-800. |
 | **Iconografía SVG** | Rodear iconos vectoriales SVG con fondos redondeados, botones o cápsulas. | Iconos SVG limpios y desnudos, alineados visualmente con el texto tipográfico sin contenedores gráficos envolventes. |
 | **Tarjetas y Paneles** | Bordes de acento asimétricos gruesos en el lateral izquierdo (`border-left: 6px solid var(--accent-primary)`) en `#main-card`, `.panel` o `.lower-third`. | Bordes perimetrales simétricos y uniformes en los cuatro lados (`border: var(--border-width) solid var(--border)`). |
@@ -29,14 +29,14 @@ Toda composición debe ensamblarse utilizando los bloques canónicos del catálo
 
 ### Nivel 1: Diseños Macro
 * `cinematic`: Superficie oscura profunda con curvas amplias (`--radius-lg: 28px`), desenfoque backdrop suave y bordes simétricos limpios.
-* `editorial`: Formato sobrio de lectura y ensayo, esquinas casi rectas (`--radius-lg: 4px`), filetes tipográficos y fondo antirreflejo.
+* `editorial`: Formato cálido y sereno de lectura, ensayo e historia bíblica (`--radius-lg: 20px`), fondo marfil antirreflejo (`#f5f1ea`), bordes simétricos finos (`1px`) y lienzo superior limpio (oculta automáticamente `#progress-bar` y `#brand-bar`).
 * `clean`: Luminoso, minimalista, tarjetas blancas o traslúcidas puras con sombras multicapa y estética moderna.
 
 ### Nivel 2: Variantes Canónicas
 * **Paletas de Color (Accesibles WCAG AA):**
-  * `dark_violet`: Oscuro refinado con acento violeta neón y cian.
-  * `paper_warm`: Pergamino suave cálido con tinta azul marino profunda y acentos terracota.
-  * `clean_light`: Base blanca/gris perla con texto negro azulado y acento azul eléctrico.
+  * `dark_violet`: Oscuro refinado con acento primario violeta (`#a78bfa`) y secundario esmeralda (`#34d399`).
+  * `paper_warm`: Pergamino marfil cálido (`#f5f1ea`) con tinta café oscura (`#1f1b16`), acento primario latón dorado (`#875c22`) y acento secundario carmesí terracota (`#8c2d19`).
+  * `clean_light`: Base blanca/gris perla (`#f8fafc`) con texto negro azulado y acento azul (`#0369a1`).
 * **Layouts Estructurales:**
   * `standard`: Centrado armónico para explicación técnica directa.
   * `asymmetric_focus`: Columna gráfica dominante con panel de apoyo.
@@ -93,7 +93,7 @@ Para videos explicativos donde solo habla la voz del narrador (`explainer_scenes
 * `camera_motion`: `true` (defecto) aplica un movimiento de cámara virtual lento y determinista (`scale: 1.0 -> 1.028`) sobre `#scenes-stage` sin mover los subtítulos.
 * `film_grain`: `true` activa viñeta radial profunda y textura cinematográfica determinista (`data-film-grain="true"`).
 * `voice_polish`: `true` aplica limpieza vocal de estudio en FFmpeg (`highpass=f=80`, `afftdn=nf=-25`, `acompressor` y `loudnorm=-14 LUFS`) antes del *ducking* (también activable por CLI con `--voice-polish`).
-* `words_per_group` y `emphasis_words`: configuran el número máximo de palabras por bloque de subtítulo (ej. `3`, respetando además cortes en puntuación fuerte y comas) y las palabras clave que se iluminan con `.word-emphasis` (color secundario + `text-shadow`, cero cajas o pastillas).
+* `words_per_group` y `emphasis_words`: configuran el número máximo de palabras por bloque de subtítulo (`6` por defecto para formar 1 a 2 líneas balanceadas con `text-wrap: balance`, respetando además cortes en puntuación fuerte y comas sin solapamiento temporal entre bloques consecutivos) y las palabras clave que se iluminan con `.word-emphasis` (color secundario `var(--accent-secondary)` + `var(--caption-shadow)`, cero cajas o pastillas).
 
 ### 4.2. Catálogo de 29 Componentes Narrativos (`COMPONENT_REGISTRY`)
 1. `phone_mockup`: soporta `mode: "list"` (carpetas con retícula de enfoque y cursor animado opcional `show_cursor: true`) y `mode: "app_grid"` (pantalla móvil con reloj gigante, cuadrícula `4x4` de apps, etiqueta superior, arco HUD radial y flash de obturador opcional `capture_flash: true`, `capture_count: 5`).

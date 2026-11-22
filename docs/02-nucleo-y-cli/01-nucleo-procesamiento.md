@@ -119,7 +119,7 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
    * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), bordes simétricos limpios, tema nativo `dark_violet` y subtítulos `minimal_clean`.
-   * `editorial`: Estética cálida y serena de lectura con fondo marfil (`#f5f1ea`), esquinas suaves (`20px`), bordes finos (`1px`), sombra difusa cálida, tema `paper_warm` (latón dorado y verde olivo) y subtítulos `minimal_clean`.
+   * `editorial`: Estética cálida y serena de lectura con fondo marfil (`#f5f1ea`), esquinas suaves (`20px`), bordes finos (`1px`), sombra difusa cálida, ocultamiento automático de la barra de progreso superior (`#progress-bar`) y cabecera de marca (`#brand-bar`), tema `paper_warm` (latón dorado `#875c22` y carmesí terracota `#8c2d19`) y subtítulos `minimal_clean`.
    * `clean`: Tarjetas blancas minimalistas con radios de `24px`, sombras multicapa suaves, tema nativo `clean_light` y animación `smooth`.
 
 2. **Nivel 2 — Opciones Internas dentro de un mismo Diseño:**
@@ -159,7 +159,7 @@ python3 core/pipeline.py style mi-proyecto --reset-overrides
 El script [sync_captions.py](../../core/sync_captions.py) convierte el archivo `transcript.json` de Whisper en etiquetas HTML estructuradas y animaciones GSAP sincronizadas palabra por palabra.
 
 ### 4.1. Funcionalidades Principales
-* **Agrupación Inteligente:** Divide el habla en grupos legibles de 3 a 5 palabras, cortando de forma reactiva si detecta pausas naturales superiores a 0.4 segundos.
+* **Agrupación Inteligente y Sin Solapamiento Temporal:** Divide el habla en bloques balanceados de 1 a 2 líneas (hasta 6 palabras por defecto, con `text-wrap: balance` y `max-width: 780px` en 9:16 o `1180px` en 16:9), cortando de forma reactiva ante pausas superiores a 0.4 segundos o signos de puntuación, y garantizando cero solapamiento temporal entre bloques consecutivos (`hide_time = min(g_end + 0.15, next_start)`) para evitar saltos verticales al cambiar de frase.
 * **Inyección en HTML/GSAP:** Localiza el contenedor de subtítulos dentro de `index.html` y escribe tanto los elementos `<span>` como las líneas de tiempo pausadas `tl.to(...)`.
 * **Exportación Estándar:** Genera archivos `.srt` y `.vtt` para distribución multiplataforma con marcas temporales exactas.
 
@@ -171,7 +171,7 @@ El script [sync_captions.py](../../core/sync_captions.py) convierte el archivo `
 | `--inject` | `string` | `None` | Ruta al `index.html` donde inyectar subtítulos y código GSAP. |
 | `--export-srt` | `string` | `None` | Ruta para exportar subtítulos en formato SubRip (.srt). |
 | `--export-vtt` | `string` | `None` | Ruta para exportar subtítulos en formato WebVTT (.vtt). |
-| `--words-per-group`| `int` | `4` | Máximo de palabras por bloque de subtítulo visible. |
+| `--words-per-group`| `int` | `6` | Máximo de palabras por bloque de subtítulo visible (1–2 líneas balanceadas). |
 | `--pause-threshold`| `float` | `0.4` | Pausa en segundos para forzar el salto de frase. |
 
 ---
