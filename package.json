@@ -24,6 +24,7 @@
     "format:py": "ruff format core tests"
   },
   "dependencies": {
-    "hyperframes": "0.9.18"
+    "hyperframes": "0.9.18",
+    "three": "^0.187.0"
   }
 }

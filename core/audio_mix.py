@@ -32,6 +32,14 @@ def resolve_ffmpeg() -> str:
     return ffmpeg_bin
 
 
+VOICE_POLISH_FILTER_CHAIN = (
+    "highpass=f=80,"
+    "afftdn=nf=-25,"
+    "acompressor=threshold=-18dB:ratio=3:attack=10:release=120:makeup=2,"
+    "loudnorm=I=-14:TP=-1.5:LRA=11"
+)
+
+
 def build_sfx_mix_command(
     voice_path: Path | None,
     events: list[tuple[Path, float, float]],
@@ -40,11 +48,13 @@ def build_sfx_mix_command(
     ffmpeg_bin: str = "ffmpeg",
     music_path: Path | None = None,
     music_volume: float = 0.14,
+    voice_polish: bool = False,
 ) -> list[str]:
     """
     Construye el comando FFmpeg con filter_complex para mezclar voz (o silencio base),
-    cama musical/ambiental opcional con ducking dinámico (sidechaincompress) y
-    múltiples eventos SFX posicionados con adelay y protección anti-clipping (alimiter).
+    cadena opcional de limpieza vocal de estudio (voice_polish), cama musical/ambiental
+    opcional con ducking dinámico (sidechaincompress) y múltiples eventos SFX posicionados
+    con adelay y protección anti-clipping (alimiter).
     """
     if total_duration <= 0:
         raise ValueError(f"La duración total debe ser positiva (recibido: {total_duration}).")
@@ -54,15 +64,16 @@ def build_sfx_mix_command(
 
     if voice_path is not None:
         cmd.extend(["-i", str(voice_path)])
+        polish_stage = f"{VOICE_POLISH_FILTER_CHAIN}," if voice_polish else ""
         if music_path is not None:
             filter_parts.append(
-                "[0:a]aresample=48000,aformat=channel_layouts=stereo,"
+                f"[0:a]aresample=48000,aformat=channel_layouts=stereo,{polish_stage}"
                 f"apad=whole_dur={total_duration:.3f},atrim=0:{total_duration:.3f},"
                 "volume=1.0,asplit=2[base][sc]"
             )
         else:
             filter_parts.append(
-                "[0:a]aresample=48000,aformat=channel_layouts=stereo,"
+                f"[0:a]aresample=48000,aformat=channel_layouts=stereo,{polish_stage}"
                 f"apad=whole_dur={total_duration:.3f},atrim=0:{total_duration:.3f},"
                 "volume=1.0[base]"
             )
@@ -153,6 +164,7 @@ def mix_storyboard_audio(
     music_path: Path | str | None = None,
     music_volume: float = 0.14,
     ambient_bed: bool = False,
+    voice_polish: bool = False,
 ) -> Path:
     """Genera los SFX faltantes y mezcla la pista de audio final (voz + cama + SFX) en el proyecto."""
     sfx_map = ensure_sfx_assets()
@@ -179,8 +191,12 @@ def mix_storyboard_audio(
         ffmpeg_bin=ffmpeg_bin,
         music_path=effective_music,
         music_volume=music_volume,
+        voice_polish=voice_polish,
     )
     subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     bed_info = f" + cama ({effective_music.name})" if effective_music else ""
-    print(f"[AudioMix] Mezcla generada ({len(resolved_events)} SFX{bed_info}) -> {output_wav.name}")
+    polish_info = " + voice-polish" if (voice_polish and voice_path is not None) else ""
+    print(
+        f"[AudioMix] Mezcla generada ({len(resolved_events)} SFX{bed_info}{polish_info}) -> {output_wav.name}"
+    )
     return output_wav

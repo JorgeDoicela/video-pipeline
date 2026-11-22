@@ -126,6 +126,7 @@ def produce_pipeline(
     music_path: str | None = None,
     music_volume: float = 0.14,
     ambient_bed: bool = False,
+    voice_polish: bool = False,
     skip_cut_silence: bool = False,
     skip_sfx: bool = False,
     words_per_group: int | None = None,
@@ -263,7 +264,8 @@ def produce_pipeline(
         events = [] if skip_sfx else extract_sfx_events(sb, include_sub_events=True)
         effective_music = music_path or sb.music
         use_ambient = ambient_bed or sb.ambient_bed
-        if not events and not effective_music and not use_ambient:
+        use_voice_polish = voice_polish or sb.voice_polish
+        if not events and not effective_music and not use_ambient and not use_voice_polish:
             print(
                 f"[AudioMix] Sin SFX ni cama adicional; vinculando pista limpia -> {cut_video_path.name}"
             )
@@ -277,12 +279,13 @@ def produce_pipeline(
                 music_path=effective_music,
                 music_volume=music_volume,
                 ambient_bed=use_ambient,
+                voice_polish=use_voice_polish,
             )
             attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, sb.duration)
     else:
         effective_music = music_path
         use_ambient = ambient_bed
-        if not effective_music and not use_ambient:
+        if not effective_music and not use_ambient and not voice_polish:
             attach_audio_track_to_html(project_dir / "index.html", cut_video_path.name, cut_dur)
         else:
             mixed_wav = mix_storyboard_audio(
@@ -293,6 +296,7 @@ def produce_pipeline(
                 music_path=effective_music,
                 music_volume=music_volume,
                 ambient_bed=use_ambient,
+                voice_polish=voice_polish,
             )
             attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, cut_dur)
 
@@ -416,6 +420,11 @@ def main():
         help="Activar cama ambiental sintética grave (drone.wav) con ducking automático",
     )
     p_produce.add_argument(
+        "--voice-polish",
+        action="store_true",
+        help="Aplicar cadena de limpieza vocal de estudio FFmpeg (highpass, afftdn, compresor y loudnorm -14 LUFS)",
+    )
+    p_produce.add_argument(
         "--no-cut-silence",
         action="store_true",
         help="Preservar el audio/video original sin recortar pausas ni silencios",
@@ -525,11 +534,16 @@ def main():
         action="store_true",
         help="Activar cama ambiental sintética (drone.wav) con ducking",
     )
+    p_sb.add_argument(
+        "--voice-polish",
+        action="store_true",
+        help="Aplicar limpieza vocal de estudio FFmpeg (highpass, afftdn, compresor y loudnorm -14 LUFS)",
+    )
 
     # Subcomando: assets
     p_assets = subparsers.add_parser(
         "assets",
-        help="Descargar y gestionar assets abiertos (Iconify SVG, mapas Natural Earth CC0 y audio CC0)",
+        help="Descargar y gestionar assets abiertos (Iconify SVG, mapas Natural Earth CC0, audio CC0 y modelos 3D glTF/GLB)",
     )
     register_assets_subparsers(p_assets, dest="asset_action")
 
@@ -574,6 +588,7 @@ def main():
             music_path=args.music,
             music_volume=args.music_volume,
             ambient_bed=args.ambient_bed,
+            voice_polish=args.voice_polish,
             skip_cut_silence=args.no_cut_silence,
             skip_sfx=args.no_sfx,
             words_per_group=args.words_per_group,
@@ -672,6 +687,7 @@ def main():
                 music_path=args.music or sb.music,
                 music_volume=args.music_volume,
                 ambient_bed=args.ambient_bed or sb.ambient_bed,
+                voice_polish=args.voice_polish or sb.voice_polish,
             )
             attach_audio_track_to_html(html_path, mixed_wav.name, sb.duration)
             print(f"Audio mezclado en {mixed_wav} ({len(events)} eventos SFX)")

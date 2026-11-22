@@ -71,6 +71,10 @@ Cualquier template o proyecto HTML debe acatar rigurosamente las reglas del moto
 4. **Reglas de Precisión Geométrica en SVG + GSAP:**
    * Al rotar o escalar elementos `<g>`, `<path>` o `<circle>` dentro de un `<svg viewBox="...">` en GSAP, utiliza siempre coordenadas absolutas dentro del `viewBox` y define explícitamente `svgOrigin: "<cx> <cy>"` en el tween (nunca dependas de `transform="translate(cx, cy)"` en el atributo SVG si GSAP va a animar `rotation` o `scale`, ya que GSAP sobrescribe la matriz de transformación).
    * Cuando utilices `yoyo: true, repeat: 1` en una animación secundaria, **no incluyas `opacity: 0`** en el `fromVars` de ese mismo `fromTo`, pues al hacer *yoyo* el elemento volverá a `opacity: 0`. Separa la entrada de opacidad en un tween previo o anima únicamente posición/escala en el ciclo `yoyo`.
+5. **Reglas de Renderizado 3D Determinista (`Three.js` + Blender `.glb`) y Cámara 2D / Trazos SVG:**
+   * En `scene_3d`, nunca utilices `requestAnimationFrame`. Todo render WebGL (`renderer.render(scene, camera)`) debe invocarse dentro del `onUpdate` de un tween sobre `window.__timelines["main"]`, inicializando `THREE.WebGLRenderer` con `preserveDrawingBuffer: true`.
+   * Los modelos orgánicos creados en **Blender** deben exportarse como `glTF Binary (.glb)` (`+Y Up`, transformaciones aplicadas), registrarse en `assets/models/` mediante `uv run python core/pipeline.py assets model <slug> --file <ruta.glb>` y consumirse con `"component": "scene_3d"`.
+   * Para recorridos conceptuales sin cortes bruscos utiliza `infinite_canvas` (cámara 2D `x`, `y`, `scale` + conectores Bezier + `zoom_out_end`), y para diagramas que se dibujan mientras habla el narrador utiliza `svg_draw` (`stroke-dashoffset` + `MotionPathPlugin`).
 
 ---
 
@@ -88,9 +92,10 @@ Para videos explicativos donde solo habla la voz del narrador (`explainer_scenes
 * `music`: preset musical procedural local (`"tension_pulse"`, `"tech_minimal"`, `"editorial_warm"`) o ruta a archivo `.wav`/`.mp3`, mezclado automáticamente con *ducking*.
 * `camera_motion`: `true` (defecto) aplica un movimiento de cámara virtual lento y determinista (`scale: 1.0 -> 1.028`) sobre `#scenes-stage` sin mover los subtítulos.
 * `film_grain`: `true` activa viñeta radial profunda y textura cinematográfica determinista (`data-film-grain="true"`).
+* `voice_polish`: `true` aplica limpieza vocal de estudio en FFmpeg (`highpass=f=80`, `afftdn=nf=-25`, `acompressor` y `loudnorm=-14 LUFS`) antes del *ducking* (también activable por CLI con `--voice-polish`).
 * `words_per_group` y `emphasis_words`: configuran el número máximo de palabras por bloque de subtítulo (ej. `3`, respetando además cortes en puntuación fuerte y comas) y las palabras clave que se iluminan con `.word-emphasis` (color secundario + `text-shadow`, cero cajas o pastillas).
 
-### 4.2. Catálogo de 25 Componentes Narrativos (`COMPONENT_REGISTRY`)
+### 4.2. Catálogo de 28 Componentes Narrativos (`COMPONENT_REGISTRY`)
 1. `phone_mockup`: soporta `mode: "list"` (carpetas con retícula de enfoque y cursor animado opcional `show_cursor: true`) y `mode: "app_grid"` (pantalla móvil con reloj gigante, cuadrícula `4x4` de apps, etiqueta superior, arco HUD radial y flash de obturador opcional `capture_flash: true`, `capture_count: 5`).
 2. `radar_map`: mapa vectorial y radar táctico con barrido cónico 360° (`svgOrigin: "440 340"`), presets geográficos reales en `assets/maps/` (`map_preset: "korea" | "world" | "europe" | "americas" | "asia"`), ruta animada opcional (`route: true`) y objetivos geolocalizados (`targets`).
 3. `xray_scanner`: marco HUD con 4 esquinas, láser horizontal en vivo y tarjetas laterales (`callouts`).
@@ -115,7 +120,10 @@ Para videos explicativos donde solo habla la voz del narrador (`explainer_scenes
 22. `cta_card`: cierre interactivo con botón de llamada a la acción (`cta_text`), marco móvil (`clock`) y mutación de candado seguro (`before_label`) a ojo/alerta (`after_label`).
 23. `canvas_fx`: primitiva Canvas 2D 100% determinista conducida por proxy numérico en GSAP (`onUpdate`, cero `requestAnimationFrame`), con modos `effect: "particles" | "matrix" | "radar_waves" | "noise_field"`, `title`, `subtitle` y `color`.
 24. `image_cutout`: presenta una imagen procesada o recorte transparente (`assets/images/<archivo>.png`/`.webp`) con entrada elástica, flotación determinista opcional (`float_motion: true`), `title` y `subtitle`.
-25. `custom_scene`: **primitiva abierta de máxima flexibilidad** que recibe `html` (con marcador `{scene_id}`) y `gsap` (con `{scene_id}` y `{start}`) para construir metáforas visuales SVG/GSAP hechas a la medida exacta de cualquier frase del guion sin modificar `core/`.
+25. `infinite_canvas`: cámara virtual 2D sobre un lienzo continuo (`world_width`, `world_height`) que conecta nodos mediante curvas Bezier SVG (`stroke-dashoffset` + `MotionPathPlugin`) y viaja entre ellos en GSAP (`x`, `y`, `scale`), con `zoom_out_end: true` para revelar el mapa completo al final.
+26. `svg_draw`: trazos SVG vectoriales progresivos sincronizados con timestamps relativos (`at`, `duration`, `dashed`, `label`), etiquetas cronometradas (`labels`), tachado animado (`strike_through`) y punta luminosa (`writing_head: true`) conducida por `MotionPathPlugin`.
+27. `scene_3d`: motor WebGL 3D 100% determinista sobre Three.js (`onUpdate` de GSAP, cero `requestAnimationFrame`, `preserveDrawingBuffer: true`) con 9 primitivos procedurales (`cross`, `altar`, `scales`, `gavel`, `bars`, `columns`, `cube`, `torus`, `sphere`), carga de modelos `.glb`/`.gltf` exportados desde **Blender** (`assets/models/`), modos `edges` | `wireframe` | `solid`, grilla de puntos 3D (`dot_grid`) y órbita de cámara (`camera_orbit`).
+28. `custom_scene`: **primitiva abierta de máxima flexibilidad** que recibe `html` (con marcador `{scene_id}`) y `gsap` (con `{scene_id}` y `{start}`) para construir metáforas visuales SVG/GSAP hechas a la medida exacta de cualquier frase del guion sin modificar `core/`.
 
 ### 4.3. Sincronización por Voz (`cue_word`) y Cambio de Mood por Escena
 * Cada escena puede declarar `"cue_word": "<palabra>"` para que `align_storyboard_to_transcript` ajuste su `start` al instante exacto en que Whisper detectó esa palabra.
@@ -135,6 +143,8 @@ Para incorporar nuevos iconos vectoriales, mapas geográficos reales, muestras d
   uv run python core/pipeline.py image crop -i captura.png -o assets/images/captura.webp --aspect 9:16 --width 1080 --height 1920
   uv run python core/pipeline.py image convert -i raw.png -o assets/images/opt.webp --width 840 --quality 92
   ```
+* **Modelos 3D exportados desde Blender (`assets/models/*.glb`):**
+  `uv run python core/pipeline.py assets model cordero --file ruta/al/cordero.glb`
 * **Inventario de assets locales:**
   `uv run python core/pipeline.py assets list`
 

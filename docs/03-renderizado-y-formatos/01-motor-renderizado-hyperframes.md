@@ -106,6 +106,10 @@ sequenceDiagram
 ### Caracteristicas del Motor de Render:
 1. **Captura `BeginFrame`:** Chrome Headless Shell no graba la pantalla en tiempo real (lo cual generaria caidas de fotogramas si el sistema se satura). En su lugar, el renderizador emite una peticion explicita por cada cuadro, garantizando que ningun fotograma se pierda independientemente de la carga de CPU.
 2. **Workers Paralelos:** HyperFrames detecta los nucleos de la CPU (8 hilos en Ryzen 3 5300U) para distribuir la captura en multiples instancias simultaneas de Chromium.
+3. **Renderizado WebGL 3D Determinista (`Three.js` + GSAP `onUpdate`):**
+   * En escenas `scene_3d`, queda prohibido utilizar bucles libres `requestAnimationFrame()`. El renderizado de cada fotograma 3D se enlaza mediante un objeto proxy (`const proxy = { p: 0 }`) al callback `onUpdate` de `window.__timelines["main"]`.
+   * El contexto `THREE.WebGLRenderer` se inicializa obligatoriamente con `preserveDrawingBuffer: true` para garantizar que la captura de buffers en Chrome Headless conserve el frame WebGL renderizado.
+   * Para cumplir el `StaticGuard` de HyperFrames y operar 100% offline, `inject_storyboard_into_html` copia el runtime ESM (`three.module.js`, `three.core.js` y `GLTFLoader.js`) a `<proyecto>/assets/vendor/` y los modelos `.glb` de Blender a `<proyecto>/assets/models/`, inyectando un `<script type="importmap">` local.
 
 ---
 

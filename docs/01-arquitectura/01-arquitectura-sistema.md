@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph Generacion ["3. Orquestacion Multi-Escena y Diseño"]
-        C --> F["scenes.py (25 Primitivas + cue_word) / styles.py / fetch_assets.py / image_tools.py"]
+        C --> F["scenes.py (28 Primitivas + 2D/3D + cue_word) / styles.py / fetch_assets.py / image_tools.py"]
         F --> G["index.html (Composicion GSAP / SVG / Canvas 2D)"]
     end
 
@@ -66,7 +66,9 @@ A continuacion se detalla la totalidad de herramientas, runtimes, motores y bibl
 | **uv** | `0.13.4` | Gestor de Entornos Python | Apache 2.0 / MIT | Creacion ultra-rapida y determinista del entorno virtual `.venv` y resolucion de paquetes sin privilegios `sudo`. |
 | **HyperFrames** | `0.9.18` | Motor de Renderizado Programatico | Apache 2.0 | Compilador de escenas web a video MP4, orquestador de workers y servidor de previsualizacion en vivo. |
 | **Chrome Headless Shell** | `v152.0+` | Navegador Headless de Captura | BSD / Chromium | Renderizado cuadro a cuadro determinista via `BeginFrame` API sin perdida de fotogramas por sobrecarga. |
-| **GSAP** | `3.15.0` | Motor de Animacion y Timelines | Estandar Web (CDN) | Interpolacion de movimientos, fisicas de aceleracion (*easing*), sincronizacion temporal y transformaciones vectoriales. |
+| **GSAP + MotionPathPlugin** | `3.15.0` | Motor de Animacion y Timelines | Estandar Web (CDN) | Interpolacion de movimientos, camara virtual 2D (`infinite_canvas`), trazos SVG con punta luminosa (`svg_draw`) y sincronizacion temporal. |
+| **Three.js + GLTFLoader** | `0.187.0` | Motor WebGL 3D Determinista | MIT | Renderizado 3D offline conducido por `onUpdate` de GSAP (`scene_3d`), primitivos procedurales y carga de mallas `.glb`/`.gltf`. |
+| **Blender** | `4.x` *(Opcional)* | Modelado y Exportacion 3D | GPLv3 | Creacion y exportacion local de modelos organicos en formato `glTF Binary (.glb)` hacia `assets/models/`. |
 | **SVG** | W3C Standard | Graficos Vectoriales Dinamicos | Abierto | Representacion procedural de nodos, redes, conexiones Bezier, paquetes de datos y filtros de resplandor (*bloom*). |
 | **Prism.js** | CDN / Modular | Resaltado de Sintaxis | MIT | Formateo visual y coloreado sintactico de bloques de codigo en Formato 2. |
 | **Ruff** | `0.9.x` | Linter y Formateador Python | MIT | Verificación estática de código, tipado, optimización de imports y estilo PEP8. |

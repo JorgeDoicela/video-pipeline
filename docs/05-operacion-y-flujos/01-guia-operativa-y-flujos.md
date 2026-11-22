@@ -175,15 +175,16 @@ uv run python core/pipeline.py produce \
   --storyboard guion.json \
   --replace lidis=Redis \
   --ambient-bed \
+  --voice-polish \
   --auto-render
 ```
 
-Para recompilar únicamente el storyboard y mezclar SFX + cama con *ducking* tras editar `storyboard.json`:
+Para recompilar únicamente el storyboard y mezclar SFX + cama con *ducking* y limpieza vocal tras editar `storyboard.json`:
 ```bash
-uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav --ambient-bed
+uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav --ambient-bed --voice-polish
 ```
 
-### 3.3. Catálogo de los 25 Componentes Narrativos (`COMPONENT_REGISTRY`)
+### 3.3. Catálogo de los 28 Componentes Narrativos (`COMPONENT_REGISTRY`)
 
 | Componente | Uso Principal | Propiedades Clave (`props`) |
 | :--- | :--- | :--- |
@@ -211,9 +212,36 @@ uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio project
 | `cta_card` | Cierre interactivo con llamada a la acción y mutación de candado seguro a ojo/alerta | `cta_text`, `clock`, `before_label`, `after_label` |
 | `canvas_fx` | Primitiva Canvas 2D 100% determinista conducida por proxy en GSAP (`onUpdate`) | `effect` (`particles` \| `matrix` \| `radar_waves` \| `noise_field`), `title`, `subtitle`, `color` |
 | `image_cutout` | Recorte transparente o imagen procesada (`assets/images/`) con entrada elástica y flotación | `src`, `title`, `subtitle`, `max_width`, `float_motion` |
+| `infinite_canvas` | Cámara virtual 2D sobre lienzo continuo con nodos conectados por curvas Bezier y zoom-out panorámico | `world_width`, `world_height`, `zoom_out_end`, `show_connectors`, `writing_head`, `nodes: [{tag, title, detail, items, x, y, scale, at, highlight}]` |
+| `svg_draw` | Trazos SVG progresivos sincronizados con timestamps (`stroke-dashoffset` + `MotionPathPlugin`) | `view_box`, `title`, `subtitle`, `writing_head`, `paths: [{d, color, stroke_width, dashed, at, duration, label}]`, `labels`, `strike_through` |
+| `scene_3d` | Motor WebGL 3D determinista sobre Three.js (`onUpdate`, sin `requestAnimationFrame`) con primitivos procedurales y `.glb`/`.gltf` | `preset` (`cross` \| `altar` \| `scales` \| `gavel` \| `bars` \| `columns` \| `cube` \| `torus` \| `sphere`), `model` (`assets/models/*.glb`), `render_style` (`edges` \| `wireframe` \| `solid`), `dot_grid`, `camera_orbit`, `camera_distance`, `rotation_turns`, `color`, `title` |
 | `custom_scene` | Escena abierta para inyectar cualquier composición SVG/HTML y coreografía GSAP a medida | `html` (con marcador `{scene_id}`), `gsap` (con `{scene_id}` y `{start}`) |
 
-### 3.4. Ejemplo de Escena a Medida con `custom_scene`
+### 3.4. Ejemplo de Escena 3D Determinista con Modelo de Blender (`scene_3d`)
+Tras exportar un modelo desde Blender en formato `.glb` e importarlo con `uv run python core/pipeline.py assets model cordero --file ./cordero.glb`, se referencia directamente en `storyboard.json`:
+
+```json
+{
+  "id": "sc_cordero_3d",
+  "start": 12.0,
+  "end": 18.0,
+  "cue_word": "cordero",
+  "badge": "02 · Sustitución",
+  "headline": "El Cordero de Dios",
+  "component": "scene_3d",
+  "transition": "zoom_in",
+  "sfx": "sub_hit",
+  "props": {
+    "model": "cordero.glb",
+    "render_style": "edges",
+    "dot_grid": true,
+    "camera_orbit": true,
+    "rotation_turns": 0.4
+  }
+}
+```
+
+### 3.5. Ejemplo de Escena a Medida con `custom_scene`
 Cuando una frase del guion requiere una metáfora visual única (por ejemplo, una lupa inspeccionando paquetes, una fábrica en serie o un diagrama bespoke), se define directamente en `storyboard.json` usando `custom_scene`:
 
 ```json

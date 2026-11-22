@@ -141,7 +141,22 @@ El módulo [`core/fetch_assets.py`](../../core/fetch_assets.py) (integrado como 
    uv run python core/pipeline.py assets audio shutter_org --freesound "camera shutter mechanical" --type sfx
    ```
 
-4. **Inventario Local de Assets:**
+4. **Modelos 3D Abiertos glTF/GLB (`assets/models/`) — Flujo Oficial con Blender:**
+   Valida la cabecera glTF 2.0 (bytes mágicos `glTF` en `.glb` o JSON `asset` en `.gltf`) y guarda modelos 3D en `assets/models/` para ser consumidos de forma 100% offline por el componente `scene_3d` mediante `GLTFLoader` (copiados automáticamente al proyecto junto con el runtime ESM local de Three.js):
+   ```bash
+   # Importar modelo local creado o editado en Blender (.glb recomendado)
+   uv run python core/pipeline.py assets model cordero --file ./export_blender/cordero.glb
+
+   # Descargar modelo abierto desde URL directa CC0
+   uv run python core/pipeline.py assets model olive_branch --url https://ejemplo.org/olive_branch.glb
+   ```
+   **Estándar de exportación desde Blender hacia `video-pipeline`:**
+   * **Formato:** `glTF Binary (.glb)` (un solo archivo autocontenido sin texturas externas sueltas).
+   * **Orientación y Escala:** Activar `+Y Up` y aplicar transformaciones previas (`Ctrl+A` $\rightarrow$ *All Transforms*). `scene_3d` normaliza y centra automáticamente el *bounding box* (`Box3`) del modelo en cámara.
+   * **Topología para modos `edges` y `wireframe`:** Mantener mallas limpias (bajo/medio poligonaje, sin subdivisión excesiva) para que `EdgesGeometry` dibuje contornos nítidos en GPU.
+   * **Materiales:** Para `render_style: "edges"` o `"wireframe"`, no se requieren texturas pesadas; el color se gobierna dinámicamente desde el token CSS del tema activo (`--accent-primary` o `props.color`). Para `render_style: "solid"`, el material estándar recibe iluminación direccional y ambiental de Three.js.
+
+5. **Inventario Local de Assets:**
    ```bash
    uv run python core/pipeline.py assets list
    ```

@@ -2,11 +2,12 @@
 """
 Gestor y descargador determinista de activos abiertos (CC0 / MIT) para video-pipeline.
 
-Conecta el pipeline bajo demanda con tres fuentes abiertas y gratuitas sin romper
+Conecta el pipeline bajo demanda con fuentes abiertas y gratuitas sin romper
 el renderizado 100% offline, e incluye el catálogo base de 18 iconos técnicos vectoriales:
   1. Iconify API (Lucide, Tabler, Simple Icons — MIT/CC0, sin API Key) + 18 iconos semilla locales -> assets/icons/<slug>.svg
   2. Natural Earth GeoJSON (Dominio Público CC0, sin API Key) -> assets/maps/<slug>.svg
   3. Audio CC0 (URL directa o búsqueda en Freesound API v2 con filtro CC0) -> assets/audio/ o assets/music/ (WAV 48kHz 16-bit)
+  4. Modelos 3D glTF/GLB (URL directa CC0 o importación local desde Blender/Poly Pizza/Sketchfab) -> assets/models/<slug>.glb|.gltf
 """
 
 from __future__ import annotations
@@ -554,6 +555,72 @@ def fetch_audio_cc0(
     return out_path
 
 
+def validate_3d_model_bytes(raw_bytes: bytes, suffix: str) -> None:
+    """Valida integridad básica de un modelo 3D glTF 2.0 (.glb binario o .gltf JSON)."""
+    ext = suffix.lower()
+    if ext == ".glb":
+        if len(raw_bytes) < 12 or raw_bytes[:4] != b"glTF":
+            raise ValueError(
+                "Archivo .glb inválido: no contiene la cabecera mágica binaria 'glTF'."
+            )
+    elif ext == ".gltf":
+        try:
+            payload = json.loads(raw_bytes.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError(f"Archivo .gltf inválido: JSON malformado ({exc}).") from exc
+        if not isinstance(payload, dict) or "asset" not in payload:
+            raise ValueError("Archivo .gltf inválido: falta la sección obligatoria 'asset'.")
+    else:
+        raise ValueError(f"Extensión 3D no soportada '{suffix}'. Usa '.glb' o '.gltf'.")
+
+
+def fetch_model(
+    name: str,
+    url: str | None = None,
+    source_path: str | Path | None = None,
+    models_dir: Path | None = None,
+    force: bool = False,
+) -> Path:
+    """
+    Descarga o importa un modelo 3D abierto (.glb / .gltf) hacia assets/models/<slug>.<ext>,
+    validando su cabecera glTF 2.0 antes de guardarlo en caché local.
+    """
+    if not url and not source_path:
+        raise ValueError("Debes proporcionar '--url' (descarga CC0) o '--file' (archivo local).")
+
+    target_dir = models_dir or (_REPO_ROOT / "assets" / "models")
+    target_dir.mkdir(parents=True, exist_ok=True)
+    slug = _sanitize_slug(name)
+
+    if source_path is not None:
+        src = Path(source_path).resolve()
+        if not src.exists():
+            raise FileNotFoundError(f"No se encontró el modelo 3D local: {src}")
+        ext = src.suffix.lower() or ".glb"
+        raw_bytes = src.read_bytes()
+    else:
+        assert url is not None
+        parsed_path = urllib.parse.urlparse(url).path
+        ext = Path(parsed_path).suffix.lower() or ".glb"
+        if ext not in {".glb", ".gltf"}:
+            ext = ".glb"
+        out_check = target_dir / f"{slug}{ext}"
+        if out_check.exists() and not force:
+            print(f"[Assets:Model] En caché local: {out_check.name}")
+            return out_check
+        raw_bytes = _http_get_bytes(url, timeout=45)
+
+    validate_3d_model_bytes(raw_bytes, ext)
+    out_path = target_dir / f"{slug}{ext}"
+    if out_path.exists() and not force:
+        print(f"[Assets:Model] En caché local: {out_path.name}")
+        return out_path
+
+    out_path.write_bytes(raw_bytes)
+    print(f"[Assets:Model] Guardado modelo 3D ({len(raw_bytes):,} bytes): {out_path.name}")
+    return out_path
+
+
 def list_local_assets() -> dict[str, list[str]]:
     """Devuelve el inventario de assets locales instalados en assets/."""
     assets_root = _REPO_ROOT / "assets"
@@ -580,6 +647,13 @@ def list_local_assets() -> dict[str, list[str]]:
             if p.suffix.lower() in {".png", ".webp", ".jpg", ".jpeg", ".svg"}
         )
         if (assets_root / "images").exists()
+        else [],
+        "models": sorted(
+            p.name
+            for p in (assets_root / "models").iterdir()
+            if p.suffix.lower() in {".glb", ".gltf"}
+        )
+        if (assets_root / "models").exists()
         else [],
     }
 
@@ -651,6 +725,18 @@ def register_assets_subparsers(
     )
     p_audio.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
 
+    p_model = sub.add_parser(
+        "model", help="Descargar o importar modelo 3D glTF/GLB hacia assets/models/"
+    )
+    p_model.add_argument("name", help="Nombre destino del modelo (ej. 'lamb' o 'olive_branch')")
+    p_model.add_argument("--url", help="URL directa al modelo 3D abierto (.glb o .gltf)")
+    p_model.add_argument(
+        "--file",
+        dest="source_path",
+        help="Ruta a un archivo local .glb/.gltf (ej. exportado desde Blender)",
+    )
+    p_model.add_argument("-f", "--force", action="store_true", help="Sobrescribir si ya existe")
+
 
 def dispatch_assets_action(args: argparse.Namespace, action_attr: str = "asset_action") -> None:
     """Ejecuta la acción de assets seleccionada en un argparse.Namespace."""
@@ -683,6 +769,13 @@ def dispatch_assets_action(args: argparse.Namespace, action_attr: str = "asset_a
             freesound_query=args.freesound,
             kind=args.type,
             max_duration=args.max_duration,
+            force=args.force,
+        )
+    elif act == "model":
+        fetch_model(
+            name=args.name,
+            url=args.url,
+            source_path=args.source_path,
             force=args.force,
         )
 

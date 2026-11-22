@@ -186,6 +186,9 @@ def test_component_registry_includes_universal_primitives():
         "cta_card",
         "canvas_fx",
         "image_cutout",
+        "infinite_canvas",
+        "svg_draw",
+        "scene_3d",
         "custom_scene",
     }
     assert expected == set(COMPONENT_REGISTRY.keys())
@@ -513,3 +516,94 @@ def test_new_production_components_and_deterministic_canvas_fx(tmp_path: Path):
     injected = html_file.read_text(encoding="utf-8")
     assert 'data-film-grain="true"' in injected
     assert ".ng-canvas-el" in injected
+
+
+def test_infinite_canvas_svg_draw_and_scene_3d_deterministic(tmp_path: Path):
+    sb = StoryboardSpec(
+        title="Advanced Motion & 3D",
+        duration=15.0,
+        voice_polish=True,
+        scenes=[
+            SceneSpec(
+                id="sc_map",
+                start=0.0,
+                end=5.0,
+                headline="Mapa Continuo",
+                component="infinite_canvas",
+                props={
+                    "zoom_out_end": True,
+                    "nodes": [
+                        {"tag": "01", "title": "Raíz", "detail": "Fundamento", "x": 500, "y": 500},
+                        {
+                            "tag": "02",
+                            "title": "Fruto",
+                            "detail": "Resultado",
+                            "x": 1500,
+                            "y": 1400,
+                        },
+                    ],
+                },
+            ),
+            SceneSpec(
+                id="sc_draw",
+                start=5.0,
+                end=10.0,
+                headline="Trazos Vivos",
+                component="svg_draw",
+                props={
+                    "writing_head": True,
+                    "paths": [
+                        {"d": "M 80 500 Q 440 200 800 120", "at": 0.2, "duration": 1.2},
+                    ],
+                    "strike_through": {"text": "Mérito propio", "x": 440, "y": 240, "at": 1.8},
+                },
+            ),
+            SceneSpec(
+                id="sc_3d",
+                start=10.0,
+                end=15.0,
+                headline="Escena 3D",
+                component="scene_3d",
+                props={
+                    "preset": "scales",
+                    "render_style": "edges",
+                    "dot_grid": True,
+                    "camera_orbit": True,
+                },
+            ),
+        ],
+    )
+
+    html_out, gsap_out = build_storyboard_html_and_gsap(sb)
+    assert "sc_map_ic_world" in html_out
+    assert "sc_map_conn_0" in html_out
+    assert "MotionPathPlugin" in gsap_out
+    assert "sc_draw_path_0" in html_out
+    assert "sc_draw_strike_line" in html_out
+    assert "sc_3d_canvas3d" in html_out
+    assert "preserveDrawingBuffer: true" in html_out
+    assert "requestAnimationFrame" not in html_out
+    assert "requestAnimationFrame" not in gsap_out
+    assert 'window.__hf3d["sc_3d"]' in gsap_out
+
+    src_html = (
+        Path(__file__).resolve().parent.parent
+        / "templates"
+        / "explainer_scenes_9_16"
+        / "index.html"
+    )
+    proj_dir = tmp_path / "proj_3d"
+    proj_dir.mkdir()
+    html_file = proj_dir / "index.html"
+    html_file.write_text(src_html.read_text(encoding="utf-8"), encoding="utf-8")
+
+    inject_storyboard_into_html(html_file, sb)
+    injected = html_file.read_text(encoding="utf-8")
+    assert "<!-- @three-runtime:start -->" in injected
+    assert '"three": "./assets/vendor/three.module.js"' in injected
+    assert "MotionPathPlugin.min.js" in injected
+    assert ".ng-ic-viewport" in injected
+    assert ".ng-draw-svg" in injected
+    assert ".ng-3d-canvas" in injected
+    assert (proj_dir / "assets" / "vendor" / "three.module.js").exists()
+    assert (proj_dir / "assets" / "vendor" / "three.core.js").exists()

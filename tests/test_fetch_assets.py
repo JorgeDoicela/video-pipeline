@@ -171,8 +171,32 @@ def test_list_local_assets_inventory(tmp_path: Path):
     assert "maps" in inv and "korea" in inv["maps"]
     assert "audio" in inv and "shutter" in inv["audio"]
     assert "music" in inv and "tension_pulse" in inv["music"]
+    assert "models" in inv
 
     seeded = ensure_base_icons(icons_dir=tmp_path)
     assert len(seeded) == len(BASE_ICONS) == 18
     assert (tmp_path / "docker.svg").exists()
     assert (tmp_path / "shield.svg").exists()
+
+
+def test_fetch_model_validates_glb_and_gltf(tmp_path: Path):
+    from core.fetch_assets import fetch_model, validate_3d_model_bytes
+
+    valid_glb = b"glTF" + b"\x02\x00\x00\x00" + b"\x10\x00\x00\x00" + b"\x00\x00\x00\x00"
+    src_glb = tmp_path / "src_lamb.glb"
+    src_glb.write_bytes(valid_glb)
+
+    models_dir = tmp_path / "models"
+    out = fetch_model(name="lamb_model", source_path=src_glb, models_dir=models_dir)
+    assert out == models_dir / "lamb_model.glb"
+    assert out.exists()
+    assert out.read_bytes() == valid_glb
+
+    valid_gltf = json.dumps({"asset": {"version": "2.0"}}).encode("utf-8")
+    validate_3d_model_bytes(valid_gltf, ".gltf")
+
+    with pytest.raises(ValueError, match="glTF"):
+        validate_3d_model_bytes(b"NOT_A_GLB_FILE", ".glb")
+
+    with pytest.raises(ValueError, match="asset"):
+        validate_3d_model_bytes(b'{"meshes": []}', ".gltf")

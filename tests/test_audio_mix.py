@@ -122,3 +122,40 @@ def test_build_sfx_mix_command_with_music_ducking(tmp_path: Path):
     assert "asplit=2[base][sc]" in fc
     assert "sidechaincompress=" in fc
     assert "amix=inputs=3" in fc
+
+
+def test_build_sfx_mix_command_with_voice_polish(tmp_path: Path):
+    voice = tmp_path / "voice.wav"
+    music = tmp_path / "editorial_warm.wav"
+    out = tmp_path / "audio_mix.wav"
+
+    cmd = build_sfx_mix_command(
+        voice_path=voice,
+        events=[],
+        total_duration=6.0,
+        output_wav=out,
+        ffmpeg_bin="ffmpeg",
+        music_path=music,
+        music_volume=0.14,
+        voice_polish=True,
+    )
+    fc = cmd[cmd.index("-filter_complex") + 1]
+    assert "highpass=f=80" in fc
+    assert "afftdn=nf=-25" in fc
+    assert "acompressor=" in fc
+    assert "loudnorm=I=-14:TP=-1.5:LRA=11" in fc
+    assert "asplit=2[base][sc]" in fc
+    assert "sidechaincompress" in fc
+
+    cmd_voice_only = build_sfx_mix_command(
+        voice_path=voice,
+        events=[],
+        total_duration=4.0,
+        output_wav=out,
+        ffmpeg_bin="ffmpeg",
+        voice_polish=True,
+    )
+    fc_only = cmd_voice_only[cmd_voice_only.index("-filter_complex") + 1]
+    assert "highpass=f=80" in fc_only
+    assert "loudnorm=I=-14:TP=-1.5:LRA=11" in fc_only
+    assert "sidechaincompress" not in fc_only

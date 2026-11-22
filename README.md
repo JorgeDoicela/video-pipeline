@@ -31,7 +31,7 @@ flowchart LR
 | :--- | :--- | :--- |
 | **Ingesta y Voz** | `faster-whisper`, `CTranslate2`, `Silero VAD`, `PyAV` | Transcripción de audio a texto con marcas temporales al milisegundo por palabra. |
 | **Corte y Ensamblaje** | `FFmpeg 7.x`, `FFprobe` | Poda algorítmica de pausas (`silencedetect`) y multiplexado acelerado por hardware GPU. |
-| **Composición Web** | `HyperFrames`, `GSAP 3.15`, `SVG`, `HTML5/CSS3` | Animaciones vectoriales fluidas, tipografía cinética y control temporal en segundos. |
+| **Composición Web y 3D** | `HyperFrames`, `GSAP 3.15` (+ `MotionPathPlugin`), `Three.js` (`WebGL`/`GLTFLoader`), `SVG`, `HTML5/CSS3` | Animaciones vectoriales fluidas, cámara 2D sobre lienzo continuo, trazos SVG progresivos, escenas 3D deterministas y control temporal en segundos. |
 | **Motor de Render** | `Chrome Headless Shell` (`BeginFrame` API) | Renderizado determinista cuadro a cuadro sin pérdida de fotogramas por sobrecarga. |
 | **Entornos y Runtimes** | `uv`, `pnpm`, `Node.js 22 LTS`, `Python 3.13` | Gestión hermética y reproducible de dependencias sin privilegios de superusuario. |
 
@@ -99,12 +99,12 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
-  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 25 componentes vectoriales/Canvas/Cutouts animados (incluidos `toggle_alert`, `conveyor_factory`, `cta_card`, `canvas_fx` determinista, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz + música/cama con *ducking* + 15 SFX.
+  * `explainer_scenes_9_16`: Explainer *faceless* multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 28 componentes vectoriales/Canvas/3D/Cutouts animados (incluidos `infinite_canvas`, `svg_draw`, `scene_3d` con Three.js/WebGL y modelos `.glb`, `canvas_fx`, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz (`--voice-polish`) + música/cama con *ducking* + 15 SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y consola vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
 * **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
-  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena con las mismas 25 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
+  * `explainer_scenes_16_9`: Explainer widescreen *faceless* multi-escena con las mismas 28 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
   * `editorial_16_9`: Narrativa widescreen para ensayos, historia, teología o divulgación con puntos clave.
   * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 
@@ -125,7 +125,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | :--- | :--- | :--- |
 | **Pipeline Completo** | `python3 core/pipeline.py produce -i <raw> -p <slug> -t <tpl> -d <diseño> -s <estilo> --auto-render` | Ejecuta corte (audio o video), transcripción, diseño macro, subtitulado, storyboard (`--storyboard` o `--auto-storyboard`), mezcla SFX, auditoría y renderizado. |
 | **Compilar Storyboard** | `python3 core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
-| **Gestor de Assets CC0** | `python3 core/pipeline.py assets <list\|icon\|map\|audio> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON) o normaliza audio CC0 (URL/Freesound) en `assets/`. |
+| **Gestor de Assets CC0** | `python3 core/pipeline.py assets <list\|icon\|map\|audio\|model> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON), normaliza audio CC0 o importa/valida modelos 3D glTF/GLB en `assets/`. |
 | **Procesador de Imágenes** | `python3 core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
 | **Catálogo de Diseños** | `python3 core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
 | **Cambiar Diseño/Opciones** | `python3 core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
@@ -153,6 +153,7 @@ video-pipeline/
 │   ├── music/             # 3 pistas musicales procedurales loopables (tension_pulse, tech_minimal, editorial_warm) y pistas CC0
 │   ├── maps/              # 5 mapas geográficos vectoriales SVG (korea, world, europe, americas, asia)
 │   ├── images/            # Imágenes procesadas y recortes transparentes (cutouts PNG/WEBP, .gitkeep)
+│   ├── models/            # Modelos 3D abiertos glTF/GLB (.glb, .gltf) para el componente scene_3d (.gitkeep)
 │   ├── fonts/             # Tipografías locales del sistema (.gitkeep)
 │   └── icons/             # 18 iconos técnicos vectoriales SVG (Docker, K8s, Kafka, Redis, Shield, Lock, Radar, etc.)
 ├── core/                   # Herramientas del motor compartido

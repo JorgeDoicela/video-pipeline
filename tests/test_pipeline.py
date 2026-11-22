@@ -36,6 +36,7 @@ def test_pipeline_subcommand_produce_help():
     assert "--template" in res.stdout
     assert "--style" in res.stdout
     assert "--caption-style" in res.stdout
+    assert "--voice-polish" in res.stdout
     assert "--auto-render" in res.stdout
 
 
@@ -68,6 +69,7 @@ def test_pipeline_subcommands_delegate_full_arguments():
     assert "icon" in res_assets.stdout
     assert "map" in res_assets.stdout
     assert "audio" in res_assets.stdout
+    assert "model" in res_assets.stdout
 
 
 def test_pipeline_subcommand_style_list():

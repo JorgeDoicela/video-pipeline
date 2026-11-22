@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Motor Multi-Escena (Storyboard) y Librería de 25 Componentes Narrativos Vectoriales / Canvas / Cutouts.
-Orquesta secuencias temporales de escenas SVG/HTML/Canvas animadas determinísticamente con GSAP 3.15,
-cambios de atmósfera/acento por escena, subtítulos Hero-Top o inferiores, y sincronización
-con marcas de tiempo de voz y efectos de sonido (SFX primarios e intra-escena).
+Motor Multi-Escena (Storyboard) y Librería de 28 Componentes Narrativos Vectoriales / Canvas / 3D / Cutouts.
+Orquesta secuencias temporales de escenas SVG/HTML/Canvas/Three.js animadas determinísticamente con GSAP 3.15
+y MotionPathPlugin, cámara virtual 2D sobre lienzo continuo, trazos SVG progresivos, cambios de atmósfera/acento
+por escena, subtítulos Hero-Top o inferiores, y sincronización con marcas de tiempo de voz y efectos de sonido.
 """
 
 import html
@@ -70,6 +70,7 @@ class StoryboardSpec:
     music: str | None = None
     camera_motion: bool = True
     film_grain: bool = False
+    voice_polish: bool = False
     words_per_group: int | None = None
     emphasis_words: list[str] = field(default_factory=list)
     scenes: list[SceneSpec] = field(default_factory=list)
@@ -1459,6 +1460,648 @@ def _render_image_cutout(
     return markup, "\n".join(gsap_lines)
 
 
+def _render_infinite_canvas(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Cámara virtual 2D sobre un lienzo continuo (infinite canvas / mapa conceptual).
+    Posiciona nodos/diagramas en un mundo 2D amplio, los enlaza con curvas Bezier SVG animadas
+    (stroke-dashoffset + punta luminosa MotionPathPlugin opcional) y desplaza la cámara
+    suavemente con GSAP (x, y, scale), con opción de zoom-out panorámico final.
+    """
+    world_w = int(props.get("world_width", 2400))
+    world_h = int(props.get("world_height", 3200))
+    vp_w = int(props.get("viewport_width", 920))
+    vp_h = int(props.get("viewport_height", 1040))
+    zoom_out_end = bool(props.get("zoom_out_end", True))
+    show_connectors = bool(props.get("show_connectors", True))
+    writing_head = bool(props.get("writing_head", True))
+
+    raw_nodes = props.get("nodes") or [
+        {
+            "tag": "01 · Fundamento",
+            "title": "Premisa Inicial",
+            "detail": "Punto de partida del recorrido conceptual.",
+            "x": 620,
+            "y": 540,
+            "scale": 1.0,
+        },
+        {
+            "tag": "02 · Desarrollo",
+            "title": "Conexión Central",
+            "detail": "La cámara viaja siguiendo el hilo lógico sin cortes bruscos.",
+            "x": 1680,
+            "y": 1340,
+            "scale": 1.0,
+            "highlight": True,
+        },
+        {
+            "tag": "03 · Síntesis",
+            "title": "Conclusión Integrada",
+            "detail": "Al final el zoom panorámico revela el mapa completo.",
+            "x": 860,
+            "y": 2240,
+            "scale": 1.0,
+        },
+    ]
+
+    nodes: list[dict[str, Any]] = []
+    n_count = max(1, len(raw_nodes))
+    for i, item in enumerate(raw_nodes):
+        default_x = 640 if i % 2 == 0 else max(720, world_w - 720)
+        default_y = (
+            int(480 + i * ((world_h - 960) / max(1, n_count - 1))) if n_count > 1 else world_h // 2
+        )
+        nodes.append(
+            {
+                "id": f"{scene_id}_node_{i}",
+                "tag": str(item.get("tag", "")).strip(),
+                "title": str(item.get("title", f"Nodo {i + 1}")).strip(),
+                "detail": str(item.get("detail") or item.get("subtitle") or "").strip(),
+                "items": [str(x) for x in (item.get("items") or [])],
+                "x": float(item.get("x", default_x)),
+                "y": float(item.get("y", default_y)),
+                "scale": float(item.get("scale", 1.0)),
+                "at": item.get("at"),
+                "highlight": bool(item.get("highlight", False)),
+            }
+        )
+
+    # Generar curvas Bezier conectoras entre nodos consecutivos
+    connector_paths: list[str] = []
+    connector_ids: list[str] = []
+    if show_connectors and len(nodes) > 1:
+        for i in range(len(nodes) - 1):
+            a, b = nodes[i], nodes[i + 1]
+            cid = f"{scene_id}_conn_{i}"
+            connector_ids.append(cid)
+            mid_y = (a["y"] + b["y"]) / 2.0
+            d_str = f"M {a['x']:.1f} {a['y']:.1f} C {a['x']:.1f} {mid_y:.1f}, {b['x']:.1f} {mid_y:.1f}, {b['x']:.1f} {b['y']:.1f}"
+            connector_paths.append(
+                f'<path id="{cid}" class="ng-ic-connector" d="{d_str}" '
+                f'fill="none" stroke="var(--scene-accent, var(--accent-primary))" '
+                f'stroke-width="4" stroke-linecap="round" opacity="0.85" />'
+            )
+
+    head_svg = (
+        f'<g id="{scene_id}_ic_head" opacity="0" data-layout-ignore>'
+        f'  <circle cx="0" cy="0" r="22" fill="var(--scene-accent, var(--accent-primary))" opacity="0.26" />'
+        f'  <circle cx="0" cy="0" r="8" fill="var(--scene-accent, var(--accent-primary))" />'
+        f"</g>"
+        if writing_head and connector_ids
+        else ""
+    )
+
+    node_cards_html: list[str] = []
+    for nd in nodes:
+        hl_cls = " ng-ic-card-hl" if nd["highlight"] else ""
+        tag_html = (
+            f'<div class="ng-ic-tag" data-layout-ignore>{html.escape(nd["tag"], quote=False)}</div>'
+            if nd["tag"]
+            else ""
+        )
+        detail_html = (
+            f'<p class="ng-ic-detail">{html.escape(nd["detail"], quote=False)}</p>'
+            if nd["detail"]
+            else ""
+        )
+        items_html = ""
+        if nd["items"]:
+            li_str = "".join(f"<li>{html.escape(it, quote=False)}</li>" for it in nd["items"][:5])
+            items_html = f'<ul class="ng-ic-list">{li_str}</ul>'
+
+        node_cards_html.append(
+            f'<article id="{nd["id"]}" class="ng-ic-card{hl_cls}" '
+            f'style="left: {nd["x"]:.1f}px; top: {nd["y"]:.1f}px; opacity: 0;">'
+            f"  {tag_html}"
+            f'  <h3 class="ng-ic-title">{html.escape(nd["title"], quote=False)}</h3>'
+            f"  {detail_html}{items_html}"
+            f"</article>"
+        )
+
+    markup = f"""
+    <div id="{scene_id}_ic_viewport" class="ng-ic-viewport" style="width: {vp_w}px; height: {vp_h}px;">
+      <div id="{scene_id}_ic_world" class="ng-ic-world" style="width: {world_w}px; height: {world_h}px;">
+        <svg class="ng-ic-svg" viewBox="0 0 {world_w} {world_h}" width="{world_w}" height="{world_h}" data-layout-ignore>
+          {"".join(connector_paths)}
+          {head_svg}
+        </svg>
+        {"".join(node_cards_html)}
+      </div>
+    </div>"""
+
+    # Calcular encuadre de cámara (world transformOrigin 0 0 -> x = vp_w/2 - node_x*scale)
+    def _cam_xy(nx: float, ny: float, sc: float) -> tuple[float, float]:
+        return round(vp_w / 2.0 - nx * sc, 2), round(vp_h / 2.0 - ny * sc, 2)
+
+    reserve_zoom = min(1.8, dur * 0.22) if (zoom_out_end and n_count > 1 and dur >= 3.0) else 0.0
+    active_dur = max(0.6, dur - reserve_zoom)
+    slot = active_dur / n_count
+
+    gsap_lines: list[str] = [
+        f'(() => {{\n  const world = document.getElementById("{scene_id}_ic_world");\n  if (!world) return;',
+        '  if (typeof MotionPathPlugin !== "undefined") { gsap.registerPlugin(MotionPathPlugin); }',
+    ]
+
+    # Inicializar stroke-dashoffset en conectores con su longitud real
+    if connector_ids:
+        cid_json = json.dumps(connector_ids)
+        gsap_lines.append(
+            f"  for (const cid of {cid_json}) {{\n"
+            "    const p = document.getElementById(cid);\n"
+            "    if (p && p.getTotalLength) {\n"
+            "      const len = p.getTotalLength();\n"
+            "      p.style.strokeDasharray = String(len);\n"
+            "      p.style.strokeDashoffset = String(len);\n"
+            "    }\n"
+            "  }"
+        )
+
+    first = nodes[0]
+    fx, fy = _cam_xy(first["x"], first["y"], first["scale"])
+    gsap_lines.append(
+        f'  tl.set(world, {{ x: {fx}, y: {fy}, scale: {first["scale"]:.3f}, transformOrigin: "0 0" }}, {start:.3f});'
+    )
+    gsap_lines.append(
+        f'  tl.fromTo("#{first["id"]}", {{ opacity: 0, scale: 0.92 }}, {{ opacity: 1, scale: 1, duration: 0.42, ease: "power2.out" }}, {start + 0.05:.3f});'
+    )
+
+    for i in range(1, n_count):
+        nd = nodes[i]
+        rel_t = float(nd["at"]) if nd["at"] is not None else round(i * slot, 3)
+        t_move = round(start + min(max(0.25, rel_t), max(0.3, active_dur - 0.3)), 3)
+        move_dur = round(min(0.95, max(0.38, slot * 0.36)), 3)
+        cx, cy = _cam_xy(nd["x"], nd["y"], nd["scale"])
+
+        if show_connectors and i - 1 < len(connector_ids):
+            cid = connector_ids[i - 1]
+            gsap_lines.append(
+                f'  tl.to("#{cid}", {{ strokeDashoffset: 0, duration: {move_dur:.3f}, ease: "power2.inOut" }}, {t_move:.3f});'
+            )
+            if writing_head:
+                gsap_lines.append(
+                    f'  if (typeof MotionPathPlugin !== "undefined") {{\n'
+                    f'    tl.set("#{scene_id}_ic_head", {{ opacity: 1 }}, {t_move:.3f});\n'
+                    f'    tl.to("#{scene_id}_ic_head", {{ motionPath: {{ path: "#{cid}", align: "#{cid}", alignOrigin: [0.5, 0.5] }}, duration: {move_dur:.3f}, ease: "power2.inOut" }}, {t_move:.3f});\n'
+                    f'    tl.to("#{scene_id}_ic_head", {{ opacity: 0, duration: 0.16 }}, {t_move + move_dur:.3f});\n'
+                    f"  }}"
+                )
+
+        gsap_lines.append(
+            f'  tl.to(world, {{ x: {cx}, y: {cy}, scale: {nd["scale"]:.3f}, duration: {move_dur:.3f}, ease: "power2.inOut" }}, {t_move:.3f});'
+        )
+        gsap_lines.append(
+            f'  tl.fromTo("#{nd["id"]}", {{ opacity: 0, scale: 0.92 }}, {{ opacity: 1, scale: 1, duration: 0.38, ease: "power2.out" }}, {t_move + move_dur * 0.55:.3f});'
+        )
+
+    if reserve_zoom > 0:
+        pad = 360.0
+        min_x = min(nd["x"] for nd in nodes) - pad
+        max_x = max(nd["x"] for nd in nodes) + pad
+        min_y = min(nd["y"] for nd in nodes) - pad
+        max_y = max(nd["y"] for nd in nodes) + pad
+        span_x = max(1.0, max_x - min_x)
+        span_y = max(1.0, max_y - min_y)
+        fit_scale = round(min(vp_w / span_x, vp_h / span_y, 0.85), 3)
+        mid_x = (min_x + max_x) / 2.0
+        mid_y = (min_y + max_y) / 2.0
+        zx, zy = _cam_xy(mid_x, mid_y, fit_scale)
+        t_zoom = round(start + active_dur, 3)
+        z_dur = round(max(0.55, reserve_zoom * 0.65), 3)
+        gsap_lines.append(
+            f'  tl.to(world, {{ x: {zx}, y: {zy}, scale: {fit_scale:.3f}, duration: {z_dur:.3f}, ease: "power3.inOut" }}, {t_zoom:.3f});'
+        )
+
+    gsap_lines.append("})();")
+    return markup, "\n".join(gsap_lines)
+
+
+def _render_svg_draw(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Dibuja trazos SVG vectoriales progresivos (flechas, gráficas, diagramas, tachados, curvas)
+    sincronizados con timestamps relativos mediante stroke-dashoffset y punta luminosa opcional
+    conducida por MotionPathPlugin de GSAP.
+    """
+    view_box = html.escape(str(props.get("view_box", "0 0 880 680")), quote=True)
+    title = html.escape(str(props.get("title", "")), quote=False)
+    subtitle = html.escape(str(props.get("subtitle", "")), quote=False)
+    writing_head = bool(props.get("writing_head", True))
+
+    raw_paths = props.get("paths") or [
+        {
+            "d": "M 90 540 C 240 490, 320 340, 460 320 S 660 210, 790 120",
+            "color": "var(--scene-accent, var(--accent-primary))",
+            "stroke_width": 6,
+            "at": 0.15,
+            "duration": min(1.4, max(0.5, dur * 0.45)),
+        },
+        {
+            "d": "M 90 560 L 790 560",
+            "color": "var(--border-strong)",
+            "stroke_width": 3,
+            "at": 0.05,
+            "duration": 0.5,
+        },
+    ]
+
+    raw_labels = props.get("labels") or []
+    strike = props.get("strike_through")
+
+    svg_elems: list[str] = []
+    path_specs: list[dict[str, Any]] = []
+    n_paths = max(1, len(raw_paths))
+    auto_step = max(0.35, (dur * 0.72) / n_paths)
+
+    for idx, p_item in enumerate(raw_paths):
+        pid = f"{scene_id}_path_{idx}"
+        d_val = html.escape(str(p_item.get("d", "")), quote=True)
+        color = html.escape(
+            str(p_item.get("color", "var(--scene-accent, var(--accent-primary))")), quote=True
+        )
+        sw = float(p_item.get("stroke_width", 5))
+        dashed = bool(p_item.get("dashed", False))
+        p_at = (
+            float(p_item["at"]) if p_item.get("at") is not None else round(0.1 + idx * auto_step, 3)
+        )
+        p_dur = float(p_item.get("duration", min(1.0, max(0.35, auto_step * 0.8))))
+        svg_elems.append(
+            f'<path id="{pid}" class="ng-draw-path" d="{d_val}" fill="none" '
+            f'stroke="{color}" stroke-width="{sw:.1f}" stroke-linecap="round" stroke-linejoin="round" />'
+        )
+        path_specs.append(
+            {
+                "id": pid,
+                "at": round(start + min(p_at, max(0.05, dur - 0.25)), 3),
+                "duration": round(max(0.15, min(p_dur, max(0.2, dur - p_at))), 3),
+                "dashed": dashed,
+            }
+        )
+        if p_item.get("label"):
+            lx = float(p_item.get("label_x", 440))
+            ly = float(p_item.get("label_y", 90 + idx * 54))
+            lid = f"{scene_id}_plbl_{idx}"
+            lbl_txt = html.escape(str(p_item["label"]), quote=False)
+            svg_elems.append(
+                f'<text id="{lid}" x="{lx:.1f}" y="{ly:.1f}" fill="var(--text-primary)" '
+                f'font-size="30" font-weight="700" text-anchor="middle" opacity="0">{lbl_txt}</text>'
+            )
+            path_specs[-1]["label_id"] = lid
+
+    label_specs: list[dict[str, Any]] = []
+    for idx, l_item in enumerate(raw_labels):
+        lid = f"{scene_id}_lbl_{idx}"
+        lx = float(l_item.get("x", 440))
+        ly = float(l_item.get("y", 120 + idx * 60))
+        lsize = int(l_item.get("size", 32))
+        lcolor = html.escape(str(l_item.get("color", "var(--text-primary)")), quote=True)
+        ltxt = html.escape(str(l_item.get("text", "")), quote=False)
+        lat = float(l_item.get("at", 0.15 + idx * 0.25))
+        svg_elems.append(
+            f'<text id="{lid}" x="{lx:.1f}" y="{ly:.1f}" fill="{lcolor}" '
+            f'font-size="{lsize}" font-weight="700" text-anchor="middle" opacity="0">{ltxt}</text>'
+        )
+        label_specs.append({"id": lid, "at": round(start + min(lat, max(0.05, dur - 0.2)), 3)})
+
+    strike_spec: dict[str, Any] | None = None
+    if isinstance(strike, dict) and strike.get("text"):
+        sx = float(strike.get("x", 440))
+        sy = float(strike.get("y", 220))
+        stxt = html.escape(str(strike["text"]), quote=False)
+        sat = round(start + float(strike.get("at", min(0.8, dur * 0.35))), 3)
+        half_w = max(120.0, len(str(strike["text"])) * 10.5)
+        sid_txt = f"{scene_id}_strike_txt"
+        sid_line = f"{scene_id}_strike_line"
+        svg_elems.append(
+            f'<text id="{sid_txt}" x="{sx:.1f}" y="{sy:.1f}" fill="var(--text-muted)" '
+            f'font-size="36" font-weight="700" text-anchor="middle" opacity="0">{stxt}</text>'
+        )
+        svg_elems.append(
+            f'<path id="{sid_line}" d="M {sx - half_w:.1f} {sy - 10:.1f} L {sx + half_w:.1f} {sy - 10:.1f}" '
+            f'fill="none" stroke="var(--accent-danger)" stroke-width="5" stroke-linecap="round" />'
+        )
+        strike_spec = {"txt": sid_txt, "line": sid_line, "at": sat}
+
+    head_svg = (
+        f'<g id="{scene_id}_draw_head" opacity="0" data-layout-ignore>'
+        f'  <circle cx="0" cy="0" r="18" fill="var(--scene-accent, var(--accent-primary))" opacity="0.28" />'
+        f'  <circle cx="0" cy="0" r="6.5" fill="var(--scene-accent, var(--accent-primary))" />'
+        f"</g>"
+        if writing_head
+        else ""
+    )
+
+    title_html = f'<div class="ng-draw-title">{title}</div>' if title else ""
+    sub_html = f'<div class="ng-spot-sub">{subtitle}</div>' if subtitle else ""
+
+    markup = f"""
+    <div id="{scene_id}_draw_wrap" class="ng-draw-wrap">
+      {title_html}
+      <svg id="{scene_id}_draw_svg" class="ng-draw-svg" viewBox="{view_box}" role="img" aria-label="{title or "Diagrama vectorial"}">
+        {"".join(svg_elems)}
+        {head_svg}
+      </svg>
+      {sub_html}
+    </div>"""
+
+    gsap_lines: list[str] = [
+        "(() => {",
+        '  if (typeof MotionPathPlugin !== "undefined") { gsap.registerPlugin(MotionPathPlugin); }',
+    ]
+    for ps in path_specs:
+        pid = ps["id"]
+        gsap_lines.append(
+            f"  (() => {{\n"
+            f'    const el = document.getElementById("{pid}");\n'
+            f"    if (!el || !el.getTotalLength) return;\n"
+            f"    const len = el.getTotalLength();\n"
+            f'    el.style.strokeDasharray = "{"10 10" if ps["dashed"] else ""}" || String(len);\n'
+            f"    el.style.strokeDashoffset = String(len);\n"
+            f'    tl.to(el, {{ strokeDashoffset: 0, duration: {ps["duration"]:.3f}, ease: "power2.inOut" }}, {ps["at"]:.3f});\n'
+            f"  }})();"
+        )
+        if writing_head:
+            gsap_lines.append(
+                f'  if (typeof MotionPathPlugin !== "undefined") {{\n'
+                f'    tl.set("#{scene_id}_draw_head", {{ opacity: 1 }}, {ps["at"]:.3f});\n'
+                f'    tl.to("#{scene_id}_draw_head", {{ motionPath: {{ path: "#{pid}", align: "#{pid}", alignOrigin: [0.5, 0.5] }}, duration: {ps["duration"]:.3f}, ease: "power2.inOut" }}, {ps["at"]:.3f});\n'
+                f'    tl.to("#{scene_id}_draw_head", {{ opacity: 0, duration: 0.14 }}, {ps["at"] + ps["duration"]:.3f});\n'
+                f"  }}"
+            )
+        if ps.get("label_id"):
+            gsap_lines.append(
+                f'  tl.to("#{ps["label_id"]}", {{ opacity: 1, duration: 0.3, ease: "power2.out" }}, {ps["at"] + ps["duration"] * 0.5:.3f});'
+            )
+
+    for ls in label_specs:
+        gsap_lines.append(
+            f'  tl.fromTo("#{ls["id"]}", {{ opacity: 0, y: 10 }}, {{ opacity: 1, y: 0, duration: 0.3, ease: "power2.out" }}, {ls["at"]:.3f});'
+        )
+
+    if strike_spec:
+        gsap_lines.append(
+            f'  tl.to("#{strike_spec["txt"]}", {{ opacity: 1, duration: 0.25 }}, {max(start, strike_spec["at"] - 0.35):.3f});\n'
+            f"  (() => {{\n"
+            f'    const sl = document.getElementById("{strike_spec["line"]}");\n'
+            f"    if (!sl || !sl.getTotalLength) return;\n"
+            f"    const len = sl.getTotalLength();\n"
+            f"    sl.style.strokeDasharray = String(len);\n"
+            f"    sl.style.strokeDashoffset = String(len);\n"
+            f'    tl.to(sl, {{ strokeDashoffset: 0, duration: 0.38, ease: "power2.out" }}, {strike_spec["at"]:.3f});\n'
+            f"  }})();"
+        )
+
+    gsap_lines.append("})();")
+    return markup, "\n".join(gsap_lines)
+
+
+def _render_scene_3d(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Motor 3D WebGL 100% determinista sobre Three.js sincronizado cuadro a cuadro mediante
+    el timeline de GSAP (onUpdate, cero requestAnimationFrame). Soporta 9 primitivos 3D
+    procedurales (cross, altar, scales, gavel, bars, columns, cube, torus, sphere),
+    carga de modelos externos .glb/.gltf desde assets/models/, estilos edges/wireframe/solid
+    y suelo de grilla de puntos 3D en perspectiva con niebla.
+    """
+    preset = str(props.get("preset", "cross")).strip().lower()
+    model_raw = str(props.get("model", "")).strip()
+    if model_raw.startswith("../../assets/"):
+        model_raw = model_raw.removeprefix("../../")
+    elif model_raw and "/" not in model_raw and "\\" not in model_raw:
+        model_raw = f"assets/models/{model_raw}"
+
+    render_style = str(props.get("render_style", "edges")).strip().lower()
+    if render_style not in {"edges", "wireframe", "solid"}:
+        render_style = "edges"
+
+    dot_grid = bool(props.get("dot_grid", True))
+    camera_orbit = bool(props.get("camera_orbit", True))
+    cam_dist = float(props.get("camera_distance", 5.2))
+    cam_elev = float(props.get("camera_elevation", 1.5))
+    rot_turns = float(props.get("rotation_turns", 0.45))
+    custom_color = str(props.get("color", "")).strip()
+    width = int(props.get("width", 860))
+    height = int(props.get("height", 660))
+    title = html.escape(str(props.get("title", "")), quote=False)
+    subtitle = html.escape(str(props.get("subtitle", "")), quote=False)
+
+    title_html = f'<div class="ng-3d-title">{title}</div>' if title else ""
+    sub_html = f'<div class="ng-spot-sub">{subtitle}</div>' if subtitle else ""
+
+    cfg_json = json.dumps(
+        {
+            "sceneId": scene_id,
+            "preset": preset,
+            "model": model_raw,
+            "renderStyle": render_style,
+            "dotGrid": dot_grid,
+            "cameraOrbit": camera_orbit,
+            "camDist": cam_dist,
+            "camElev": cam_elev,
+            "rotTurns": rot_turns,
+            "color": custom_color,
+            "width": width,
+            "height": height,
+        },
+        ensure_ascii=False,
+    )
+
+    loader_import = (
+        'import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";\n' if model_raw else ""
+    )
+
+    module_script = f"""<script type="module">
+import * as THREE from "three";
+{loader_import}
+const cfg = {cfg_json};
+const canvas = document.getElementById(cfg.sceneId + "_canvas3d");
+if (canvas) {{
+  const rootStyle = getComputedStyle(document.documentElement);
+  const bgHex = rootStyle.getPropertyValue("--bg").trim() || "#09090b";
+  const accentHex = cfg.color || rootStyle.getPropertyValue("--accent-primary").trim() || "#ffffff";
+  const textHex = rootStyle.getPropertyValue("--text-primary").trim() || "#fafafa";
+
+  const renderer = new THREE.WebGLRenderer({{ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true }});
+  renderer.setPixelRatio(1);
+  renderer.setSize(cfg.width, cfg.height, false);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(new THREE.Color(bgHex), 0.085);
+
+  const camera = new THREE.PerspectiveCamera(40, cfg.width / cfg.height, 0.1, 100);
+  camera.position.set(0, cfg.camElev, cfg.camDist);
+  camera.lookAt(0, 0.2, 0);
+
+  const ambLight = new THREE.AmbientLight(0xffffff, 0.75);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.35);
+  dirLight.position.set(4, 7, 5);
+  scene.add(ambLight, dirLight);
+
+  if (cfg.dotGrid) {{
+    const pts = [];
+    for (let gx = -12; gx <= 12; gx++) {{
+      for (let gz = -12; gz <= 12; gz++) {{
+        pts.push(gx * 0.65, -1.35, gz * 0.65);
+      }}
+    }}
+    const gridGeo = new THREE.BufferGeometry();
+    gridGeo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
+    const gridMat = new THREE.PointsMaterial({{ color: new THREE.Color(textHex), size: 0.045, transparent: true, opacity: 0.35 }});
+    scene.add(new THREE.Points(gridGeo, gridMat));
+  }}
+
+  const subject = new THREE.Group();
+  scene.add(subject);
+
+  const lineColor = new THREE.Color(accentHex);
+  const lineMat = new THREE.LineBasicMaterial({{ color: lineColor }});
+  const wireMat = new THREE.MeshBasicMaterial({{ color: lineColor, wireframe: true }});
+  const solidMat = new THREE.MeshStandardMaterial({{ color: lineColor, roughness: 0.38, metalness: 0.2 }});
+
+  const addShape = (geo, x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0) => {{
+    let obj;
+    if (cfg.renderStyle === "edges") {{
+      obj = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 18), lineMat);
+    }} else if (cfg.renderStyle === "wireframe") {{
+      obj = new THREE.Mesh(geo, wireMat);
+    }} else {{
+      obj = new THREE.Mesh(geo, solidMat);
+    }}
+    obj.position.set(x, y, z);
+    obj.rotation.set(rx, ry, rz);
+    subject.add(obj);
+    return obj;
+  }};
+
+  const buildPreset = (name) => {{
+    if (name === "altar") {{
+      addShape(new THREE.BoxGeometry(2.6, 0.45, 1.8), 0, -0.95, 0);
+      addShape(new THREE.BoxGeometry(2.1, 0.95, 1.35), 0, -0.25, 0);
+      addShape(new THREE.BoxGeometry(2.35, 0.22, 1.55), 0, 0.35, 0);
+    }} else if (name === "scales") {{
+      addShape(new THREE.CylinderGeometry(0.55, 0.72, 0.2, 16), 0, -1.0, 0);
+      addShape(new THREE.CylinderGeometry(0.08, 0.1, 2.2, 12), 0, 0.1, 0);
+      addShape(new THREE.BoxGeometry(2.5, 0.09, 0.09), 0, 1.1, 0);
+      addShape(new THREE.CylinderGeometry(0.45, 0.35, 0.12, 16), -1.15, 0.25, 0);
+      addShape(new THREE.CylinderGeometry(0.45, 0.35, 0.12, 16), 1.15, 0.45, 0);
+      addShape(new THREE.CylinderGeometry(0.02, 0.02, 0.85, 6), -1.15, 0.68, 0);
+      addShape(new THREE.CylinderGeometry(0.02, 0.02, 0.65, 6), 1.15, 0.78, 0);
+    }} else if (name === "gavel") {{
+      addShape(new THREE.CylinderGeometry(0.95, 1.05, 0.26, 20), 0.3, -0.95, 0);
+      addShape(new THREE.CylinderGeometry(0.38, 0.38, 1.2, 16), 0.3, 0.15, 0, 0, 0, Math.PI / 2);
+      addShape(new THREE.CylinderGeometry(0.08, 0.1, 2.1, 10), -0.75, 0.15, 0, 0, 0, Math.PI / 2);
+    }} else if (name === "bars") {{
+      addShape(new THREE.BoxGeometry(2.6, 0.14, 0.18), 0, 1.35, 0);
+      addShape(new THREE.BoxGeometry(2.6, 0.14, 0.18), 0, -1.05, 0);
+      for (let i = -2; i <= 2; i++) {{
+        addShape(new THREE.CylinderGeometry(0.055, 0.055, 2.35, 10), i * 0.52, 0.15, 0);
+      }}
+    }} else if (name === "columns") {{
+      addShape(new THREE.BoxGeometry(2.9, 0.22, 1.1), 0, -1.05, 0);
+      addShape(new THREE.BoxGeometry(2.9, 0.24, 1.1), 0, 1.2, 0);
+      for (const cx of [-0.95, 0, 0.95]) {{
+        addShape(new THREE.CylinderGeometry(0.22, 0.25, 2.05, 14), cx, 0.08, 0);
+      }}
+    }} else if (name === "cube") {{
+      addShape(new THREE.BoxGeometry(1.8, 1.8, 1.8), 0, 0.15, 0);
+    }} else if (name === "torus") {{
+      addShape(new THREE.TorusGeometry(1.15, 0.38, 14, 32), 0, 0.2, 0);
+    }} else if (name === "sphere") {{
+      addShape(new THREE.IcosahedronGeometry(1.35, 2), 0, 0.2, 0);
+    }} else {{
+      addShape(new THREE.BoxGeometry(0.32, 2.65, 0.32), 0, 0.15, 0);
+      addShape(new THREE.BoxGeometry(1.65, 0.32, 0.32), 0, 0.65, 0);
+    }}
+  }};
+
+  let lastProgress = 0;
+  const renderAt = (p) => {{
+    lastProgress = p;
+    const angle = p * Math.PI * 2 * cfg.rotTurns;
+    if (cfg.cameraOrbit) {{
+      camera.position.x = Math.sin(angle) * cfg.camDist;
+      camera.position.z = Math.cos(angle) * cfg.camDist;
+      camera.position.y = cfg.camElev + Math.sin(p * Math.PI) * 0.22;
+      camera.lookAt(0, 0.2, 0);
+    }} else {{
+      subject.rotation.y = angle;
+    }}
+    renderer.render(scene, camera);
+  }};
+
+  window.__hf3d = window.__hf3d || {{}};
+  window.__hf3d[cfg.sceneId] = renderAt;
+
+  if (cfg.model) {{
+    const loader = new GLTFLoader();
+    window.__hf3dReady = (window.__hf3dReady || Promise.resolve()).then(
+      () => new Promise((resolve) => {{
+        loader.load(
+          cfg.model,
+          (gltf) => {{
+            const root = gltf.scene;
+            const box = new THREE.Box3().setFromObject(root);
+            const size = new THREE.Vector3();
+            const center = new THREE.Vector3();
+            box.getSize(size);
+            box.getCenter(center);
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            const normScale = 2.4 / maxDim;
+            root.scale.setScalar(normScale);
+            root.position.set(-center.x * normScale, -center.y * normScale + 0.15, -center.z * normScale);
+            root.traverse((child) => {{
+              if (child.isMesh) {{
+                if (cfg.renderStyle === "edges") {{
+                  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(child.geometry, 20), lineMat);
+                  child.add(edges);
+                  child.material = new THREE.MeshBasicMaterial({{ color: new THREE.Color(bgHex), polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 }});
+                }} else if (cfg.renderStyle === "wireframe") {{
+                  child.material = wireMat;
+                }} else {{
+                  child.material = solidMat;
+                }}
+              }}
+            }});
+            subject.add(root);
+            renderAt(lastProgress);
+            resolve();
+          }},
+          undefined,
+          () => {{
+            buildPreset(cfg.preset);
+            renderAt(lastProgress);
+            resolve();
+          }}
+        );
+      }})
+    );
+  }} else {{
+    buildPreset(cfg.preset);
+    renderAt(0);
+  }}
+}}
+</script>"""
+
+    markup = f"""
+    <div id="{scene_id}_3d_wrap" class="ng-3d-wrap">
+      {title_html}
+      <canvas id="{scene_id}_canvas3d" class="ng-3d-canvas" width="{width}" height="{height}" data-layout-ignore></canvas>
+      {sub_html}
+      {module_script}
+    </div>"""
+
+    gsap = (
+        f"(() => {{\n"
+        f"  const proxy = {{ p: 0 }};\n"
+        f'  tl.to(proxy, {{ p: 1, duration: {dur:.3f}, ease: "none", onUpdate: () => {{ if (window.__hf3d && window.__hf3d["{scene_id}"]) window.__hf3d["{scene_id}"](proxy.p); }} }}, {start:.3f});\n'
+        f"}})();"
+    )
+    return markup, gsap
+
+
 ComponentRenderer = Callable[[str, dict[str, Any], float, float], tuple[str, str]]
 
 COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
@@ -1486,6 +2129,9 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
     "cta_card": _render_cta_card,
     "canvas_fx": _render_canvas_fx,
     "image_cutout": _render_image_cutout,
+    "infinite_canvas": _render_infinite_canvas,
+    "svg_draw": _render_svg_draw,
+    "scene_3d": _render_scene_3d,
     "custom_scene": _render_custom_scene,
 }
 
@@ -2665,6 +3311,126 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
         color: var(--text-primary);
         text-align: center;
       }""",
+    "infinite_canvas": """      .ng-ic-viewport {
+        position: relative;
+        overflow: hidden;
+        max-width: 100%;
+        border-radius: var(--radius-lg, 24px);
+      }
+      #root[data-width="1920"] .ng-ic-viewport {
+        max-height: 600px;
+      }
+      .ng-ic-world {
+        position: relative;
+        transform-origin: 0 0;
+      }
+      .ng-ic-svg {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: visible;
+      }
+      .ng-ic-card {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 580px;
+        background: var(--surface);
+        border: var(--border-width, 1px) solid var(--border);
+        border-radius: var(--radius-lg, 20px);
+        padding: 36px 40px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        text-align: left;
+      }
+      .ng-ic-card-hl {
+        border: 2px solid var(--scene-accent, var(--accent-primary));
+      }
+      .ng-ic-tag {
+        font-family: var(--font-mono);
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--scene-accent, var(--accent-primary));
+        background: transparent;
+        border: none;
+        padding: 0;
+      }
+      .ng-ic-title {
+        font-family: var(--font-display);
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1.15;
+        color: var(--text-primary);
+      }
+      .ng-ic-detail {
+        font-size: 28px;
+        line-height: 1.45;
+        color: var(--text-secondary);
+      }
+      .ng-ic-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 6px;
+        font-size: 28px;
+        line-height: 1.35;
+        color: var(--text-secondary);
+      }""",
+    "svg_draw": """      .ng-draw-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      .ng-draw-svg {
+        width: 100%;
+        max-width: 880px;
+        height: auto;
+        overflow: visible;
+      }
+      #root[data-width="1920"] .ng-draw-svg {
+        max-width: 1180px;
+        max-height: 580px;
+      }
+      .ng-draw-title {
+        font-family: var(--font-display);
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--text-primary);
+        text-align: center;
+      }""",
+    "scene_3d": """      .ng-3d-wrap {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+      }
+      .ng-3d-canvas {
+        width: 100%;
+        max-width: 860px;
+        height: auto;
+        display: block;
+      }
+      #root[data-width="1920"] .ng-3d-canvas {
+        max-width: 1020px;
+        max-height: 580px;
+        object-fit: contain;
+      }
+      .ng-3d-title {
+        font-family: var(--font-display);
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--text-primary);
+        text-align: center;
+      }""",
 }
 
 
@@ -2761,6 +3527,7 @@ def load_storyboard(path: Path) -> StoryboardSpec:
         music=str(raw["music"]).strip() if raw.get("music") else None,
         camera_motion=bool(raw.get("camera_motion", True)),
         film_grain=bool(raw.get("film_grain", False)),
+        voice_polish=bool(raw.get("voice_polish", False)),
         words_per_group=words_per_group,
         emphasis_words=emphasis_words,
         scenes=scenes,
@@ -3005,18 +3772,114 @@ def _sync_local_image_assets(project_dir: Path, storyboard: StoryboardSpec) -> N
                 shutil.copy2(src_candidate, dest_file)
 
 
+def _sync_local_3d_assets(project_dir: Path, storyboard: StoryboardSpec) -> bool:
+    """
+    Copia el runtime ESM local de Three.js desde node_modules/three/ hacia
+    <project_dir>/assets/vendor/ y cualquier modelo .glb/.gltf referenciado por
+    escenas 'scene_3d' desde assets/models/ hacia <project_dir>/assets/models/,
+    garantizando renderizado 100% offline y cumplimiento del StaticGuard de HyperFrames.
+    Devuelve True si el storyboard contiene al menos una escena 'scene_3d'.
+    """
+    import shutil
+
+    scenes_3d = [s for s in storyboard.scenes if s.component == "scene_3d"]
+    if not scenes_3d:
+        return False
+
+    repo_root = Path(__file__).resolve().parent.parent
+    three_build = repo_root / "node_modules" / "three" / "build"
+    vendor_dir = project_dir / "assets" / "vendor"
+    vendor_dir.mkdir(parents=True, exist_ok=True)
+
+    for fname in ("three.module.js", "three.core.js"):
+        src = three_build / fname
+        if src.exists():
+            dst = vendor_dir / fname
+            if not dst.exists() or src.resolve() != dst.resolve():
+                shutil.copy2(src, dst)
+
+    uses_model = False
+    repo_models_dir = repo_root / "assets" / "models"
+    for scene in scenes_3d:
+        model_raw = str(scene.props.get("model", "")).strip()
+        if not model_raw:
+            continue
+        uses_model = True
+        filename = Path(model_raw).name
+        src_model = repo_models_dir / filename
+        if src_model.exists():
+            dst_models_dir = project_dir / "assets" / "models"
+            dst_models_dir.mkdir(parents=True, exist_ok=True)
+            dst_model = dst_models_dir / filename
+            if not dst_model.exists() or src_model.resolve() != dst_model.resolve():
+                shutil.copy2(src_model, dst_model)
+
+    if uses_model:
+        three_jsm = repo_root / "node_modules" / "three" / "examples" / "jsm"
+        addon_files = [
+            ("loaders/GLTFLoader.js", "loaders/GLTFLoader.js"),
+            ("utils/BufferGeometryUtils.js", "utils/BufferGeometryUtils.js"),
+            ("utils/SkeletonUtils.js", "utils/SkeletonUtils.js"),
+        ]
+        for rel_src, rel_dst in addon_files:
+            src = three_jsm / rel_src
+            if src.exists():
+                dst = vendor_dir / "addons" / rel_dst
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                if not dst.exists() or src.resolve() != dst.resolve():
+                    shutil.copy2(src, dst)
+
+    return True
+
+
+def _ensure_runtime_scripts(content: str, used_components: set[str]) -> str:
+    """Inyecta de forma idempotente MotionPathPlugin y el importmap local de Three.js cuando son requeridos."""
+    if (used_components & {"infinite_canvas", "svg_draw"}) and "MotionPathPlugin" not in content:
+        gsap_tag = r'(<script\s+src="[^"]*gsap(?:\.min)?\.js"[^>]*></script>)'
+        mp_tag = '\n    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/MotionPathPlugin.min.js"></script>'
+        if re.search(gsap_tag, content):
+            content = re.sub(gsap_tag, lambda m: m.group(1) + mp_tag, content, count=1)
+
+    three_pattern = r"\s*<!-- @three-runtime:start -->.*?<!-- @three-runtime:end -->"
+    if "scene_3d" in used_components:
+        importmap_block = (
+            "\n    <!-- @three-runtime:start -->\n"
+            '    <script type="importmap">\n'
+            "      {\n"
+            '        "imports": {\n'
+            '          "three": "./assets/vendor/three.module.js",\n'
+            '          "three/addons/": "./assets/vendor/addons/"\n'
+            "        }\n"
+            "      }\n"
+            "    </script>\n"
+            "    <!-- @three-runtime:end -->"
+        )
+        if re.search(three_pattern, content, flags=re.DOTALL):
+            content = re.sub(
+                three_pattern, lambda _: importmap_block, content, count=1, flags=re.DOTALL
+            )
+        elif "</head>" in content:
+            content = content.replace("</head>", f"{importmap_block}\n  </head>", 1)
+    elif re.search(three_pattern, content, flags=re.DOTALL):
+        content = re.sub(three_pattern, "", content, count=1, flags=re.DOTALL)
+
+    return content
+
+
 def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> None:
     """Inyecta de forma idempotente CSS de componentes, escenas HTML y coreografía GSAP en index.html."""
     if not html_path.exists():
         raise FileNotFoundError(f"No se encontró el archivo HTML: {html_path}")
 
     _sync_local_image_assets(html_path.parent, storyboard)
+    _sync_local_3d_assets(html_path.parent, storyboard)
     scenes_html, scenes_gsap = build_storyboard_html_and_gsap(storyboard)
     used_components = {s.component for s in storyboard.scenes}
     scenes_css = build_scenes_css(used_components=used_components)
     content = html_path.read_text(encoding="utf-8")
 
-    # 0. Inyección idempotente del CSS de los componentes usados (tree-shaking)
+    # 0. Runtime scripts (MotionPathPlugin / Three.js importmap) y CSS de componentes (tree-shaking)
+    content = _ensure_runtime_scripts(content, used_components)
     content = upsert_marked_css_block(content, "scenes-css", scenes_css)
 
     # 1. Reemplazo idempotente del bloque HTML de escenas
