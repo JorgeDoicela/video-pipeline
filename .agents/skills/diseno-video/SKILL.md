@@ -29,7 +29,7 @@ Toda composición debe ensamblarse utilizando los bloques canónicos del catálo
 
 ### Nivel 1: Diseños Macro
 * `cinematic`: Superficie oscura profunda con curvas amplias (`--radius-lg: 28px`), desenfoque backdrop suave y bordes simétricos limpios.
-* `editorial`: Formato cálido y sereno de lectura, ensayo e historia bíblica (`--radius-lg: 20px`), fondo marfil antirreflejo (`#f5f1ea`), bordes simétricos finos (`1px`) y lienzo superior limpio (oculta automáticamente `#progress-bar` y `#brand-bar`).
+* `editorial`: Formato cálido y sereno de lectura, ensayo e historia bíblica (`--radius-lg: 20px`), fondo marfil antirreflejo (`#f5f1ea`), bordes simétricos finos (`1px`), titulares estilizados de ancho contenido (`font-size: 56px`/`54px`, `font-weight: 700`, `text-transform: none`, `max-width: 780px`/`1020px`, `text-wrap: balance`) y lienzo superior limpio (oculta automáticamente `#progress-bar` y `#brand-bar`).
 * `clean`: Luminoso, minimalista, tarjetas blancas o traslúcidas puras con sombras multicapa y estética moderna.
 
 ### Nivel 2: Variantes Canónicas

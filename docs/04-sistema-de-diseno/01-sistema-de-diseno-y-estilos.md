@@ -46,7 +46,7 @@ flowchart TD
 | Identificador (`-d`) | Nombre Técnico | Geometría y Superficie | Tema Nativo | Motion / Captions Nativo | Caso de Uso Principal |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | `cinematic` *(Defecto)* | Cinematic (Oscuro Premium) | Curvas amplias (`28px`), desenfoque suave (`blur(24px)`), sombra ambiental y bordes simétricos limpios. | `dark_violet` | `smooth` / `minimal_clean` | Videos verticales TikTok/Reels, tecnología, reflexiones de alto impacto y presentador. |
-| `editorial` | Editorial (Marfil y Latón) | Estética cálida y serena con fondo marfil, esquinas orgánicas (`20px`), borde fino (`1px`), desenfoque suave (`blur(16px)`), sombra difusa y lienzo superior despejado (`#progress-bar` y `#brand-bar` ocultos). | `paper_warm` | `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
+| `editorial` | Editorial (Marfil y Latón) | Estética cálida y serena con fondo marfil, esquinas orgánicas (`20px`), borde fino (`1px`), desenfoque suave (`blur(16px)`), sombra difusa, titulares estilizados de ancho contenido (`56px`/`54px`, `700`, `text-transform: none`, `max-width: 780px`/`1020px`) y lienzo superior despejado (`#progress-bar` y `#brand-bar` ocultos). | `paper_warm` | `minimal` / `minimal_clean` | Versículos bíblicos, citas, historia, filosofía y ensayos reflexivos. |
 | `clean` | Clean (Claro Minimalista) | Canvas blanco neutro con tarjetas elevadas (`24px`), sombras suaves multicapa y bordes sutiles. | `clean_light` | `smooth` / `minimal_clean` | Explicaciones corporativas, tutoriales claros y presentaciones limpias. |
 
 ---

@@ -119,7 +119,7 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 1. **Nivel 1 — Diseños Macro (`-d, --design` / [`DesignSystem`](../../core/styles.py)):**
    Cambia la arquitectura visual completa (geometría de bordes, sombras estructurales, cabeceras de contenedores, tema nativo y perfil de animación GSAP):
    * `cinematic` *(Defecto)*: Encuadre oscuro con curvas amplias (`28px`), desenfoque suave (`blur(24px)`), bordes simétricos limpios, tema nativo `dark_violet` y subtítulos `minimal_clean`.
-   * `editorial`: Estética cálida y serena de lectura con fondo marfil (`#f5f1ea`), esquinas suaves (`20px`), bordes finos (`1px`), sombra difusa cálida, ocultamiento automático de la barra de progreso superior (`#progress-bar`) y cabecera de marca (`#brand-bar`), tema `paper_warm` (latón dorado `#875c22` y carmesí terracota `#8c2d19`) y subtítulos `minimal_clean`.
+   * `editorial`: Estética cálida y serena de lectura con fondo marfil (`#f5f1ea`), esquinas suaves (`20px`), bordes finos (`1px`), sombra difusa cálida, ocultamiento automático de la barra de progreso superior (`#progress-bar`) y cabecera de marca (`#brand-bar`), titulares estilizados de ancho contenido (`font-size: 56px`/`54px`, `font-weight: 700`, `text-transform: none`, `max-width: 780px`/`1020px`, `text-wrap: balance`), tema `paper_warm` (latón dorado `#875c22` y carmesí terracota `#8c2d19`) y subtítulos `minimal_clean`.
    * `clean`: Tarjetas blancas minimalistas con radios de `24px`, sombras multicapa suaves, tema nativo `clean_light` y animación `smooth`.
 
 2. **Nivel 2 — Opciones Internas dentro de un mismo Diseño:**

@@ -99,6 +99,9 @@ def test_level1_macro_design_switching(tmp_path):
     assert "--accent-secondary: #8c2d19;" in html_ed
     assert "#progress-bar, #brand-bar {" in html_ed
     assert "display: none !important;" in html_ed
+    assert "font-size: 56px;" in html_ed
+    assert "max-width: 780px;" in html_ed
+    assert "text-transform: none;" in html_ed
     assert "text-wrap: balance;" in html_ed
     assert "<h1>Título Intacto</h1>" in html_ed
 
