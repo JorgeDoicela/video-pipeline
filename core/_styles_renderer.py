@@ -230,6 +230,8 @@ def generate_caption_css(caption_style: CaptionStyle) -> str:
         f"      /* Caption Style: {caption_style.slug} */",
         "      .caption-phrase {",
         "        display: inline-block;",
+        "        max-width: 780px;",
+        "        text-wrap: balance;",
         "        background: transparent;",
         "        padding: 0;",
         "        border: none;",
@@ -249,7 +251,7 @@ def generate_caption_css(caption_style: CaptionStyle) -> str:
         "        background: transparent;",
         "        border: none;",
         "        padding: 0;",
-        "        text-shadow: 0 0 28px var(--accent-primary-glow), 0 4px 16px rgba(0, 0, 0, 0.72);",
+        "        text-shadow: var(--caption-shadow);",
         "      }",
         "      /* @caption-style:end */",
     ]

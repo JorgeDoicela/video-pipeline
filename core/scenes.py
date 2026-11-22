@@ -2273,6 +2273,10 @@ _SCENES_BASE_CSS = """      #brand-bar {
         letter-spacing: 0.14em;
         text-transform: uppercase;
       }
+      #root[data-design="editorial"] #progress-bar,
+      #root[data-design="editorial"] #brand-bar {
+        display: none !important;
+      }
       #root[data-caption-pos="hero_top"] #caption-zone {
         top: 118px;
         bottom: auto;
@@ -2286,7 +2290,7 @@ _SCENES_BASE_CSS = """      #brand-bar {
         line-height: 1.08;
       }
       #root[data-caption-pos="hero_top"] .word.active {
-        text-shadow: 0 0 32px var(--accent-primary-glow), 0 4px 16px rgba(0, 0, 0, 0.72);
+        text-shadow: var(--caption-shadow);
       }
       #root[data-caption-pos="hero_top"] #scenes-stage {
         top: 380px;

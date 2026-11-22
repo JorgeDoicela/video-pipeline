@@ -198,3 +198,23 @@ def test_group_words_splits_on_punctuation_and_emphasis_words():
     )
     assert 'class="word word-emphasis">Pegasus</span>' in html_out
     assert 'className: "word word-emphasis active"' in gsap_out
+
+
+def test_consecutive_groups_never_overlap_in_time_and_respect_max_chars():
+    words = [
+        {"word": "y", "start": 18.0, "end": 18.2},
+        {"word": "ninguna", "start": 18.2, "end": 18.6},
+        {"word": "cantidad", "start": 18.6, "end": 19.1},
+        {"word": "de", "start": 19.1, "end": 19.3},
+        {"word": "buenas", "start": 19.3, "end": 19.6},
+        {"word": "obras", "start": 19.6, "end": 19.9},
+        {"word": "puede", "start": 19.9, "end": 20.2},
+        {"word": "borrar", "start": 20.2, "end": 20.6},
+    ]
+    groups = group_words(words, words_per_group=4, pause_threshold=0.4, max_chars=28)
+    assert len(groups) == 2
+    _, gsap_code = generate_html_and_gsap(groups, caption_style="minimal_clean")
+
+    # El grupo cg_0 debe ocultarse exactamente en 19.300 (cuando empieza cg_1), nunca en 19.450
+    assert 'tl.set("#cg_0", { opacity: 0, display: "none" }, 19.300);' in gsap_code
+    assert 'tl.set("#cg_1", { display: "inline-block", opacity: 1 }, 19.300);' in gsap_code

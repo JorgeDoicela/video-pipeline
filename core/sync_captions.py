@@ -83,14 +83,15 @@ _STRONG_PUNCT_END = (".", "?", "!", ":", ";")
 
 def group_words(
     words: list[dict],
-    words_per_group: int = 4,
+    words_per_group: int = 6,
     pause_threshold: float = 0.4,
     split_on_punctuation: bool = True,
+    max_chars: int = 0,
 ) -> list[list[dict]]:
     """
-    Agrupa palabras en bloques legibles (por defecto hasta 4 palabras),
-    cortando ante pausas superiores a pause_threshold y respetando cierres
-    naturales de frase (puntuación fuerte o coma tras >= 2 palabras).
+    Agrupa palabras en bloques legibles de 1 o 2 líneas balanceadas (por defecto hasta
+    words_per_group palabras), cortando ante pausas superiores a pause_threshold y respetando
+    cierres naturales de frase (puntuación fuerte o coma tras >= 2 palabras).
     """
     if not words:
         return []
@@ -105,14 +106,21 @@ def group_words(
 
         prev_w = current_group[-1]
         prev_text = str(prev_w.get("word", "")).strip()
+        next_text = str(w.get("word", "")).strip()
         pause = w["start"] - prev_w["end"]
+
+        current_chars = sum(len(str(item.get("word", "")).strip()) for item in current_group) + (
+            len(current_group) - 1
+        )
+        exceeds_chars = max_chars > 0 and (current_chars + 1 + len(next_text)) > max_chars
 
         ends_sentence = split_on_punctuation and prev_text.endswith(_STRONG_PUNCT_END)
         ends_clause = split_on_punctuation and prev_text.endswith(",") and len(current_group) >= 2
 
-        # Cortar si excede tamaño máximo, hubo pausa notable o cierre natural de cláusula/frase
+        # Cortar si excede tamaño máximo, ancho de línea, pausa notable o cierre natural de cláusula/frase
         if (
             len(current_group) >= words_per_group
+            or exceeds_chars
             or pause >= pause_threshold
             or ends_sentence
             or ends_clause
@@ -217,9 +225,13 @@ def generate_html_and_gsap(
                 f'tl.to("#{word_id}", {{ className: "{active_cls}", duration: 0.04 }}, {w_start:.3f});'
             )
 
-        # GSAP Timeline: Desaparece la frase al terminar el bloque
+        # GSAP Timeline: Desaparece la frase exactamente antes o al iniciar el siguiente bloque
+        # para impedir que dos grupos coexistan en pantalla y provoquen saltos de línea dobles.
+        next_start = groups[g_idx + 1][0]["start"] if g_idx + 1 < len(groups) else None
+        hide_time = min(g_end + 0.15, next_start) if next_start is not None else (g_end + 0.15)
+        hide_time = max(g_start + 0.02, hide_time)
         gsap_lines.append(
-            f'tl.set("#{group_id}", {{ opacity: 0, display: "none" }}, {g_end + 0.15:.3f});'
+            f'tl.set("#{group_id}", {{ opacity: 0, display: "none" }}, {hide_time:.3f});'
         )
 
     html_parts.append("</div>")
