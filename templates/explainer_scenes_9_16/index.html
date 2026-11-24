@@ -95,23 +95,22 @@
         position: relative;
         width: 1080px;
         height: 1920px;
-        background: var(--bg);
+        background: var(--bg-gradient), var(--bg);
         overflow: hidden;
       }
 
       /* Atmósfera 2D adaptativa a temas claros/oscuros */
       #atmosphere-rays {
         position: absolute;
-        top: -420px;
-        left: -420px;
-        width: 1920px;
-        height: 1920px;
-        background: repeating-conic-gradient(
-          from 0deg,
-          var(--accent-primary-soft) 0deg 10deg,
-          transparent 10deg 24deg
-        );
-        opacity: 0.28;
+        top: -240px;
+        left: -240px;
+        width: 1560px;
+        height: 2400px;
+        background:
+          radial-gradient(ellipse 46% 38% at 32% 28%, var(--accent-primary-glow) 0%, transparent 68%),
+          radial-gradient(ellipse 42% 36% at 70% 66%, var(--accent-secondary-soft) 0%, transparent 70%);
+        filter: blur(72px);
+        opacity: 0.72;
         pointer-events: none;
         display: none;
       }
@@ -121,7 +120,9 @@
         background-image:
           linear-gradient(to right, var(--divider) 1px, transparent 1px),
           linear-gradient(to bottom, var(--divider) 1px, transparent 1px);
-        background-size: 72px 72px;
+        background-size: 64px 64px;
+        -webkit-mask-image: radial-gradient(ellipse 78% 66% at 50% 46%, rgba(0, 0, 0, 0.85) 0%, transparent 78%);
+        mask-image: radial-gradient(ellipse 78% 66% at 50% 46%, rgba(0, 0, 0, 0.85) 0%, transparent 78%);
         pointer-events: none;
         display: none;
       }

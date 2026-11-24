@@ -355,6 +355,10 @@ def inject_into_html(
             count=1,
         )
 
+    # 3. Asegurar visibilidad del bloque de subtítulos si #root tenía data-has-captions="false"
+    if 'data-has-captions="false"' in content and "<span" in html_snippet:
+        content = content.replace('data-has-captions="false"', 'data-has-captions="true"', 1)
+
     html_path.write_text(content, encoding="utf-8")
     print(f"[Captions] Subtítulos inyectados exitosamente en: {html_path.resolve()}")
 

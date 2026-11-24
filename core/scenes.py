@@ -313,16 +313,21 @@ def _render_network_graph(
             continue
         x1, y1 = float(src.get("x", 150)), float(src.get("y", 150))
         x2, y2 = float(dst.get("x", 650)), float(dst.get("y", 450))
-        length = max(10.0, math.hypot(x2 - x1, y2 - y1))
+        raw_len = max(10.0, math.hypot(x2 - x1, y2 - y1))
+        pad = 46.0 if raw_len > 110.0 else 0.0
+        ux, uy = (x2 - x1) / raw_len, (y2 - y1) / raw_len
+        sx, sy = x1 + ux * pad, y1 + uy * pad
+        ex, ey = x2 - ux * pad, y2 - uy * pad
+        length = max(10.0, math.hypot(ex - sx, ey - sy))
         is_alert = bool(edge.get("alert", False))
-        stroke_col = "var(--accent-danger)" if is_alert else "var(--text-muted)"
-        stroke_w = "5" if is_alert else "3"
-        dash_attr = "" if is_alert else 'stroke-dasharray="10 10"'
+        stroke_col = "var(--accent-danger)" if is_alert else "var(--border-strong)"
+        stroke_w = "4" if is_alert else "2.5"
+        dash_attr = "" if is_alert else 'stroke-dasharray="8 8"'
         edge_id = f"{scene_id}_edge_{e_idx}"
 
         if is_alert:
             svg_edges.append(
-                f'<line id="{edge_id}" x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
+                f'<line id="{edge_id}" x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" '
                 f'stroke="{stroke_col}" stroke-width="{stroke_w}" stroke-linecap="round" '
                 f'stroke-dasharray="{length:.1f}" stroke-dashoffset="{length:.1f}" />'
             )
@@ -332,30 +337,53 @@ def _render_network_graph(
             )
         else:
             svg_edges.append(
-                f'<line id="{edge_id}" x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" '
-                f'stroke="{stroke_col}" stroke-width="{stroke_w}" {dash_attr} opacity="0" />'
+                f'<line id="{edge_id}" x1="{sx:.1f}" y1="{sy:.1f}" x2="{ex:.1f}" y2="{ey:.1f}" '
+                f'stroke="{stroke_col}" stroke-width="{stroke_w}" stroke-linecap="round" {dash_attr} opacity="0" />'
             )
             t_edge = start + 0.2 + e_idx * 0.14
             gsap_edges.append(
-                f'tl.to("#{edge_id}", {{ opacity: 0.65, duration: 0.3 }}, {t_edge:.3f});'
+                f'tl.to("#{edge_id}", {{ opacity: 0.85, duration: 0.3 }}, {t_edge:.3f});'
             )
+
+    downward_nodes: set[str] = set()
+    for edge in edges:
+        src = node_map.get(str(edge.get("from")))
+        dst = node_map.get(str(edge.get("to")))
+        if not src or not dst:
+            continue
+        x1, y1 = float(src.get("x", 150)), float(src.get("y", 150))
+        x2, y2 = float(dst.get("x", 650)), float(dst.get("y", 450))
+        dx, dy = abs(x2 - x1), y2 - y1
+        if dy > 60 and dy >= dx * 0.7:
+            downward_nodes.add(str(src["id"]))
+        elif dy < -60 and abs(dy) >= dx * 0.7:
+            downward_nodes.add(str(dst["id"]))
 
     svg_nodes: list[str] = []
     for n_idx, node in enumerate(nodes):
         nx, ny = float(node.get("x", 440)), float(node.get("y", 300))
-        nid_txt = html.escape(str(node.get("id", n_idx + 1)), quote=False)
         nlbl = html.escape(str(node.get("label", "")), quote=False)
         is_alert = bool(node.get("alert", False))
         fill_col = (
             "var(--accent-danger)" if is_alert else "var(--scene-accent, var(--accent-primary))"
         )
+        soft_col = "rgba(251, 113, 133, 0.16)" if is_alert else "var(--accent-primary-soft)"
+        pulse_ring = (
+            '<circle cx="0" cy="0" r="52" fill="none" stroke="var(--accent-danger)" '
+            'stroke-width="1.5" stroke-dasharray="6 8" opacity="0.55" />'
+            if is_alert
+            else ""
+        )
+        label_y = -62 if str(node.get("id", "")) in downward_nodes else 78
         n_gid = f"{scene_id}_node_{n_idx}"
         svg_nodes.append(
             f'<g id="{n_gid}" transform="translate({nx}, {ny})" opacity="0">'
-            f'  <circle cx="0" cy="-16" r="22" fill="{fill_col}" />'
-            f'  <path d="M -36 38 C -36 14, 36 14, 36 38 Z" fill="{fill_col}" />'
-            f'  <text x="44" y="-26" fill="var(--text-primary)" font-size="28" font-weight="800">{nid_txt}</text>'
-            f'  <text x="0" y="72" text-anchor="middle" fill="var(--text-primary)" font-size="28" font-weight="700">{nlbl}</text>'
+            f"  {pulse_ring}"
+            f'  <circle cx="0" cy="0" r="40" fill="var(--node-fill, var(--surface))" stroke="{fill_col}" stroke-width="2.5" />'
+            f'  <circle cx="0" cy="0" r="24" fill="{soft_col}" />'
+            f'  <circle cx="0" cy="0" r="10" fill="{fill_col}" />'
+            f'  <circle cx="0" cy="0" r="4" fill="#ffffff" />'
+            f'  <text x="0" y="{label_y}" text-anchor="middle" fill="var(--text-primary)" font-size="28" font-weight="600">{nlbl}</text>'
             f"</g>"
         )
 
@@ -479,18 +507,21 @@ def _render_stat_callout(
     bars = props.get("bars", [])[:4]
 
     bars_html: list[str] = []
+    has_alert_bar = any(bool(b.get("highlight") or b.get("alert")) for b in bars)
     for idx, bar in enumerate(bars):
         lbl = html.escape(str(bar.get("label", f"Item {idx + 1}")), quote=False)
         val = html.escape(str(bar.get("value", "")), quote=False)
         pct = max(5, min(100, int(bar.get("pct", 50))))
-        hl_col = (
-            "var(--accent-danger)"
-            if bar.get("highlight")
-            else "var(--scene-accent, var(--accent-primary))"
-        )
+        is_alert_bar = bool(bar.get("highlight") or bar.get("alert"))
+        if is_alert_bar:
+            hl_col = "var(--accent-danger)"
+        elif has_alert_bar:
+            hl_col = "var(--accent-secondary)"
+        else:
+            hl_col = "var(--scene-accent, var(--accent-primary))"
         bars_html.append(
             f'<div class="ng-stat-bar-row">'
-            f'  <div class="ng-stat-bar-head"><span>{lbl}</span><span>{val}</span></div>'
+            f'  <div class="ng-stat-bar-head"><span>{lbl}</span><span class="ng-stat-bar-val">{val}</span></div>'
             f'  <div class="ng-stat-track"><div id="{scene_id}_bar_{idx}" class="ng-stat-fill" style="width: {pct}%; background: {hl_col}; transform-origin: left center;"></div></div>'
             f"</div>"
         )
@@ -661,6 +692,7 @@ def _render_code_spotlight(
 ) -> tuple[str, str]:
     """Bloque de código, comando o fórmula con línea destacada."""
     lang = html.escape(str(props.get("language", "bash")), quote=False)
+    filename = html.escape(str(props.get("filename", "")), quote=False)
     lines = props.get("lines") or [
         "$ pipeline produce -i voz.wav -p demo",
         "  transcribing with faster-whisper...",
@@ -677,9 +709,10 @@ def _render_code_spotlight(
             f"<code>{html.escape(str(line), quote=False)}</code>"
             f"</div>"
         )
+    file_html = f'<span class="ng-code-file">{filename}</span>' if filename else ""
     markup = (
         f'<div id="{scene_id}_code" class="ng-code-card">'
-        f'<div class="ng-code-lang">{lang}</div>'
+        f'<div class="ng-code-header"><span class="ng-code-lang">{lang}</span>{file_html}</div>'
         f'<div class="ng-code-body">{"".join(lines_html)}</div>'
         f"</div>"
     )
@@ -703,8 +736,8 @@ def _render_icon_spotlight(
     ring_progress = max(0.0, min(1.0, ring_progress))
 
     icon_svg = (
-        '<svg class="ng-bare-icon" width="120" height="120" viewBox="0 0 24 24" fill="none" '
-        'stroke="var(--scene-accent, var(--accent-primary))" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'
+        '<svg class="ng-bare-icon" width="144" height="144" viewBox="0 0 24 24" fill="none" '
+        'stroke="var(--scene-accent, var(--accent-primary))" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'
         '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
     )
     icons_dir = Path(__file__).resolve().parent.parent / "assets" / "icons"
@@ -721,9 +754,9 @@ def _render_icon_spotlight(
         from core.fetch_assets import normalize_iconify_svg
 
         raw_svg = normalize_iconify_svg(candidate.read_text(encoding="utf-8")).strip()
-        icon_svg = raw_svg.replace("<svg", '<svg class="ng-bare-icon" width="120" height="120"', 1)
+        icon_svg = raw_svg.replace("<svg", '<svg class="ng-bare-icon" width="144" height="144"', 1)
 
-    radius = 128.0
+    radius = 156.0
     circumference = 2.0 * math.pi * radius
     target_offset = circumference * (1.0 - ring_progress)
     sub_html = f'<div class="ng-spot-sub">{sublabel}</div>' if sublabel else ""
@@ -731,12 +764,18 @@ def _render_icon_spotlight(
     markup = (
         f'<div id="{scene_id}_spotlight" class="ng-spotlight">'
         f'  <div class="ng-spot-ring">'
-        f'    <svg class="ng-ring-svg" width="300" height="300" viewBox="0 0 300 300">'
-        f'      <circle cx="150" cy="150" r="{radius:.0f}" fill="none" stroke="var(--border)" stroke-width="6" />'
-        f'      <circle id="{scene_id}_ring_arc" cx="150" cy="150" r="{radius:.0f}" fill="none" '
-        f'        stroke="var(--scene-accent, var(--accent-primary))" stroke-width="8" stroke-linecap="round" '
+        f'    <div class="ng-spot-glow" data-layout-ignore></div>'
+        f'    <svg class="ng-ring-svg" width="420" height="420" viewBox="0 0 420 420">'
+        f'      <circle cx="210" cy="210" r="192" fill="none" stroke="var(--border)" stroke-width="1.5" stroke-dasharray="4 10" />'
+        f'      <circle cx="210" cy="210" r="{radius:.0f}" fill="none" stroke="var(--border)" stroke-width="3" />'
+        f'      <circle id="{scene_id}_ring_arc" cx="210" cy="210" r="{radius:.0f}" fill="none" '
+        f'        stroke="var(--scene-accent, var(--accent-primary))" stroke-width="7" stroke-linecap="round" '
         f'        stroke-dasharray="{circumference:.1f}" stroke-dashoffset="{circumference:.1f}" '
-        f'        transform="rotate(-90 150 150)" />'
+        f'        transform="rotate(-90 210 210)" />'
+        f'      <line x1="210" y1="8" x2="210" y2="24" stroke="var(--border-strong)" stroke-width="2" />'
+        f'      <line x1="210" y1="396" x2="210" y2="412" stroke="var(--border-strong)" stroke-width="2" />'
+        f'      <line x1="8" y1="210" x2="24" y2="210" stroke="var(--border-strong)" stroke-width="2" />'
+        f'      <line x1="396" y1="210" x2="412" y2="210" stroke="var(--border-strong)" stroke-width="2" />'
         f"    </svg>"
         f'    <div class="ng-spot-icon">{icon_svg}</div>'
         f"  </div>"
@@ -2249,7 +2288,7 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
 
 _SCENES_BASE_CSS = """      #brand-bar {
         position: absolute;
-        top: 42px;
+        top: 48px;
         left: 72px;
         right: 72px;
         display: flex;
@@ -2259,19 +2298,34 @@ _SCENES_BASE_CSS = """      #brand-bar {
         pointer-events: none;
       }
       .brand-id {
-        font-family: var(--font-mono);
-        font-size: 30px;
-        font-weight: 800;
-        color: var(--text-primary);
-        letter-spacing: 0.02em;
+        font-family: var(--font-display);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--text-secondary);
+        letter-spacing: -0.01em;
       }
       .brand-category {
         font-family: var(--font-mono);
         font-size: 28px;
-        font-weight: 700;
+        font-weight: 600;
         color: var(--text-muted);
-        letter-spacing: 0.14em;
+        letter-spacing: 0.18em;
         text-transform: uppercase;
+      }
+      #root[data-has-captions="false"] #caption-zone {
+        display: none;
+      }
+      #root[data-has-captions="false"] #scenes-stage {
+        top: 150px;
+        height: 1620px;
+      }
+      #root[data-width="1920"][data-has-captions="false"] #scenes-stage {
+        top: 0;
+        height: auto;
+        padding-bottom: 84px;
+      }
+      #root[data-width="1920"][data-has-captions="false"] .scene-node {
+        bottom: 84px;
       }
       #root[data-design="editorial"] #progress-bar,
       #root[data-design="editorial"] #brand-bar {
@@ -2303,9 +2357,10 @@ _SCENES_BASE_CSS = """      #brand-bar {
         flex-shrink: 0;
       }
       .ng-spot-sub {
-        font-size: 28px;
-        color: var(--text-muted);
+        font-size: 30px;
+        color: var(--text-secondary);
         max-width: 820px;
+        line-height: 1.4;
       }
       .ret-c {
         position: absolute;
@@ -2338,8 +2393,8 @@ _SCENES_BASE_CSS = """      #brand-bar {
         pointer-events: none;
         z-index: 45;
         background:
-          radial-gradient(circle at 50% 48%, transparent 52%, rgba(0, 0, 0, 0.52) 100%),
-          repeating-radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+          radial-gradient(ellipse 72% 68% at 50% 48%, transparent 55%, rgba(0, 0, 0, 0.46) 100%),
+          repeating-radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 3px);
       }"""
 
 _COMPONENT_CSS_BLOCKS: dict[str, str] = {
@@ -2694,22 +2749,33 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
       }""",
     "stat_callout": """      .ng-stat-wrap {
         width: 100%;
-        max-width: 960px;
+        max-width: 920px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0.01) 100%), var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg, 28px);
+        padding: 64px 56px;
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 32px;
+        gap: 28px;
         text-align: center;
       }
       .ng-stat-primary {
-        font-size: 112px;
-        font-weight: 900;
-        line-height: 1;
-        color: var(--accent-primary);
+        font-family: var(--font-display);
+        font-size: 144px;
+        font-weight: 800;
+        line-height: 0.95;
+        letter-spacing: -0.045em;
+        font-variant-numeric: tabular-nums;
+        color: var(--scene-accent, var(--accent-primary));
+        text-shadow: 0 0 48px var(--accent-primary-glow);
       }
       .ng-stat-secondary {
-        font-size: 42px;
-        font-weight: 800;
+        font-family: var(--font-display);
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
         color: var(--text-primary);
       }
       .ng-stat-bars {
@@ -2717,30 +2783,34 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
         display: flex;
         flex-direction: column;
         gap: 24px;
-        margin-top: 12px;
+        margin-top: 16px;
       }
       .ng-stat-bar-row {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
       }
       .ng-stat-bar-head {
         display: flex;
         justify-content: space-between;
-        font-size: 30px;
-        font-weight: 700;
+        font-size: 28px;
+        font-weight: 600;
         color: var(--text-primary);
+      }
+      .ng-stat-bar-val {
+        color: var(--text-secondary);
+        font-family: var(--font-mono);
       }
       .ng-stat-track {
         width: 100%;
-        height: 22px;
+        height: 16px;
         background: var(--surface-elevated);
-        border-radius: 12px;
+        border-radius: 999px;
         overflow: hidden;
       }
       .ng-stat-fill {
         height: 100%;
-        border-radius: 12px;
+        border-radius: 999px;
       }""",
     "timeline_steps": """      .ng-timeline {
         width: 100%;
@@ -2909,65 +2979,97 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
       }""",
     "code_spotlight": """      .ng-code-card {
         width: 100%;
-        max-width: 1180px;
-        background: var(--surface);
+        max-width: 1140px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%), var(--surface);
         border: 1px solid var(--border);
-        border-radius: 22px;
-        padding: 32px;
+        border-radius: var(--radius-lg, 28px);
+        padding: 40px 44px;
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.09);
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 24px;
         text-align: left;
+      }
+      .ng-code-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
       }
       .ng-code-lang {
         font-family: var(--font-mono);
         font-size: 28px;
         font-weight: 700;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: var(--accent-primary);
+        color: var(--scene-accent, var(--accent-primary));
+      }
+      .ng-code-file {
+        font-family: var(--font-mono);
+        font-size: 28px;
+        font-weight: 500;
+        color: var(--text-muted);
       }
       .ng-code-body {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
         font-family: var(--font-mono);
-        font-size: 28px;
-        line-height: 1.4;
+        font-size: 29px;
+        line-height: 1.45;
       }
       .ng-code-line {
         display: flex;
-        gap: 18px;
-        padding: 8px 14px;
-        border-radius: 10px;
-        color: var(--text-muted);
+        align-items: center;
+        gap: 22px;
+        padding: 12px 18px;
+        border-radius: 14px;
+        border: 1px solid transparent;
+        color: var(--text-secondary);
       }
       .ng-code-line-active {
         background: var(--accent-primary-soft);
+        border-color: var(--border-strong);
         color: var(--text-primary);
         font-weight: 700;
       }
       .ng-code-num {
         color: var(--text-muted);
         min-width: 32px;
+        font-variant-numeric: tabular-nums;
       }""",
     "icon_spotlight": """      .ng-spotlight {
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 24px;
+        gap: 28px;
         text-align: center;
       }
       .ng-spot-ring {
         position: relative;
-        width: 300px;
-        height: 300px;
+        width: 420px;
+        height: 420px;
         display: flex;
         align-items: center;
         justify-content: center;
       }
+      #root[data-width="1920"] .ng-spot-ring {
+        width: 340px;
+        height: 340px;
+      }
+      .ng-spot-glow {
+        position: absolute;
+        inset: -36px;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--accent-primary-glow) 0%, transparent 66%);
+        pointer-events: none;
+      }
       .ng-ring-svg {
         position: absolute;
         inset: 0;
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(0 0 18px var(--accent-primary-glow));
       }
       .ng-spot-icon {
         position: relative;
@@ -2977,8 +3079,10 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
         justify-content: center;
       }
       .ng-spot-label {
-        font-size: 42px;
-        font-weight: 900;
+        font-family: var(--font-display);
+        font-size: 46px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
         color: var(--text-primary);
       }""",
     "radar_map": """      .ng-radar-wrap {
@@ -3931,15 +4035,28 @@ def build_storyboard_html_and_gsap(storyboard: StoryboardSpec) -> tuple[str, str
 
         accent_css = _resolve_accent_css(scene.accent)
         style_extra = f" --scene-accent: {accent_css};" if accent_css else ""
+        is_opening_scene = idx == 0 and scene.start <= 0.01
+        initial_style = (
+            f"opacity: 1; display: flex;{style_extra}"
+            if is_opening_scene
+            else f"opacity: 0; display: none;{style_extra}"
+        )
 
         html_parts.append(
-            f'<section id="{scene.id}" class="scene-node" style="opacity: 0; display: none;{style_extra}">'
+            f'<section id="{scene.id}" class="scene-node" style="{initial_style}">'
             f"  {header_block}"
             f'  <div class="scene-body">{comp_html}</div>'
             f"</section>"
         )
 
-        if scene.transition == "zoom_in":
+        if is_opening_scene:
+            if scene.transition == "slide_up":
+                entry_from = "{ opacity: 1, y: 18 }"
+                entry_to = '{ opacity: 1, y: 0, duration: 0.35, ease: "power3.out" }'
+            else:
+                entry_from = "{ opacity: 1, scale: 0.96 }"
+                entry_to = '{ opacity: 1, scale: 1, duration: 0.38, ease: "power3.out" }'
+        elif scene.transition == "zoom_in":
             entry_from = "{ opacity: 0, scale: 0.90 }"
             entry_to = '{ opacity: 1, scale: 1, duration: 0.28, ease: "power3.out" }'
         elif scene.transition == "slide_up":
@@ -4176,10 +4293,35 @@ def inject_storyboard_into_html(html_path: Path, storyboard: StoryboardSpec) -> 
             "El archivo HTML no contiene los marcadores // @scenes-gsap:start/end compatibles con multi-escena."
         )
 
-    # 3. Actualizar data-duration, data-atmosphere, data-caption-pos y data-film-grain exclusivamente en #root
+    # 3. Limpiar subtítulos placeholder de fábrica si no existen subtítulos reales sincronizados
+    captions_pattern = r"(<!-- @captions:start -->)(.*?)(<!-- @captions:end -->)"
+    cap_match = re.search(captions_pattern, content, flags=re.DOTALL)
+    has_real_captions = False
+    if cap_match:
+        cap_inner = cap_match.group(2)
+        is_factory_placeholder = (
+            "Narración" in cap_inner and "multi-escena" in cap_inner and "sincronizada" in cap_inner
+        )
+        if is_factory_placeholder:
+            empty_cap = (
+                '\n        <div id="captions-container" class="caption-bar"></div>\n        '
+            )
+            content = re.sub(
+                captions_pattern,
+                lambda m: f"{m.group(1)}{empty_cap}{m.group(3)}",
+                content,
+                count=1,
+                flags=re.DOTALL,
+            )
+            has_real_captions = False
+        else:
+            has_real_captions = "<span" in cap_inner
+
+    # 4. Actualizar data-duration, data-atmosphere, data-caption-pos, data-has-captions y data-film-grain en #root
     content = _set_root_attr(content, "data-duration", f"{storyboard.duration:.2f}")
     content = _set_root_attr(content, "data-atmosphere", storyboard.atmosphere)
     content = _set_root_attr(content, "data-caption-pos", storyboard.caption_position)
+    content = _set_root_attr(content, "data-has-captions", "true" if has_real_captions else "false")
     content = _set_root_attr(
         content, "data-film-grain", "true" if storyboard.film_grain else "false"
     )
