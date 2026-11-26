@@ -11,6 +11,7 @@ import json
 import re
 import shutil
 import sys
+from datetime import UTC, datetime
 from pathlib import Path
 
 if __package__ is None or __package__ == "":
@@ -28,6 +29,13 @@ from core.styles import (  # noqa: E402
     add_design_arguments,
     apply_style_to_project,
     parse_set_overrides,
+)
+from core.workspace import (  # noqa: E402
+    format_project_slug,
+    load_profile,
+    record_history_event,
+    resolve_workspace_root,
+    sanitize_channel_path,
 )
 
 AVAILABLE_TEMPLATES = {
@@ -66,52 +74,93 @@ def update_composition_duration(html_path: Path, duration: float) -> None:
 
 def create_project(
     name: str,
-    template: str = "short_quote_9_16",
+    template: str | None = None,
     title: str | None = None,
     duration: float | None = None,
     force: bool = False,
-    design: str = DEFAULT_DESIGN,
+    design: str | None = None,
     style: str | None = None,
     layout: str | None = None,
     motion: str | None = None,
     caption_style: str | None = None,
     overrides: dict[str, str] | None = None,
+    profile: str | None = None,
+    channel: str | None = None,
+    output_dir: str | Path | None = None,
+    dated: bool = False,
+    record_history: bool = True,
 ) -> Path:
     base_dir = Path(__file__).resolve().parent.parent
     templates_dir = base_dir / "templates"
-    projects_dir = base_dir / "projects"
 
-    template_path = templates_dir / template
+    profile_obj = load_profile(profile) if profile else None
+
+    effective_template = template or (profile_obj.template if profile_obj else "short_quote_9_16")
+    effective_design = design or (profile_obj.design if profile_obj else DEFAULT_DESIGN)
+    effective_style = style if style is not None else (profile_obj.style if profile_obj else None)
+    effective_layout = (
+        layout if layout is not None else (profile_obj.layout if profile_obj else None)
+    )
+    effective_motion = (
+        motion if motion is not None else (profile_obj.motion if profile_obj else None)
+    )
+    effective_caption_style = (
+        caption_style
+        if caption_style is not None
+        else (profile_obj.caption_style if profile_obj else None)
+    )
+    merged_overrides: dict[str, str] = dict(profile_obj.overrides) if profile_obj else {}
+    if overrides:
+        merged_overrides.update(overrides)
+
+    effective_channel_raw = (
+        channel if channel is not None else (profile_obj.channel if profile_obj else None)
+    )
+    channel_rel = sanitize_channel_path(effective_channel_raw)
+    channel_str = channel_rel.as_posix() if channel_rel else ""
+
+    workspace_root = resolve_workspace_root(
+        output_dir=output_dir,
+        profile_output_root=profile_obj.output_root if profile_obj else None,
+        base_dir=base_dir,
+    )
+
+    template_path = templates_dir / effective_template
     if not template_path.exists():
-        print(f"Error: La plantilla '{template}' no existe en {templates_dir}", file=sys.stderr)
+        print(
+            f"Error: La plantilla '{effective_template}' no existe en {templates_dir}",
+            file=sys.stderr,
+        )
         print("Plantillas disponibles:", file=sys.stderr)
         for t_name, t_desc in AVAILABLE_TEMPLATES.items():
             print(f"  - {t_name}: {t_desc}", file=sys.stderr)
         sys.exit(1)
 
-    if design not in DESIGN_SYSTEMS:
+    if effective_design not in DESIGN_SYSTEMS:
         print(
-            f"Error: El diseño macro '{design}' no existe. Opciones: {', '.join(DESIGN_SYSTEMS.keys())}",
+            f"Error: El diseño macro '{effective_design}' no existe. Opciones: {', '.join(DESIGN_SYSTEMS.keys())}",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    if style is not None and style not in THEMES:
+    if effective_style is not None and effective_style not in THEMES:
         print(
-            f"Error: El estilo '{style}' no existe. Estilos disponibles: {', '.join(THEMES.keys())}",
+            f"Error: El estilo '{effective_style}' no existe. Estilos disponibles: {', '.join(THEMES.keys())}",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    if caption_style is not None and caption_style not in CAPTION_STYLES:
+    if effective_caption_style is not None and effective_caption_style not in CAPTION_STYLES:
         print(
-            f"Error: El estilo de subtítulos '{caption_style}' no existe. Opciones: {', '.join(CAPTION_STYLES.keys())}",
+            f"Error: El estilo de subtítulos '{effective_caption_style}' no existe. Opciones: {', '.join(CAPTION_STYLES.keys())}",
             file=sys.stderr,
         )
         sys.exit(1)
 
-    project_slug = sanitize_project_name(name)
-    target_path = projects_dir / project_slug
+    project_slug = format_project_slug(name, dated=dated)
+    target_parent = workspace_root / channel_rel if channel_rel else workspace_root
+    target_parent.mkdir(parents=True, exist_ok=True)
+    target_path = target_parent / project_slug
 
     if target_path.exists():
         if not force:
@@ -133,12 +182,20 @@ def create_project(
 
     shutil.copytree(template_path, target_path, ignore=ignore_patterns)
 
-    # Actualizar nombre del paquete en package.json antes de aplicar el estado de diseño
+    # Actualizar metadatos del proyecto en package.json antes de aplicar el estado de diseño
     pkg_file = target_path / "package.json"
     if pkg_file.exists():
         try:
             pkg_data = json.loads(pkg_file.read_text(encoding="utf-8"))
             pkg_data["name"] = f"project-{project_slug}"
+            pkg_data["videoProject"] = {
+                "slug": project_slug,
+                "channel": channel_str,
+                "profile": profile_obj.slug if profile_obj else "",
+                "template": effective_template,
+                "title": title or "",
+                "createdAt": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            }
             pkg_file.write_text(json.dumps(pkg_data, indent=2) + "\n", encoding="utf-8")
         except (OSError, json.JSONDecodeError) as e:
             print(f"Advertencia al actualizar package.json: {e}", file=sys.stderr)
@@ -148,12 +205,12 @@ def create_project(
     if html_file.exists():
         apply_style_to_project(
             project_or_html=target_path,
-            theme_slug=style,
-            caption_style_slug=caption_style,
-            design_slug=design,
-            layout_slug=layout,
-            motion_slug=motion,
-            overrides=overrides,
+            theme_slug=effective_style,
+            caption_style_slug=effective_caption_style,
+            design_slug=effective_design,
+            layout_slug=effective_layout,
+            motion_slug=effective_motion,
+            overrides=merged_overrides or None,
         )
 
         if duration is not None:
@@ -180,16 +237,53 @@ def create_project(
                 )
             html_file.write_text(html_content, encoding="utf-8")
 
+    sb_file = target_path / "storyboard.json"
+    if profile_obj and sb_file.exists() and (profile_obj.brand or profile_obj.category):
+        try:
+            sb_data = json.loads(sb_file.read_text(encoding="utf-8"))
+            if isinstance(sb_data, dict):
+                if profile_obj.brand:
+                    sb_data["brand"] = profile_obj.brand
+                if profile_obj.category:
+                    sb_data["category"] = profile_obj.category
+                sb_file.write_text(
+                    json.dumps(sb_data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+                )
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"Advertencia al actualizar storyboard.json: {e}", file=sys.stderr)
+
+    if record_history:
+        record_history_event(
+            workspace_root,
+            action="scaffold",
+            project_slug=project_slug,
+            project_dir=target_path,
+            channel=channel_str,
+            profile=profile_obj.slug if profile_obj else None,
+            title=title,
+            template=effective_template,
+            design=effective_design,
+            style=effective_style or DESIGN_SYSTEMS[effective_design].default_theme,
+            layout=effective_layout,
+            motion=effective_motion,
+            duration=duration,
+        )
+
+    display_target = str(target_path)
     print(f"[Scaffold] Proyecto '{project_slug}' creado con éxito en: {target_path}")
-    print(f"[Scaffold] Plantilla base: {template} | Diseño Macro: {design}")
-    print("\nComandos operativos:")
-    print(f"  1. Vista previa interactiva : pnpm exec hyperframes preview projects/{project_slug}")
     print(
-        f"  2. Cambiar diseño o estilo  : uv run python core/pipeline.py style {project_slug} -d editorial"
+        f"[Scaffold] Plantilla: {effective_template} | Diseño: {effective_design}"
+        + (f" | Canal: {channel_str}" if channel_str else "")
+        + (f" | Perfil: {profile_obj.slug}" if profile_obj else "")
     )
-    print(f"  3. Validación de estándares : pnpm exec hyperframes check projects/{project_slug}")
+    print("\nComandos operativos:")
+    print(f"  1. Vista previa interactiva : pnpm exec hyperframes preview {display_target}")
     print(
-        f"  4. Renderizado de producción: pnpm exec hyperframes render projects/{project_slug} -o projects/{project_slug}/video_{project_slug}.mp4"
+        f"  2. Cambiar diseño o estilo  : uv run python core/pipeline.py style {display_target} -d editorial"
+    )
+    print(f"  3. Validación de estándares : pnpm exec hyperframes check {display_target}")
+    print(
+        f"  4. Renderizado de producción: pnpm exec hyperframes render {display_target} -o {target_path / f'video_{project_slug}.mp4'}"
     )
 
     return target_path
@@ -201,11 +295,28 @@ def register_scaffold_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "-t",
         "--template",
-        default="short_quote_9_16",
+        default=None,
         choices=list(AVAILABLE_TEMPLATES.keys()),
-        help="Plantilla base a utilizar",
+        help="Plantilla base a utilizar (defecto: del perfil o short_quote_9_16)",
     )
-    add_design_arguments(parser, default_design=DEFAULT_DESIGN)
+    parser.add_argument(
+        "--profile",
+        help="Perfil de canal/cliente en profiles/<slug>.json o ruta directa",
+    )
+    parser.add_argument(
+        "--channel",
+        help="Subcarpeta de canal o cliente (ej. tech, editorial, clientes/acme)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        help="Directorio raíz del workspace de proyectos (o variable VIDEO_PIPELINE_WORKSPACE)",
+    )
+    parser.add_argument(
+        "--dated",
+        action="store_true",
+        help="Prefijar fecha YYYY-MM-DD_ al nombre del directorio del proyecto",
+    )
+    add_design_arguments(parser, default_design=None)
     parser.add_argument("--title", help="Título principal para inyectar en el index.html")
     parser.add_argument(
         "--duration", type=float, help="Duración en segundos del video (data-duration)"
@@ -235,6 +346,10 @@ def main() -> None:
         motion=args.motion,
         caption_style=args.caption_style,
         overrides=parsed_overrides,
+        profile=args.profile,
+        channel=args.channel,
+        output_dir=args.output_dir,
+        dated=args.dated,
     )
 
 

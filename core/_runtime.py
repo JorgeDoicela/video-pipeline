@@ -38,8 +38,11 @@ def normalize_token(text: str) -> str:
 
 def resolve_project_dir(project_or_path: str | Path, base_dir: Path | None = None) -> Path:
     """
-    Resuelve un identificador de proyecto ('mi-video' o ruta a directorio/index.html)
-    al directorio del proyecto correspondiente.
+    Resuelve un identificador de proyecto ('mi-video', 'canal/mi-video' o ruta a directorio/index.html)
+    al directorio del proyecto correspondiente, consultando:
+      1. Ruta directa en disco
+      2. projects/<target> dentro del repositorio
+      3. <VIDEO_PIPELINE_WORKSPACE>/<target> si la variable de entorno está configurada
     """
     root = base_dir or REPO_ROOT
     target = Path(project_or_path)
@@ -47,4 +50,13 @@ def resolve_project_dir(project_or_path: str | Path, base_dir: Path | None = Non
         candidate = root / "projects" / str(project_or_path)
         if candidate.exists():
             target = candidate
+        else:
+            env_ws = os.environ.get("VIDEO_PIPELINE_WORKSPACE")
+            if env_ws:
+                ws_root = Path(env_ws).expanduser()
+                if not ws_root.is_absolute():
+                    ws_root = (root / ws_root).resolve()
+                ws_candidate = ws_root / str(project_or_path)
+                if ws_candidate.exists():
+                    target = ws_candidate
     return target.parent if target.is_file() else target

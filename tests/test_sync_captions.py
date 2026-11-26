@@ -3,6 +3,7 @@ Pruebas unitarias para el motor de subtítulos cinéticos y exportación SRT/VTT
 """
 
 from core.sync_captions import (
+    clear_captions_in_html,
     export_srt,
     export_vtt,
     extract_word_list,
@@ -221,3 +222,37 @@ def test_consecutive_groups_never_overlap_in_time_and_default_words_per_group():
     # El grupo cg_0 debe ocultarse exactamente en 19.900 (cuando empieza cg_1), nunca en 20.050
     assert 'tl.set("#cg_0", { opacity: 0, display: "none" }, 19.900);' in gsap_code
     assert 'tl.set("#cg_1", { display: "inline-block", opacity: 1 }, 19.900);' in gsap_code
+
+
+def test_clear_captions_in_html_removes_placeholder_words_and_gsap(tmp_path):
+    html_file = tmp_path / "index.html"
+    html_file.write_text(
+        """<html>
+  <body>
+    <div id="root" data-has-captions="true">
+      <!-- @captions:start -->
+      <div id="captions-container" class="caption-bar">
+        <div id="cg_0" class="caption-phrase">
+          <span id="w1" class="word">Bienvenidos</span>
+        </div>
+      </div>
+      <!-- @captions:end -->
+    </div>
+    <script>
+      const tl = gsap.timeline({ paused: true });
+      // @captions-gsap:start
+      tl.to("#w1", { className: "word active", duration: 0.05 }, 1.0);
+      // @captions-gsap:end
+      window.__timelines = { main: tl };
+    </script>
+  </body>
+</html>""",
+        encoding="utf-8",
+    )
+
+    clear_captions_in_html(html_file)
+    result = html_file.read_text(encoding="utf-8")
+    assert "Bienvenidos" not in result
+    assert 'tl.to("#w1"' not in result
+    assert '<div id="captions-container" class="caption-bar"></div>' in result
+    assert 'data-has-captions="false"' in result

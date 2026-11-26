@@ -12,6 +12,8 @@
     "produce": "uv run python core/pipeline.py produce",
     "create": "uv run python core/pipeline.py scaffold",
     "styles": "uv run python core/pipeline.py style",
+    "profiles": "uv run python core/pipeline.py profiles",
+    "history": "uv run python core/pipeline.py history",
     "captions": "uv run python core/pipeline.py captions",
     "transcribe": "uv run python core/pipeline.py transcribe",
     "cut-silence": "uv run python core/pipeline.py cut",

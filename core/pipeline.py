@@ -65,6 +65,7 @@ from core.styles import (  # noqa: E402
     print_catalog,
 )
 from core.sync_captions import (  # noqa: E402
+    clear_captions_in_html,
     export_srt,
     export_vtt,
     extract_word_list,
@@ -78,6 +79,17 @@ from core.transcribe import (  # noqa: E402
     parse_replacements,
     register_transcribe_arguments,
     transcribe,
+)
+from core.workspace import (  # noqa: E402
+    dispatch_profiles_action,
+    infer_workspace_root_from_project,
+    load_history,
+    load_profile,
+    print_history_table,
+    record_history_event,
+    register_profiles_subparsers,
+    resolve_workspace_root,
+    sanitize_channel_path,
 )
 
 
@@ -103,16 +115,16 @@ AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"}
 def produce_pipeline(
     input_media: str,
     project_name: str,
-    template: str = "talking_head_16_9",
-    design: str = DEFAULT_DESIGN,
+    template: str | None = None,
+    design: str | None = None,
     style: str | None = None,
     layout: str | None = None,
     motion: str | None = None,
     caption_style: str | None = None,
     overrides: dict[str, str] | None = None,
     title: str | None = None,
-    whisper_model: str = "base",
-    language: str = "es",
+    whisper_model: str | None = None,
+    language: str | None = None,
     noise_db: float = -30.0,
     min_silence: float = 0.45,
     auto_render: bool = False,
@@ -123,12 +135,16 @@ def produce_pipeline(
     whisper_hotwords: str | None = None,
     replacements: dict[str, str] | None = None,
     music_path: str | None = None,
-    music_volume: float = 0.14,
+    music_volume: float | None = None,
     ambient_bed: bool = False,
     voice_polish: bool = False,
     skip_cut_silence: bool = False,
     skip_sfx: bool = False,
     words_per_group: int | None = None,
+    profile: str | None = None,
+    channel: str | None = None,
+    output_dir: str | Path | None = None,
+    dated: bool = False,
 ):
     """Ejecuta la tubería de producción completa de extremo a extremo."""
     start_time = time.time()
@@ -137,36 +153,114 @@ def produce_pipeline(
         print(f"Error: El archivo de entrada '{input_path}' no existe.", file=sys.stderr)
         sys.exit(1)
 
-    design_obj = get_design_system(design)
-    resolved_style = style or design_obj.default_theme
-    resolved_caption_style = caption_style or design_obj.default_caption_style
+    profile_obj = load_profile(profile) if profile else None
+
+    effective_template = template or (profile_obj.template if profile_obj else "talking_head_16_9")
+    effective_design = design or (profile_obj.design if profile_obj else DEFAULT_DESIGN)
+    design_obj = get_design_system(effective_design)
+    resolved_style = (
+        style
+        if style is not None
+        else (profile_obj.style if profile_obj and profile_obj.style else design_obj.default_theme)
+    )
+    resolved_layout = (
+        layout if layout is not None else (profile_obj.layout if profile_obj else None)
+    )
+    resolved_motion = (
+        motion if motion is not None else (profile_obj.motion if profile_obj else None)
+    )
+    resolved_caption_style = (
+        caption_style
+        if caption_style is not None
+        else (
+            profile_obj.caption_style
+            if profile_obj and profile_obj.caption_style
+            else design_obj.default_caption_style
+        )
+    )
+    merged_overrides: dict[str, str] = dict(profile_obj.overrides) if profile_obj else {}
+    if overrides:
+        merged_overrides.update(overrides)
+
+    merged_replacements: dict[str, str] = dict(profile_obj.replacements) if profile_obj else {}
+    if replacements:
+        merged_replacements.update(replacements)
+
+    effective_whisper_model = whisper_model or (
+        profile_obj.whisper_model if profile_obj else "base"
+    )
+    effective_language = language or (profile_obj.language if profile_obj else "es")
+    effective_prompt = (
+        whisper_prompt
+        if whisper_prompt is not None
+        else (profile_obj.whisper_prompt if profile_obj else None)
+    )
+    effective_hotwords = (
+        whisper_hotwords
+        if whisper_hotwords is not None
+        else (profile_obj.whisper_hotwords if profile_obj else None)
+    )
+    effective_music_arg = (
+        music_path if music_path is not None else (profile_obj.music if profile_obj else None)
+    )
+    effective_music_volume = (
+        music_volume
+        if music_volume is not None
+        else (profile_obj.music_volume if profile_obj else 0.14)
+    )
+    effective_ambient_bed = ambient_bed or (profile_obj.ambient_bed if profile_obj else False)
+    effective_voice_polish = voice_polish or (profile_obj.voice_polish if profile_obj else False)
+    effective_wpg_arg = (
+        words_per_group
+        if words_per_group is not None
+        else (profile_obj.words_per_group if profile_obj else None)
+    )
+    effective_channel_raw = (
+        channel if channel is not None else (profile_obj.channel if profile_obj else None)
+    )
+    channel_rel = sanitize_channel_path(effective_channel_raw)
+    effective_channel = channel_rel.as_posix() if channel_rel else ""
+    workspace_root = resolve_workspace_root(
+        output_dir=output_dir,
+        profile_output_root=profile_obj.output_root if profile_obj else None,
+    )
 
     print("\n" + "=" * 65)
     print(" INICIANDO PIPELINE DE PRODUCCIÓN AUDIOVISUAL PROGRAMÁTICA")
     print("=" * 65)
     print(f"  Archivo de entrada : {input_path}")
     print(f"  Nombre del proyecto: {project_name}")
-    print(f"  Plantilla base     : {template}")
-    print(f"  Diseño Macro (N1)  : {design}")
+    if profile_obj:
+        print(f"  Perfil de canal    : {profile_obj.slug} ({profile_obj.name})")
+    if effective_channel:
+        print(f"  Canal / Carpeta    : {effective_channel}")
+    print(f"  Workspace raíz     : {workspace_root}")
+    print(f"  Plantilla base     : {effective_template}")
+    print(f"  Diseño Macro (N1)  : {effective_design}")
     print(f"  Tema Visual  (N2)  : {resolved_style}")
     print(f"  Subtítulos   (N2)  : {resolved_caption_style}")
-    if overrides:
-        print(f"  Overrides    (N3)  : {overrides}")
+    if merged_overrides:
+        print(f"  Overrides    (N3)  : {merged_overrides}")
     print("=" * 65 + "\n")
 
     # 1. Scaffolding del Proyecto con el Diseño Macro y Variantes Seleccionadas
     print("--> [Paso 1/5] Inicializando estructura y arquitectura de diseño del proyecto...")
     project_dir = create_project(
         name=project_name,
-        template=template,
+        template=effective_template,
         title=title,
         force=force,
-        design=design,
+        design=effective_design,
         style=resolved_style,
-        layout=layout,
-        motion=motion,
+        layout=resolved_layout,
+        motion=resolved_motion,
         caption_style=resolved_caption_style,
-        overrides=overrides,
+        overrides=merged_overrides or None,
+        profile=profile,
+        channel=effective_channel or None,
+        output_dir=workspace_root,
+        dated=dated,
+        record_history=False,
     )
 
     # 2. Recorte Algorítmico de Silencios con FFmpeg (u omisión con --no-cut-silence)
@@ -195,12 +289,12 @@ def produce_pipeline(
     transcribe(
         audio_path=str(cut_video_path),
         output_path=str(transcript_path),
-        model_size=whisper_model,
-        language=language,
+        model_size=effective_whisper_model,
+        language=effective_language,
         device="cpu",
-        initial_prompt=whisper_prompt,
-        hotwords=whisper_hotwords,
-        replacements=replacements,
+        initial_prompt=effective_prompt,
+        hotwords=effective_hotwords,
+        replacements=merged_replacements or None,
     )
 
     # Pre-resolución de storyboard para heredar ritmo y palabras de énfasis en subtítulos
@@ -218,8 +312,8 @@ def produce_pipeline(
     transcript_data = load_transcript(transcript_path)
     words = extract_word_list(transcript_data)
     effective_wpg = (
-        words_per_group
-        if words_per_group is not None
+        effective_wpg_arg
+        if effective_wpg_arg is not None
         else (preloaded_sb.words_per_group if preloaded_sb and preloaded_sb.words_per_group else 6)
     )
     emphasis_words = preloaded_sb.emphasis_words if preloaded_sb else None
@@ -239,8 +333,9 @@ def produce_pipeline(
             caption_style=resolved_caption_style,
         )
     else:
+        clear_captions_in_html(project_dir / "index.html")
         print(
-            "[Captions] No se detectó habla en la pista de audio; omitiendo subtítulos cinéticos."
+            "[Captions] No se detectó habla en la pista de audio; subtítulos placeholder limpiados."
         )
 
     # 4b. Compilación de Storyboard Multi-Escena + Mezcla de Voz y SFX (si aplica)
@@ -248,7 +343,7 @@ def produce_pipeline(
         generated_sb = build_storyboard_from_transcript(
             transcript_data,
             title=title or project_name,
-            aspect_ratio="16:9" if "16_9" in template else "9:16",
+            aspect_ratio="16:9" if "16_9" in effective_template else "9:16",
         )
         effective_sb_path = project_dir / "storyboard.json"
         effective_sb_path.write_text(
@@ -257,14 +352,19 @@ def produce_pipeline(
     if effective_sb_path is not None:
         print(f"\n--> [Storyboard] Sincronizando escenas y audio ({effective_sb_path.name})...")
         sb = preloaded_sb if preloaded_sb is not None else load_storyboard(effective_sb_path)
+        if profile_obj:
+            if not sb.brand and profile_obj.brand:
+                sb.brand = profile_obj.brand
+            if not sb.category and profile_obj.category:
+                sb.category = profile_obj.category
         sb = align_storyboard_to_transcript(
             sb, transcript_data, total_duration=cut_dur if cut_dur > 0 else None
         )
         inject_storyboard_into_html(project_dir / "index.html", sb)
         events = [] if skip_sfx else extract_sfx_events(sb, include_sub_events=True)
-        effective_music = music_path or sb.music
-        use_ambient = ambient_bed or sb.ambient_bed
-        use_voice_polish = voice_polish or sb.voice_polish
+        effective_music = effective_music_arg or sb.music
+        use_ambient = effective_ambient_bed or sb.ambient_bed
+        use_voice_polish = effective_voice_polish or sb.voice_polish
         if not events and not effective_music and not use_ambient and not use_voice_polish:
             print(
                 f"[AudioMix] Sin SFX ni cama adicional; vinculando pista limpia -> {cut_video_path.name}"
@@ -277,15 +377,15 @@ def produce_pipeline(
                 total_duration=sb.duration,
                 voice_path=cut_video_path,
                 music_path=effective_music,
-                music_volume=music_volume,
+                music_volume=effective_music_volume,
                 ambient_bed=use_ambient,
                 voice_polish=use_voice_polish,
             )
             attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, sb.duration)
     else:
-        effective_music = music_path
-        use_ambient = ambient_bed
-        if not effective_music and not use_ambient and not voice_polish:
+        effective_music = effective_music_arg
+        use_ambient = effective_ambient_bed
+        if not effective_music and not use_ambient and not effective_voice_polish:
             attach_audio_track_to_html(project_dir / "index.html", cut_video_path.name, cut_dur)
         else:
             mixed_wav = mix_storyboard_audio(
@@ -294,9 +394,9 @@ def produce_pipeline(
                 total_duration=cut_dur,
                 voice_path=cut_video_path,
                 music_path=effective_music,
-                music_volume=music_volume,
+                music_volume=effective_music_volume,
                 ambient_bed=use_ambient,
-                voice_polish=voice_polish,
+                voice_polish=effective_voice_polish,
             )
             attach_audio_track_to_html(project_dir / "index.html", mixed_wav.name, cut_dur)
 
@@ -325,6 +425,23 @@ def produce_pipeline(
         )
         print(f"\n[Éxito] Video final exportado a: {final_output.resolve()}")
 
+    record_history_event(
+        workspace_root,
+        action="produce",
+        project_slug=project_dir.name,
+        project_dir=project_dir,
+        channel=effective_channel,
+        profile=profile_obj.slug if profile_obj else None,
+        title=title,
+        template=effective_template,
+        design=effective_design,
+        style=resolved_style,
+        layout=resolved_layout,
+        motion=resolved_motion,
+        duration=cut_dur if cut_dur > 0 else None,
+        output_video=final_output if auto_render else None,
+    )
+
     elapsed = time.time() - start_time
     print("\n" + "=" * 65)
     print(f" PIPELINE COMPLETADO EXITOSAMENTE ({elapsed:.1f} segundos)")
@@ -332,11 +449,15 @@ def produce_pipeline(
     print("Directorios y artefactos listos:")
     print(f"  - Escena Web   : {project_dir / 'index.html'}")
     print(
-        f"  - Diseño Activo: {design} (tema: {resolved_style}, subtítulos: {resolved_caption_style})"
+        f"  - Diseño Activo: {effective_design} (tema: {resolved_style}, subtítulos: {resolved_caption_style})"
     )
     print(f"  - Video Cortado: {cut_video_path}")
     print(f"  - Transcripción: {transcript_path}")
-    print(f"  - Subtítulos   : {project_dir / 'subtitles.srt'}")
+    srt_path = project_dir / "subtitles.srt"
+    if srt_path.exists():
+        print(f"  - Subtítulos   : {srt_path}")
+    else:
+        print("  - Subtítulos   : (sin habla detectada)")
     if auto_render:
         print(f"  - Archivo Final: {final_output}")
     else:
@@ -367,16 +488,33 @@ def main():
     p_produce.add_argument(
         "-t",
         "--template",
-        default="talking_head_16_9",
+        default=None,
         choices=list(AVAILABLE_TEMPLATES.keys()),
-        help="Plantilla base para el proyecto",
+        help="Plantilla base para el proyecto (defecto: del perfil o talking_head_16_9)",
     )
-    add_design_arguments(p_produce, default_design=DEFAULT_DESIGN)
+    p_produce.add_argument(
+        "--profile",
+        help="Perfil de canal/cliente en profiles/<slug>.json o ruta directa",
+    )
+    p_produce.add_argument(
+        "--channel",
+        help="Subcarpeta de canal o cliente (ej. tech, editorial, clientes/acme)",
+    )
+    p_produce.add_argument(
+        "--output-dir",
+        help="Directorio raíz del workspace de proyectos (o variable VIDEO_PIPELINE_WORKSPACE)",
+    )
+    p_produce.add_argument(
+        "--dated",
+        action="store_true",
+        help="Prefijar fecha YYYY-MM-DD_ al nombre del directorio del proyecto",
+    )
+    add_design_arguments(p_produce, default_design=None)
     p_produce.add_argument("--title", help="Título principal para inyectar en la composición")
     p_produce.add_argument(
-        "--model", default="base", help="Modelo de Whisper (tiny, base, small, medium)"
+        "--model", default=None, help="Modelo de Whisper (tiny, base, small, medium)"
     )
-    p_produce.add_argument("--language", default="es", help="Idioma para transcripción")
+    p_produce.add_argument("--language", default=None, help="Idioma para transcripción")
     p_produce.add_argument(
         "--noise-db", type=float, default=-30.0, help="Umbral de ruido para corte (dB)"
     )
@@ -414,8 +552,8 @@ def main():
     p_produce.add_argument(
         "--music-volume",
         type=float,
-        default=0.14,
-        help="Volumen base de la pista musical/ambiental (defecto: 0.14)",
+        default=None,
+        help="Volumen base de la pista musical/ambiental (defecto: del perfil o 0.14)",
     )
     p_produce.add_argument(
         "--ambient-bed",
@@ -557,6 +695,24 @@ def main():
     )
     register_image_subparsers(p_image, dest="image_action")
 
+    # Subcomando: profiles
+    p_profiles = subparsers.add_parser(
+        "profiles",
+        help="Gestionar perfiles de canal y cliente (profiles/*.json)",
+    )
+    register_profiles_subparsers(p_profiles, dest="profile_action")
+
+    # Subcomando: history
+    p_hist = subparsers.add_parser(
+        "history",
+        help="Consultar el historial de videos producidos y renderizados (catalog.jsonl)",
+    )
+    p_hist.add_argument("--channel", help="Filtrar historial por canal (ej. tech)")
+    p_hist.add_argument("--profile", help="Filtrar historial por slug de perfil")
+    p_hist.add_argument("--limit", type=int, default=20, help="Máximo de registros a mostrar")
+    p_hist.add_argument("--output-dir", help="Directorio raíz del workspace a consultar")
+    p_hist.add_argument("--json", action="store_true", help="Exportar historial en JSON")
+
     args = parser.parse_args()
 
     if not args.subcommand:
@@ -595,6 +751,10 @@ def main():
             skip_cut_silence=args.no_cut_silence,
             skip_sfx=args.no_sfx,
             words_per_group=args.words_per_group,
+            profile=args.profile,
+            channel=args.channel,
+            output_dir=args.output_dir,
+            dated=args.dated,
         )
     elif args.subcommand == "cut":
         dur = get_media_duration(args.input)
@@ -646,6 +806,10 @@ def main():
             motion=args.motion,
             caption_style=args.caption_style,
             overrides=parsed_overrides,
+            profile=args.profile,
+            channel=args.channel,
+            output_dir=args.output_dir,
+            dated=args.dated,
         )
     elif args.subcommand == "style":
         if args.list or not args.project:
@@ -672,6 +836,30 @@ def main():
         p_dir = resolve_project_dir(args.project)
         out = args.output or str(p_dir / f"video_{p_dir.name}.mp4")
         run_command([resolve_pnpm(), "exec", "hyperframes", "render", str(p_dir), "-o", out])
+        pkg_meta: dict = {}
+        pkg_file = p_dir / "package.json"
+        if pkg_file.exists():
+            try:
+                pkg_meta = json.loads(pkg_file.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                pkg_meta = {}
+        v_proj = pkg_meta.get("videoProject", {})
+        v_design = pkg_meta.get("videoDesign", {})
+        record_history_event(
+            infer_workspace_root_from_project(p_dir, v_proj.get("channel")),
+            action="render",
+            project_slug=p_dir.name,
+            project_dir=p_dir,
+            channel=v_proj.get("channel"),
+            profile=v_proj.get("profile"),
+            title=v_proj.get("title"),
+            template=v_proj.get("template"),
+            design=v_design.get("design"),
+            style=v_design.get("style"),
+            layout=v_design.get("layout"),
+            motion=v_design.get("motion"),
+            output_video=out,
+        )
     elif args.subcommand == "storyboard":
         p_dir = resolve_project_dir(args.project)
         spec_path = Path(args.spec) if args.spec else p_dir / "storyboard.json"
@@ -698,6 +886,17 @@ def main():
         dispatch_assets_action(args, action_attr="asset_action")
     elif args.subcommand == "image":
         dispatch_image_action(args, parser=p_image, action_attr="image_action")
+    elif args.subcommand == "profiles":
+        dispatch_profiles_action(args, action_attr="profile_action")
+    elif args.subcommand == "history":
+        ws_root = resolve_workspace_root(output_dir=args.output_dir)
+        records = load_history(
+            ws_root,
+            channel=args.channel,
+            profile=args.profile,
+            limit=args.limit,
+        )
+        print_history_table(records, as_json=args.json)
 
 
 if __name__ == "__main__":

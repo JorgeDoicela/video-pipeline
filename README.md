@@ -128,6 +128,8 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | **Gestor de Assets CC0** | `uv run python core/pipeline.py assets <list\|icon\|map\|audio\|model> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON), normaliza audio CC0 o importa/valida modelos 3D glTF/GLB en `assets/`. |
 | **Procesador de Imágenes** | `uv run python core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
 | **Catálogo de Diseños** | `uv run python core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
+| **Perfiles de Canal** | `uv run python core/pipeline.py profiles <list\|show\|init>` | Gestiona perfiles reutilizables por canal o cliente en `profiles/*.json` (`--profile`, `--channel`, `--dated`, `--output-dir`). |
+| **Historial de Videos** | `uv run python core/pipeline.py history [--channel <canal>]` | Consulta el registro cronológico `catalog.jsonl` de proyectos creados, producidos y renderizados. |
 | **Cambiar Diseño/Opciones** | `uv run python core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
 | **Inspeccionar Diseño** | `uv run python core/pipeline.py style <slug> --inspect` | Muestra la configuración efectiva de los 3 niveles aplicada sobre un proyecto. |
 | **Diagnostico** | `pnpm run doctor` | Verifica dependencias del sistema, GPU, FFmpeg y Chrome cache. |
@@ -171,7 +173,9 @@ video-pipeline/
 │   ├── transcribe.py      # Transcripción local con timestamps y reemplazos multi-palabra (faster-whisper)
 │   ├── generate_sfx.py    # Síntesis matemática de 15 SFX WAV y 3 pistas musicales loopables
 │   ├── fetch_assets.py    # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth y audio CC0)
-│   └── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
+│   ├── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
+│   └── workspace.py       # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial (catalog.jsonl)
+├── profiles/               # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)
 ├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)
 │   ├── test_audio_mix.py  # Pruebas de síntesis SFX/música y construcción de filter_complex
 │   ├── test_fetch_assets.py # Pruebas de Iconify SVG, Natural Earth GeoJSON y audio CC0

@@ -1,0 +1,30 @@
+{
+  "slug": "client_clean",
+  "name": "Cliente / Presentación Corporativa (16:9)",
+  "description": "Perfil luminoso minimalista para trabajos freelance, demos de producto y presentador.",
+  "channel": "clientes",
+  "template": "talking_head_16_9",
+  "design": "clean",
+  "style": "clean_light",
+  "layout": "standard",
+  "motion": "smooth",
+  "caption_style": "minimal_clean",
+  "overrides": {
+    "caption_text": "#f8fafc",
+    "caption_active": "#38bdf8",
+    "caption_shadow": "0 4px 20px rgba(0, 0, 0, 0.92)"
+  },
+  "brand": "",
+  "category": "CORPORATIVO",
+  "music": null,
+  "music_volume": 0.12,
+  "ambient_bed": false,
+  "voice_polish": true,
+  "words_per_group": 6,
+  "whisper_model": "base",
+  "language": "es",
+  "whisper_prompt": null,
+  "whisper_hotwords": null,
+  "replacements": {},
+  "output_root": null
+}

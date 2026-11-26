@@ -363,6 +363,44 @@ def inject_into_html(
     print(f"[Captions] Subtítulos inyectados exitosamente en: {html_path.resolve()}")
 
 
+def clear_captions_in_html(html_path: Path) -> None:
+    """
+    Limpia subtítulos placeholder y tweens GSAP asociados cuando no se detecta habla,
+    evitando texto residual de plantilla o referencias a nodos inexistentes.
+    """
+    if not html_path.exists():
+        return
+
+    content = html_path.read_text(encoding="utf-8")
+    empty_html = (
+        "<!-- @captions:start -->\n"
+        '<div id="captions-container" class="caption-bar"></div>\n'
+        "<!-- @captions:end -->"
+    )
+    empty_gsap = "// @captions-gsap:start\n// Sin habla detectada en la pista de audio\n// @captions-gsap:end"
+
+    if "<!-- @captions:start -->" in content and "<!-- @captions:end -->" in content:
+        content = re.sub(
+            r"<!-- @captions:start -->.*?<!-- @captions:end -->",
+            lambda _: empty_html,
+            content,
+            flags=re.DOTALL,
+            count=1,
+        )
+    if "// @captions-gsap:start" in content and "// @captions-gsap:end" in content:
+        content = re.sub(
+            r"// @captions-gsap:start.*?// @captions-gsap:end",
+            lambda _: empty_gsap,
+            content,
+            flags=re.DOTALL,
+            count=1,
+        )
+    if 'data-has-captions="true"' in content:
+        content = content.replace('data-has-captions="true"', 'data-has-captions="false"', 1)
+
+    html_path.write_text(content, encoding="utf-8")
+
+
 def register_captions_arguments(parser: argparse.ArgumentParser) -> None:
     """Registra los argumentos CLI de sincronización de subtítulos en el parser indicado."""
     parser.add_argument(

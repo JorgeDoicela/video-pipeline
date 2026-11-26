@@ -266,9 +266,65 @@ Cuando una frase del guion requiere una metáfora visual única (por ejemplo, un
 
 ---
 
-## 4. Diagnostico y Resolucion de Incidencias
+## 4. Operación Multi-Canal, Clientes e Historial (Perfiles y Workspace Externo)
 
-### 2.1. Verificacion de Salud del Entorno
+Para operar múltiples canales temáticos o trabajos freelance sin mezclar proyectos ni inflar Git con archivos MP4/WAV:
+
+### 4.1. Perfiles Reutilizables por Canal (`profiles/*.json`)
+Cada canal o cliente encapsula su plantilla, diseño, tema, motion, overrides (`--set`), música, limpieza vocal y glosario técnico en un archivo JSON dentro de `profiles/`:
+
+```bash
+# Listar perfiles disponibles (incluye tech_short, editorial_essay y client_clean)
+uv run python core/pipeline.py profiles list
+
+# Crear un perfil nuevo para un canal o cliente
+uv run python core/pipeline.py profiles init cliente_acme \
+  --name "Cliente Acme" \
+  --channel clientes/acme \
+  -t talking_head_16_9 \
+  -d clean -s clean_light --motion smooth \
+  --set accent_primary=#0f766e \
+  --voice-polish
+
+# Producir un video usando el perfil + prefijo de fecha YYYY-MM-DD_
+uv run python core/pipeline.py produce \
+  -i grabacion.wav \
+  -p lanzamiento-v2 \
+  --profile cliente_acme \
+  --dated \
+  --auto-render
+```
+
+### 4.2. Separar el Motor de las Producciones (`VIDEO_PIPELINE_WORKSPACE` / `--output-dir`)
+Para mantener `video-pipeline` como motor limpio y versionar tus guiones, `storyboard.json`, `index.html` y `package.json` en un repositorio aparte (por ejemplo `../video-studio`), define la variable de entorno o usa `--output-dir`:
+
+```powershell
+# PowerShell (Windows)
+$env:VIDEO_PIPELINE_WORKSPACE = "..\video-studio"
+```
+```bash
+# Bash (Linux / macOS)
+export VIDEO_PIPELINE_WORKSPACE="../video-studio"
+```
+
+Todos los subcomandos (`produce`, `scaffold`, `style`, `storyboard`, `check`, `render`, `history`) resuelven automáticamente rutas como `clientes/acme/2026-11-26_lanzamiento-v2` dentro de ese workspace.
+
+### 4.3. Historial Automático de Producciones (`catalog.jsonl`)
+Cada `scaffold`, `produce` y `render` registra una entrada cronológica append-only en `<workspace>/catalog.jsonl`:
+
+```bash
+# Consultar los últimos videos producidos
+uv run python core/pipeline.py history --limit 20
+
+# Filtrar por canal o perfil
+uv run python core/pipeline.py history --channel clientes/acme --json
+```
+
+---
+
+## 5. Diagnóstico y Resolución de Incidencias
+
+### 5.1. Verificación de Salud del Entorno
 Si el renderizador experimenta problemas o no detecta la GPU:
 ```bash
 cd video-pipeline
@@ -276,21 +332,21 @@ pnpm exec hyperframes doctor
 ```
 El reporte debe marcar en verde `FFmpeg`, `FFprobe`, `Node.js` y `Chrome (cache)`.
 
-### 3.2. Error de Desajuste de Modulo en Python
-Si se produce un error de importacion al invocar `transcribe.py`:
+### 5.2. Error de Desajuste de Módulo en Python
+Si se produce un error de importación al invocar `transcribe.py`:
 ```bash
 uv pip install --python .venv/bin/python -e ".[dev]"
 ```
 
-### 2.3. Espacio Insuficiente en `/tmp`
-HyperFrames utiliza `/tmp` para cachear fotogramas intermedios. Si un video largo (> 10 minutos) llena la particion:
+### 5.3. Espacio Insuficiente en `/tmp`
+HyperFrames utiliza `/tmp` para cachear fotogramas intermedios. Si un video largo (> 10 minutos) llena la partición:
 ```bash
 pnpm exec hyperframes clean
 ```
 
 ---
 
-## 4. Enlaces Relacionados
+## 6. Enlaces Relacionados
 
-* Volver al indice general de la documentacion en [00-indice-general.md](../00-indice-general.md).
-* Consultar la guia rapida en el [README.md de la raiz](../../README.md).
+* Volver al índice general de la documentación en [00-indice-general.md](../00-indice-general.md).
+* Consultar la guía rápida en el [README.md de la raíz](../../README.md).

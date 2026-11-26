@@ -22,6 +22,8 @@ def test_pipeline_cli_help():
     assert "captions" in res.stdout
     assert "scaffold" in res.stdout
     assert "style" in res.stdout
+    assert "profiles" in res.stdout
+    assert "history" in res.stdout
 
 
 def test_pipeline_subcommand_produce_help():
@@ -34,10 +36,26 @@ def test_pipeline_subcommand_produce_help():
     assert "--input" in res.stdout
     assert "--project" in res.stdout
     assert "--template" in res.stdout
+    assert "--profile" in res.stdout
+    assert "--channel" in res.stdout
+    assert "--output-dir" in res.stdout
+    assert "--dated" in res.stdout
     assert "--style" in res.stdout
     assert "--caption-style" in res.stdout
     assert "--voice-polish" in res.stdout
     assert "--auto-render" in res.stdout
+
+
+def test_pipeline_subcommand_profiles_list():
+    res = subprocess.run(
+        [sys.executable, "core/pipeline.py", "profiles", "list"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "tech_short" in res.stdout
+    assert "editorial_essay" in res.stdout
+    assert "client_clean" in res.stdout
 
 
 def test_pipeline_subcommands_delegate_full_arguments():
