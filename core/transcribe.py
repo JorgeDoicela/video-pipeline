@@ -17,7 +17,6 @@ if __package__ is None or __package__ == "":
 from core._runtime import ensure_local_venv, ensure_repo_root_on_path  # noqa: E402
 
 ensure_repo_root_on_path()
-ensure_local_venv()
 
 
 def parse_replacements(raw_pairs: list[str] | None) -> dict[str, str]:
@@ -271,6 +270,7 @@ def register_transcribe_arguments(parser: argparse.ArgumentParser) -> None:
 
 
 def main() -> None:
+    ensure_local_venv()
     parser = argparse.ArgumentParser(description="Transcripción local con word-level timestamps")
     register_transcribe_arguments(parser)
     args = parser.parse_args()

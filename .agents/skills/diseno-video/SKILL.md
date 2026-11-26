@@ -35,7 +35,7 @@ Toda composición debe ensamblarse utilizando los bloques canónicos del catálo
 ### Nivel 2: Variantes Canónicas
 * **Paletas de Color (Accesibles WCAG AA):**
   * `dark_violet`: Oscuro refinado con acento primario violeta (`#a78bfa`) y secundario esmeralda (`#34d399`).
-  * `paper_warm`: Pergamino marfil cálido (`#f5f1ea`) con tinta café oscura (`#1f1b16`), acento primario latón dorado (`#875c22`) y acento secundario carmesí terracota (`#8c2d19`).
+  * `paper_warm`: Pergamino marfil cálido (`#f5f1ea`) con tinta café carbón (`#2b231d`), acento primario latón dorado (`#875c22`) y acento secundario carmesí terracota (`#8c2d19`).
   * `clean_light`: Base blanca/gris perla (`#f8fafc`) con texto negro azulado y acento azul (`#0369a1`).
 * **Layouts Estructurales:**
   * `standard`: Centrado armónico para explicación técnica directa.

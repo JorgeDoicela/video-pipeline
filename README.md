@@ -81,7 +81,7 @@ pnpm run test:py
 
 ### Paso 6: Ejecutar tu Primer Video de Prueba (End-to-End)
 ```bash
-python3 core/pipeline.py produce \
+uv run python core/pipeline.py produce \
   -i templates/talking_head_16_9/cut.mp4 \
   -p mi-primer-video \
   -t talking_head_16_9 \
@@ -123,19 +123,19 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 | Tarea | Comando | Descripcion Tecnica |
 | :--- | :--- | :--- |
-| **Pipeline Completo** | `python3 core/pipeline.py produce -i <raw> -p <slug> -t <tpl> -d <diseño> -s <estilo> --auto-render` | Ejecuta corte (audio o video), transcripción, diseño macro, subtitulado, storyboard (`--storyboard` o `--auto-storyboard`), mezcla SFX, auditoría y renderizado. |
-| **Compilar Storyboard** | `python3 core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
-| **Gestor de Assets CC0** | `python3 core/pipeline.py assets <list\|icon\|map\|audio\|model> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON), normaliza audio CC0 o importa/valida modelos 3D glTF/GLB en `assets/`. |
-| **Procesador de Imágenes** | `python3 core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
-| **Catálogo de Diseños** | `python3 core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
-| **Cambiar Diseño/Opciones** | `python3 core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
-| **Inspeccionar Diseño** | `python3 core/pipeline.py style <slug> --inspect` | Muestra la configuración efectiva de los 3 niveles aplicada sobre un proyecto. |
+| **Pipeline Completo** | `uv run python core/pipeline.py produce -i <raw> -p <slug> -t <tpl> -d <diseño> -s <estilo> --auto-render` | Ejecuta corte (audio o video), transcripción, diseño macro, subtitulado, storyboard (`--storyboard` o `--auto-storyboard`), mezcla SFX, auditoría y renderizado. |
+| **Compilar Storyboard** | `uv run python core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
+| **Gestor de Assets CC0** | `uv run python core/pipeline.py assets <list\|icon\|map\|audio\|model> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON), normaliza audio CC0 o importa/valida modelos 3D glTF/GLB en `assets/`. |
+| **Procesador de Imágenes** | `uv run python core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
+| **Catálogo de Diseños** | `uv run python core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
+| **Cambiar Diseño/Opciones** | `uv run python core/pipeline.py style <slug> -d <diseño> --layout <layout> --set <k=v>` | Conmuta entre Diseños Macro, variantes internas o ajustes puntuales sin perder datos. |
+| **Inspeccionar Diseño** | `uv run python core/pipeline.py style <slug> --inspect` | Muestra la configuración efectiva de los 3 niveles aplicada sobre un proyecto. |
 | **Diagnostico** | `pnpm run doctor` | Verifica dependencias del sistema, GPU, FFmpeg y Chrome cache. |
-| **Nuevo Proyecto** | `python3 core/create_project.py <slug> -t <plantilla> -d <diseño> -s <estilo>` | Inicializa un nuevo proyecto con la plantilla, Diseño Macro y tema visual seleccionados. |
-| **Subtítulos Cinéticos**| `python3 core/sync_captions.py -i <json> --inject <html_path> --caption-style <estilo>` | Convierte timestamps de Whisper a HTML/GSAP con el estilo indicado y exporta SRT/VTT. |
+| **Nuevo Proyecto** | `uv run python core/create_project.py <slug> -t <plantilla> -d <diseño> -s <estilo>` | Inicializa un nuevo proyecto con la plantilla, Diseño Macro y tema visual seleccionados. |
+| **Subtítulos Cinéticos**| `uv run python core/sync_captions.py -i <json> --inject <html_path> --caption-style <estilo>` | Convierte timestamps de Whisper a HTML/GSAP con el estilo indicado y exporta SRT/VTT. |
 | **Validacion** | `pnpm exec hyperframes check projects/<slug>` | Audita contraste WCAG AA, duracion, tiempos deterministas y layout. |
-| **Transcripcion** | `.venv/bin/python core/transcribe.py -i <in> -o <out.json>` | Genera marcas de tiempo palabra por palabra con `faster-whisper`. |
-| **Corte de Silencios** | `core/cut_silence.py -i <in> -o <out.mp4>` | Elimina pausas muertas mayores a 0.45s mediante filtros de FFmpeg. |
+| **Transcripcion** | `uv run python core/transcribe.py -i <in> -o <out.json>` | Genera marcas de tiempo palabra por palabra con `faster-whisper`. |
+| **Corte de Silencios** | `uv run python core/cut_silence.py -i <in> -o <out.mp4>` | Elimina pausas muertas mayores a 0.45s mediante filtros de FFmpeg. |
 | **Previsualizacion** | `pnpm exec hyperframes preview projects/<slug>` | Inicia el estudio visual interactivo en `localhost:3002`. |
 | **Renderizado MP4** | `pnpm exec hyperframes render projects/<slug> -o <out.mp4>` | Compila la escena web a video MP4 utilizando aceleracion GPU. |
 | **Suite de Tests** | `pytest tests` | Ejecuta las pruebas automatizadas de algoritmos y scaffolding. |
@@ -160,7 +160,7 @@ video-pipeline/
 │   ├── __init__.py        # Módulo Python del núcleo
 │   ├── _runtime.py        # Inicialización de rutas y entorno virtual local
 │   ├── pipeline.py        # Orquestador maestro de producción end-to-end (--no-cut-silence, --no-sfx, --words-per-group)
-│   ├── scenes.py          # Motor multi-escena (25 primitivas SVG/HTML/Canvas + image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
+│   ├── scenes.py          # Motor multi-escena (29 primitivas SVG/HTML/Canvas/3D/Video + image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
 │   ├── audio_mix.py       # Mezclador determinista de voz, música/cama con ducking y 15 SFX (adelay + sidechaincompress + alimiter)
 │   ├── styles.py          # Fachada CLI y API del motor de diseño en 3 niveles
 │   ├── _styles_catalog.py # Catálogo declarativo de diseños, temas, layouts y tokens

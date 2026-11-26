@@ -24,7 +24,6 @@ from core._runtime import (  # noqa: E402
 )
 
 ensure_repo_root_on_path()
-ensure_local_venv()
 
 from core.audio_mix import mix_storyboard_audio  # noqa: E402
 from core.create_project import (  # noqa: E402
@@ -172,13 +171,14 @@ def produce_pipeline(
 
     # 2. Recorte Algorítmico de Silencios con FFmpeg (u omisión con --no-cut-silence)
     is_audio_only = input_path.suffix.lower() in AUDIO_EXTENSIONS
-    cut_video_path = project_dir / ("cut.wav" if is_audio_only else "cut.mp4")
     if skip_cut_silence:
+        cut_video_path = project_dir / f"cut{input_path.suffix.lower()}"
         print(
             "\n--> [Paso 2/5] Preservando pista original sin recorte de silencios (--no-cut-silence)..."
         )
         shutil.copy2(input_path, cut_video_path)
     else:
+        cut_video_path = project_dir / ("cut.wav" if is_audio_only else "cut.mp4")
         print("\n--> [Paso 2/5] Analizando pausas y recortando silencios...")
         total_dur = get_media_duration(str(input_path))
         silences = detect_silence(str(input_path), noise_db=noise_db, min_duration=min_silence)
@@ -309,7 +309,7 @@ def produce_pipeline(
         print("\nAdvertencia: El linter de HyperFrames reportó observaciones en el proyecto.")
 
     # 6. Renderizado de Producción (Opcional)
-    final_output = project_dir / f"video_{project_name}.mp4"
+    final_output = project_dir / f"video_{project_dir.name}.mp4"
     if auto_render:
         print("\n--> Compilando MP4 final con aceleración GPU...")
         run_command(
@@ -343,13 +343,16 @@ def produce_pipeline(
         print("\nComando para previsualizar:")
         print(f"  pnpm exec hyperframes preview {project_dir}")
         print("Comando para cambiar a otro Diseño Macro o ajustar opciones:")
-        print(f"  python3 core/pipeline.py style {project_dir.name} -d editorial -s paper_warm")
+        print(
+            f"  uv run python core/pipeline.py style {project_dir.name} -d editorial -s paper_warm"
+        )
         print("Comando para renderizar MP4:")
         print(f"  pnpm exec hyperframes render {project_dir} -o {final_output}")
     print("=" * 65 + "\n")
 
 
 def main():
+    ensure_local_venv()
     parser = argparse.ArgumentParser(
         description="Orquestador Maestro del Pipeline de Video Programático con IA",
     )

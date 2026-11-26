@@ -46,7 +46,7 @@ Además de la vinculación directa como `<audio>` por evento, [`core/audio_mix.p
 
 Para regenerar o ajustar los efectos de sonido:
 ```bash
-python3 core/generate_sfx.py
+uv run python core/generate_sfx.py
 ```
 
 ---

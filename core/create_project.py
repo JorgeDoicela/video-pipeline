@@ -185,7 +185,7 @@ def create_project(
     print("\nComandos operativos:")
     print(f"  1. Vista previa interactiva : pnpm exec hyperframes preview projects/{project_slug}")
     print(
-        f"  2. Cambiar diseño o estilo  : python3 core/pipeline.py style {project_slug} -d editorial"
+        f"  2. Cambiar diseño o estilo  : uv run python core/pipeline.py style {project_slug} -d editorial"
     )
     print(f"  3. Validación de estándares : pnpm exec hyperframes check projects/{project_slug}")
     print(

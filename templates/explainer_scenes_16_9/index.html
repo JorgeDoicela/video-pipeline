@@ -570,7 +570,7 @@
       data-caption-style="minimal_clean"
       data-motion="snappy"
       data-start="0"
-      data-duration="12.00"
+      data-duration="14.00"
       data-width="1920"
       data-height="1080"
      data-atmosphere="sunburst" data-caption-pos="bottom" data-film-grain="false">
@@ -605,9 +605,9 @@
       const tl = gsap.timeline({ paused: true });
 
       // @scenes-gsap:start
-tl.fromTo("#progress-bar", { scaleX: 0 }, { scaleX: 1, duration: 12.000, ease: "none" }, 0);
-if (document.getElementById("atmosphere-rays")) { tl.to("#atmosphere-rays", { rotation: 36, duration: 12.000, ease: "none" }, 0); }
-tl.fromTo("#scenes-stage", { scale: 1.0 }, { scale: 1.028, duration: 6.000, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 0);
+tl.fromTo("#progress-bar", { scaleX: 0 }, { scaleX: 1, duration: 14.000, ease: "none" }, 0);
+if (document.getElementById("atmosphere-rays")) { tl.to("#atmosphere-rays", { rotation: 36, duration: 14.000, ease: "none" }, 0); }
+tl.fromTo("#scenes-stage", { scale: 1.0 }, { scale: 1.028, duration: 7.000, yoyo: true, repeat: 1, ease: "sine.inOut", transformOrigin: "50% 50%" }, 0);
 tl.set("#scene_timeline", { display: "flex" }, 0.000);
 tl.fromTo("#scene_timeline", { opacity: 0 }, { opacity: 1, duration: 0.18, ease: "power2.out" }, 0.000);
 tl.fromTo("#scene_timeline .ng-tl-item", { opacity: 0, x: -28 }, { opacity: 1, x: 0, stagger: 0.14, duration: 0.36, ease: "power2.out" }, 0.120);

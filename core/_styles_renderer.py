@@ -32,6 +32,8 @@ from core._styles_catalog import (
     get_theme,
 )
 
+_FORBIDDEN_CSS_VALUE_RE = re.compile(r"[;{}\r\n<>]|/\*|\*/")
+
 
 def parse_set_overrides(raw_pairs: list[str] | None) -> dict[str, str]:
     """Valida y convierte pares 'clave=valor' del Nivel 3 en un diccionario tipado."""
@@ -50,6 +52,12 @@ def parse_set_overrides(raw_pairs: list[str] | None) -> dict[str, str]:
             valid = ", ".join(sorted(OVERRIDABLE_KEYS))
             raise ValueError(
                 f"La propiedad '{key}' no es configurable vía --set. Propiedades válidas: {valid}"
+            )
+        if not val:
+            raise ValueError(f"El valor para '--set {key}=' no puede estar vacío.")
+        if _FORBIDDEN_CSS_VALUE_RE.search(val):
+            raise ValueError(
+                f"Valor CSS inválido para '--set {key}={val}': no se permiten ';', '{{', '}}', comentarios ni saltos de línea."
             )
         parsed[key] = val
     return parsed
@@ -72,6 +80,32 @@ def build_root_css_block(
 
     card_shadow = "none" if design.shadow_mode == "none" else pick("shadow", theme.shadow)
 
+    default_accent_primary_soft = (
+        "color-mix(in srgb, var(--accent-primary) 15%, transparent)"
+        if "accent_primary" in ov
+        else theme.accent_primary_soft
+    )
+    default_accent_primary_glow = (
+        "color-mix(in srgb, var(--accent-primary) 34%, transparent)"
+        if "accent_primary" in ov
+        else theme.accent_primary_glow
+    )
+    default_accent_secondary_soft = (
+        "color-mix(in srgb, var(--accent-secondary) 14%, transparent)"
+        if "accent_secondary" in ov
+        else theme.accent_secondary_soft
+    )
+    default_title_gradient = (
+        "linear-gradient(135deg, var(--text-primary) 40%, var(--accent-primary) 100%)"
+        if ("accent_primary" in ov or "text_primary" in ov)
+        else theme.title_gradient
+    )
+    default_caption_glow = (
+        "0 0 16px var(--caption-active)"
+        if ("caption_active" in ov and theme.caption_glow != "none")
+        else theme.caption_glow
+    )
+
     lines = [
         "      /* @theme:start */",
         f"      /* Design: {design.slug} | Theme: {theme.slug} | Layout: {layout.slug} */",
@@ -80,25 +114,28 @@ def build_root_css_block(
         f'        --theme-slug: "{theme.slug}";',
         f'        --layout-slug: "{layout.slug}";',
         f"        --bg: {pick('bg', theme.bg)};",
-        f"        --bg-gradient: {theme.bg_gradient};",
+        f"        --bg-gradient: {pick('bg_gradient', theme.bg_gradient)};",
         f"        --surface: {pick('surface', theme.surface)};",
         f"        --surface-elevated: {pick('surface_elevated', theme.surface_elevated)};",
         f"        --border: {pick('border', theme.border)};",
         f"        --border-strong: {pick('border_strong', theme.border_strong)};",
         f"        --divider: {pick('divider', theme.divider)};",
         f"        --shadow: {card_shadow};",
+        f"        --panel-highlight: {pick('panel_highlight', theme.panel_highlight)};",
+        f"        --panel-sheen: {pick('panel_sheen', theme.panel_sheen)};",
+        f"        --headline-shadow: {pick('headline_shadow', theme.headline_shadow)};",
         f"        --text-primary: {pick('text_primary', theme.text_primary)};",
         f"        --text-secondary: {pick('text_secondary', theme.text_secondary)};",
         f"        --text-muted: {pick('text_muted', theme.text_muted)};",
-        f"        --title-gradient: {theme.title_gradient};",
+        f"        --title-gradient: {pick('title_gradient', default_title_gradient)};",
         f"        --font-display: {pick('font_display', theme.font_display)};",
         f"        --font-sans: {pick('font_sans', theme.font_sans)};",
         f"        --font-mono: {pick('font_mono', theme.font_mono)};",
         f"        --accent-primary: {pick('accent_primary', theme.accent_primary)};",
-        f"        --accent-primary-soft: {theme.accent_primary_soft};",
-        f"        --accent-primary-glow: {theme.accent_primary_glow};",
+        f"        --accent-primary-soft: {pick('accent_primary_soft', default_accent_primary_soft)};",
+        f"        --accent-primary-glow: {pick('accent_primary_glow', default_accent_primary_glow)};",
         f"        --accent-secondary: {pick('accent_secondary', theme.accent_secondary)};",
-        f"        --accent-secondary-soft: {theme.accent_secondary_soft};",
+        f"        --accent-secondary-soft: {pick('accent_secondary_soft', default_accent_secondary_soft)};",
         f"        --accent-tertiary: {pick('accent_tertiary', theme.accent_tertiary)};",
         f"        --accent-warning: {pick('accent_warning', theme.accent_warning)};",
         f"        --accent-danger: {pick('accent_danger', theme.accent_danger)};",
@@ -107,14 +144,14 @@ def build_root_css_block(
         f"        --caption-bg: {pick('caption_bg', theme.caption_bg)};",
         f"        --caption-text: {pick('caption_text', theme.caption_text)};",
         f"        --caption-active: {pick('caption_active', theme.caption_active)};",
-        f"        --caption-shadow: {theme.caption_shadow};",
-        f"        --caption-glow: {theme.caption_glow};",
+        f"        --caption-shadow: {pick('caption_shadow', theme.caption_shadow)};",
+        f"        --caption-glow: {pick('caption_glow', default_caption_glow)};",
         "        /* Tokens estructurales de Diseño Macro y Layout */",
         f"        --radius-lg: {pick('radius_lg', design.radius_lg)};",
         f"        --radius-md: {pick('radius_md', design.radius_md)};",
         f"        --radius-sm: {pick('radius_sm', design.radius_sm)};",
         f"        --border-width: {pick('border_width', design.border_width)};",
-        f"        --panel-backdrop: {design.panel_backdrop};",
+        f"        --panel-backdrop: {pick('panel_backdrop', design.panel_backdrop)};",
         f"        --stage-padding: {pick('stage_padding', layout.stage_padding)};",
         f"        --stage-gap: {pick('stage_gap', layout.stage_gap)};",
         f"        --split-columns: {pick('split_columns', layout.split_columns)};",
@@ -187,6 +224,9 @@ def generate_design_structural_css(
         "      .split-stage {",
         "        grid-template-columns: var(--split-columns);",
         "        gap: var(--stage-gap);",
+        "      }",
+        "      header, #header {",
+        "        text-align: var(--header-align);",
         "      }",
         "      .caption-bar {",
         "        bottom: var(--caption-bottom);",
@@ -311,6 +351,7 @@ def apply_style_to_html(
     def _replace_motion_props(match: re.Match[str], ease_val: str) -> str:
         block = match.group(0)
         block = re.sub(r"(duration:\s*)[0-9.]+", rf"\g<1>{motion.entry_duration}", block)
+        block = re.sub(r"(stagger:\s*)[0-9.]+", rf"\g<1>{motion.stagger}", block)
         block = re.sub(r'(ease:\s*")[a-zA-Z0-9.()]+(")', rf"\g<1>{ease_val}\g<2>", block)
         return block
 
@@ -441,8 +482,15 @@ def apply_style_to_project(
         )
     )
 
+    previous_overrides = saved_state.get("overrides", {})
+    if design_changed and previous_overrides and not reset_overrides:
+        print(
+            f"[Design] Aviso: cambiar diseño a '{resolved_design_slug}' reinició "
+            f"{len(previous_overrides)} override(s) previos (--set).",
+            file=sys.stderr,
+        )
     merged_overrides: dict[str, str] = (
-        {} if (reset_overrides or design_changed) else dict(saved_state.get("overrides", {}))
+        {} if (reset_overrides or design_changed) else dict(previous_overrides)
     )
     if overrides:
         merged_overrides.update(overrides)

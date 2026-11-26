@@ -1,6 +1,6 @@
 {
   "title": "Explainer Multi-Escena 16:9",
-  "duration": 12.0,
+  "duration": 14.0,
   "aspect_ratio": "16:9",
   "atmosphere": "sunburst",
   "scenes": [
@@ -65,7 +65,7 @@
     {
       "id": "scene_quote",
       "start": 9.5,
-      "end": 12.0,
+      "end": 14.0,
       "badge": "04 · Principio",
       "headline": "Diseño sobre estructura",
       "component": "quote_focus",

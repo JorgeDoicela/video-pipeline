@@ -11,7 +11,7 @@ El orquestador unificado permite convertir un archivo crudo en un video final li
 ```bash
 cd video-pipeline
 
-python3 core/pipeline.py produce \
+uv run python core/pipeline.py produce \
   -i /ruta/a/grabacion_cruda.mp4 \
   -p tutorial-kubernetes \
   -t talking_head_16_9 \
@@ -25,7 +25,7 @@ python3 core/pipeline.py produce \
 
 > [!TIP]
 > Puedes elegir cualquiera de los **3 Diseños Macro** (`-d cinematic`, `-d editorial`, `-d clean`), cualquiera de las **3 paletas cromáticas** (`-s`) y cualquiera de las **7 plantillas esenciales** (`-t`), o conmutar el diseño completo de un proyecto ya producido sin perder datos ni repetir la transcripción ejecutando:
-> `python3 core/pipeline.py style tutorial-kubernetes -d editorial --layout asymmetric_focus --caption-style minimal_clean`
+> `uv run python core/pipeline.py style tutorial-kubernetes -d editorial --layout asymmetric_focus --caption-style minimal_clean`
 
 Este comando ejecuta automáticamente:
 1. Scaffolding del proyecto desde la plantilla especificada.
@@ -61,17 +61,17 @@ Utiliza el CLI automatizado para crear la estructura base a partir de cualquiera
 cd video-pipeline
 
 # 1. Video vertical 9:16 para citas, versículos y reflexiones (sin código)
-python3 core/create_project.py salmo-23 -t short_quote_9_16 -d editorial --title "Salmo 23"
+uv run python core/create_project.py salmo-23 -t short_quote_9_16 -d editorial --title "Salmo 23"
 
 # 2. Video vertical 9:16 para tips técnicos y código
-python3 core/create_project.py tip-docker -t short_tech_9_16 -d cinematic --title "Docker en 60s"
+uv run python core/create_project.py tip-docker -t short_tech_9_16 -d cinematic --title "Docker en 60s"
 
 # 3. Presentador vertical 9:16 o horizontal 16:9 con subtítulos cinéticos
-python3 core/create_project.py reel-presentador -t talking_head_9_16 -d cinematic
-python3 core/create_project.py youtube-presentador -t talking_head_16_9 -d clean
+uv run python core/create_project.py reel-presentador -t talking_head_9_16 -d cinematic
+uv run python core/create_project.py youtube-presentador -t talking_head_16_9 -d clean
 
 # 4. Narrativa widescreen 16:9 para historia, ensayos o divulgación
-python3 core/create_project.py historia-roma -t editorial_16_9 -d editorial
+uv run python core/create_project.py historia-roma -t editorial_16_9 -d editorial
 ```
 
 Si cuentas con una grabacion de audio o camara en crudo, copiala al directorio del proyecto:
@@ -101,7 +101,7 @@ Ejecuta el script de transcripcion local utilizando el entorno virtual gestionad
 Ejecuta el filtro algoritmico de FFmpeg para podar pausas muertas:
 
 ```bash
-python3 core/cut_silence.py \
+uv run python core/cut_silence.py \
   -i projects/mi-video/raw.mp4 \
   -o projects/mi-video/cut.mp4 \
   --noise-db -30.0 \

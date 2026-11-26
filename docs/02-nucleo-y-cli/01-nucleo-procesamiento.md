@@ -134,22 +134,22 @@ El módulo [styles.py](../../core/styles.py) implementa una arquitectura componi
 
 ```bash
 # Listar catálogo completo de los 3 niveles (o en JSON con --json)
-python3 core/pipeline.py style --list
+uv run python core/pipeline.py style --list
 
 # Nivel 1: Cambiar todo el proyecto a otro Diseño Macro diferente (ej. editorial o clean)
-python3 core/pipeline.py style mi-proyecto -d editorial
+uv run python core/pipeline.py style mi-proyecto -d editorial
 
 # Nivel 2: Dentro de ese mismo diseño, elegir opciones internas (layout, paleta o motion)
-python3 core/pipeline.py style mi-proyecto --layout asymmetric_focus --motion smooth
+uv run python core/pipeline.py style mi-proyecto --layout asymmetric_focus --motion smooth
 
 # Nivel 3: Ajustar propiedades puntuales solo para ese diseño
-python3 core/pipeline.py style mi-proyecto --set accent_primary=#e11d48 --set stage_gap=56px
+uv run python core/pipeline.py style mi-proyecto --set accent_primary=#e11d48 --set stage_gap=56px
 
 # Inspeccionar el estado efectivo de los 3 niveles en el proyecto
-python3 core/pipeline.py style mi-proyecto --inspect
+uv run python core/pipeline.py style mi-proyecto --inspect
 
 # Limpiar ajustes puntuales (--set) conservando el diseño y sus opciones
-python3 core/pipeline.py style mi-proyecto --reset-overrides
+uv run python core/pipeline.py style mi-proyecto --reset-overrides
 ```
 
 ---
@@ -190,7 +190,7 @@ Ejecuta de forma secuencial:
 6. Opcionalmente, renderizado acelerado por GPU (`hyperframes render`).
 
 ```bash
-python3 core/pipeline.py produce \
+uv run python core/pipeline.py produce \
   -i /ruta/grabacion.mp4 \
   -p mi-proyecto \
   -t talking_head \
@@ -212,7 +212,7 @@ El subcomando `storyboard` compila un guion declarativo `storyboard.json` en esc
 * **Mezcla procedural de 15 SFX, limpieza vocal y bases musicales con ducking (`core/audio_mix.py`):** Posiciona los 15 SFX de `assets/audio/` (incluyendo sub-eventos intra-escena y supresión por escena con `sfx: "none"` o global con `--no-sfx`) con `adelay`, aplica opcionalmente la cadena de limpieza vocal de estudio `--voice-polish` (o `"voice_polish": true` en `storyboard.json`: `highpass=f=80`, `afftdn=nf=-25`, `acompressor` y `loudnorm=I=-14:TP=-1.5:LRA=11`) antes del *sidechain*, y mezcla `--music` (presets `tension_pulse`, `tech_minimal`, `editorial_warm` en `assets/music/` o archivo local) o `--ambient-bed` (`drone.wav`) aplicando *ducking* automático con `sidechaincompress` y `alimiter=limit=0.95`. También vincula automáticamente la pista de audio en plantillas sin storyboard (`talking_head_9_16`, `talking_head_16_9`, etc.).
 
 ```bash
-python3 core/pipeline.py storyboard mi-explainer --mix-sfx
+uv run python core/pipeline.py storyboard mi-explainer --mix-sfx
 ```
 
 ---

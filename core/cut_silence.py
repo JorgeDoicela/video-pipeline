@@ -175,11 +175,24 @@ def cut_and_concat(
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     if not keep_intervals:
+        in_path = Path(input_file)
+        if in_path.suffix.lower() == out_path.suffix.lower():
+            print(
+                "[FFmpeg] No se detectaron pausas para recortar o el audio es continuo. Copiando archivo original.",
+                file=sys.stderr,
+            )
+            shutil.copy2(input_file, out_path)
+            return
         print(
-            "[FFmpeg] No se detectaron pausas para recortar o el audio es continuo. Copiando archivo original.",
+            f"[FFmpeg] No se detectaron pausas para recortar. Convirtiendo {in_path.suffix} -> {out_path.suffix}...",
             file=sys.stderr,
         )
-        shutil.copy2(input_file, out_path)
+        conv_cmd = [_resolve_media_bin("ffmpeg"), "-hide_banner", "-y", "-i", input_file]
+        if out_path.suffix.lower() == ".wav":
+            conv_cmd.extend(["-vn", "-c:a", "pcm_s16le", str(out_path)])
+        else:
+            conv_cmd.extend(["-c:a", "aac", "-b:a", "192k", str(out_path)])
+        subprocess.run(conv_cmd, check=True)
         return
 
     video_present = has_video_stream(input_file) if include_video is None else include_video

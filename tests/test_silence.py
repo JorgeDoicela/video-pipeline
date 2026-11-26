@@ -2,7 +2,7 @@
 Pruebas unitarias para el algoritmo de recorte y cálculo de intervalos de silencio.
 """
 
-from core.cut_silence import build_concat_filter, compute_keep_intervals
+from core.cut_silence import build_concat_filter, compute_keep_intervals, cut_and_concat
 
 
 def test_compute_keep_intervals_no_silence():
@@ -62,3 +62,30 @@ def test_build_concat_filter_video_and_audio_only():
     assert "[0:v]" not in f_a
     assert "[0:a]atrim=" in f_a
     assert "concat=n=2:v=0:a=1[outa]" in f_a
+
+
+def test_cut_and_concat_empty_intervals_respects_format(tmp_path, monkeypatch):
+    # Misma extensión: copia directa sin invocar FFmpeg
+    src_wav = tmp_path / "in.wav"
+    src_wav.write_bytes(b"RIFFdemo")
+    dst_wav = tmp_path / "out.wav"
+    cut_and_concat(str(src_wav), str(dst_wav), [])
+    assert dst_wav.read_bytes() == b"RIFFdemo"
+
+    # Extensión distinta (.mp3 -> .wav): debe invocar FFmpeg en vez de copiar bytes crudos
+    src_mp3 = tmp_path / "in.mp3"
+    src_mp3.write_bytes(b"ID3demo")
+    dst_conv = tmp_path / "conv.wav"
+    captured_cmds: list[list[str]] = []
+
+    def fake_run(cmd, check=True):
+        captured_cmds.append(cmd)
+        dst_conv.write_bytes(b"RIFFconverted")
+
+    monkeypatch.setattr("core.cut_silence._resolve_media_bin", lambda name: name)
+    monkeypatch.setattr("core.cut_silence.subprocess.run", fake_run)
+
+    cut_and_concat(str(src_mp3), str(dst_conv), [])
+    assert len(captured_cmds) == 1
+    assert "pcm_s16le" in captured_cmds[0]
+    assert dst_conv.read_bytes() == b"RIFFconverted"

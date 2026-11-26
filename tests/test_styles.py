@@ -197,3 +197,88 @@ def test_motion_updates_from_to_and_reordered_props(tmp_path):
     assert 'ease: "power4.out"' in updated
     assert 'ease: "back.out(2.0)"' in updated
     assert "duration: 0.45" in updated
+
+
+def test_parse_set_overrides_rejects_unsafe_or_empty_css_values():
+    with pytest.raises(ValueError, match="no puede estar vacío"):
+        parse_set_overrides(["accent_primary="])
+
+    for bad_value in [
+        "accent_primary=#fff; body{display:none}",
+        "accent_primary=#fff}",
+        "accent_primary=#fff /* comment */",
+        "accent_primary=#fff\n--bg:#000",
+        "accent_primary=<script>",
+    ]:
+        with pytest.raises(ValueError, match="Valor CSS inválido"):
+            parse_set_overrides([bad_value])
+
+
+def test_cinematic_with_light_theme_has_no_hardcoded_dark_shadow(tmp_path):
+    html_file = tmp_path / "index.html"
+    html_file.write_text(
+        '<style>:root { --bg: #000; }</style><div id="root" data-composition-id="main"></div>',
+        encoding="utf-8",
+    )
+    apply_style_to_html(html_file, design_slug="cinematic", theme_slug="clean_light")
+    updated = html_file.read_text(encoding="utf-8")
+    assert "--headline-shadow: none;" in updated
+    assert "text-shadow: var(--headline-shadow);" in updated
+    assert "rgba(0, 0, 0, 0.65)" not in updated
+
+
+def test_accent_overrides_propagate_derived_tokens_automatically(tmp_path):
+    html_file = tmp_path / "index.html"
+    html_file.write_text(
+        '<style>:root { --bg: #000; }</style><div id="root" data-composition-id="main"></div>',
+        encoding="utf-8",
+    )
+    overrides = parse_set_overrides(["accent_primary=#34d399", "accent_secondary=#f59e0b"])
+    apply_style_to_html(
+        html_file, design_slug="cinematic", theme_slug="dark_violet", overrides=overrides
+    )
+    updated = html_file.read_text(encoding="utf-8")
+    assert "--accent-primary: #34d399;" in updated
+    assert (
+        "--accent-primary-soft: color-mix(in srgb, var(--accent-primary) 15%, transparent);"
+        in updated
+    )
+    assert (
+        "--accent-primary-glow: color-mix(in srgb, var(--accent-primary) 34%, transparent);"
+        in updated
+    )
+    assert (
+        "--accent-secondary-soft: color-mix(in srgb, var(--accent-secondary) 14%, transparent);"
+        in updated
+    )
+    assert (
+        "--title-gradient: linear-gradient(135deg, var(--text-primary) 40%, var(--accent-primary) 100%);"
+        in updated
+    )
+
+    # Override explícito sobre token derivado tiene prioridad
+    explicit = parse_set_overrides(
+        ["accent_primary=#34d399", "accent_primary_glow=rgba(52, 211, 153, 0.5)"]
+    )
+    apply_style_to_html(
+        html_file, design_slug="cinematic", theme_slug="dark_violet", overrides=explicit
+    )
+    updated_explicit = html_file.read_text(encoding="utf-8")
+    assert "--accent-primary-glow: rgba(52, 211, 153, 0.5);" in updated_explicit
+
+
+def test_motion_updates_stagger_and_layout_connects_header_align(tmp_path):
+    html_file = tmp_path / "index.html"
+    html_file.write_text(
+        """<style>:root { --bg: #000; }</style>
+<div id="root" data-composition-id="main"></div>
+<script>
+  tl.from(".panel", { opacity: 0, stagger: 0.25, duration: 0.8, ease: "power3.out" }, 0.4);
+</script>""",
+        encoding="utf-8",
+    )
+    apply_style_to_html(html_file, layout_slug="stacked", motion_slug="snappy")
+    updated = html_file.read_text(encoding="utf-8")
+    assert "stagger: 0.1," in updated
+    assert "--header-align: center;" in updated
+    assert "text-align: var(--header-align);" in updated

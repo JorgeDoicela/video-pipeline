@@ -24,7 +24,7 @@ flowchart TD
     end
 
     subgraph N3 ["Nivel 3: Overrides Granulares (--set clave=valor)"]
-        O1["Geometría: radius_lg, stage_gap, panel_padding"]
+        O1["Geometría: radius_lg, stage_gap, stage_padding"]
         O2["Bordes/Sombras: border_width, shadow"]
         O3["Tokens de Color: bg, surface, accent_primary, text_primary"]
     end
@@ -57,7 +57,7 @@ flowchart TD
 
 | Identificador (`-s`) | Nombre | Fondo Principal (`--bg`) | Acento Primario (`--accent-primary`) | Acento Secundario (`--accent-secondary`) | Naturaleza Cromática |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| `dark_violet` *(Defecto)* | Dark Violet (Obsidiana y Cristal) | `#09090b` | `#a78bfa` (Violeta) | `#34d399` (Esmeralda) | Oscuro atmosférico de alto contraste |
+| `dark_violet` *(Defecto)* | Dark Violet (Obsidiana y Cristal) | `#06060a` | `#a78bfa` (Violeta) | `#34d399` (Esmeralda) | Oscuro atmosférico de alto contraste |
 | `paper_warm` | Paper Warm (Marfil, Arena y Latón) | `#f5f1ea` | `#875c22` (Latón Dorado) | `#8c2d19` (Carmesí Terracota) | Claro cálido sereno de alta legibilidad |
 | `clean_light` | Clean Light (Blanco Neutro) | `#f8fafc` | `#0369a1` (Azul) | `#047857` (Verde) | Claro limpio calibrado WCAG AA |
 
@@ -94,7 +94,7 @@ El Nivel 3 permite ajustar tokens geométricos o cromáticos específicos en un 
 | **Geometría** | `radius_lg`, `radius_md`, `radius_sm`, `border_width` | `--radius-lg`, `--radius-md`, `--radius-sm`, `--border-width` | `--set radius_lg=0px` |
 | **Espaciado / Layout** | `stage_padding`, `stage_gap`, `split_columns`, `header_align`, `lower_third_side` | `--stage-padding`, `--stage-gap`, `--split-columns`, posición lower-third | `--set stage_gap=56px` |
 | **Subtítulos** | `caption_bottom`, `caption_size`, `caption_bg`, `caption_text`, `caption_active` | Variables de subtítulos en `:root` | `--set caption_size=48px` |
-| **Tipografía y Color** | `font_display`, `font_sans`, `font_mono`, `bg`, `surface`, `accent_primary`, `text_primary`, etc. | Tokens semánticos en `:root` | `--set accent_primary=#f43f5e` |
+| **Tipografía y Color** | `font_display`, `font_sans`, `font_mono`, `bg`, `bg_gradient`, `surface`, `accent_primary`, `accent_primary_glow`, `panel_highlight`, `headline_shadow`, `text_primary`, etc. | Tokens semánticos en `:root` (sobrescribir `accent_primary` o `accent_secondary` recalcula automáticamente `-soft`, `-glow` y `--title-gradient` vía `color-mix()`) | `--set accent_primary=#f43f5e` |
 
 ---
 
@@ -102,20 +102,20 @@ El Nivel 3 permite ajustar tokens geométricos o cromáticos específicos en un 
 
 ```bash
 # Consultar el catálogo completo o en JSON
-python3 core/pipeline.py style --list
-python3 core/pipeline.py style --list --json
+uv run python core/pipeline.py style --list
+uv run python core/pipeline.py style --list --json
 
 # Cambiar a Diseño Macro editorial (cálido pergamino) o clean (blanco neutro)
-python3 core/pipeline.py style mi-proyecto -d editorial
-python3 core/pipeline.py style mi-proyecto -d clean
+uv run python core/pipeline.py style mi-proyecto -d editorial
+uv run python core/pipeline.py style mi-proyecto -d clean
 
 # Combinar diseño editorial con paleta limpia y foco asimétrico
-python3 core/pipeline.py style mi-proyecto -d editorial -s clean_light --layout asymmetric_focus
+uv run python core/pipeline.py style mi-proyecto -d editorial -s clean_light --layout asymmetric_focus
 
 # Ajustar un token puntual e inspeccionar estado
-python3 core/pipeline.py style mi-proyecto --set accent_primary=#ff5500 --set stage_gap=60px
-python3 core/pipeline.py style mi-proyecto --inspect
-python3 core/pipeline.py style mi-proyecto --reset-overrides
+uv run python core/pipeline.py style mi-proyecto --set accent_primary=#ff5500 --set stage_gap=60px
+uv run python core/pipeline.py style mi-proyecto --inspect
+uv run python core/pipeline.py style mi-proyecto --reset-overrides
 ```
 
 ---
