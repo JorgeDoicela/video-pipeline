@@ -51,6 +51,10 @@ from core.manim_tools import (  # noqa: E402
     dispatch_manim_action,
     register_manim_subparsers,
 )
+from core.nle_export import (  # noqa: E402
+    export_nle_package,
+    register_nle_arguments,
+)
 from core.scenes import (  # noqa: E402
     align_storyboard_to_transcript,
     attach_audio_track_to_html,
@@ -706,6 +710,13 @@ def main():
     )
     register_manim_subparsers(p_manim, dest="manim_action")
 
+    # Subcomando: export-nle
+    p_nle = subparsers.add_parser(
+        "export-nle",
+        help="Exportar paquete editable para DaVinci Resolve / Premiere (clips por escena, capas alfa, stems WAV y timeline.fcpxml)",
+    )
+    register_nle_arguments(p_nle)
+
     # Subcomando: profiles
     p_profiles = subparsers.add_parser(
         "profiles",
@@ -899,6 +910,20 @@ def main():
         dispatch_image_action(args, parser=p_image, action_attr="image_action")
     elif args.subcommand == "manim":
         dispatch_manim_action(args, parser=p_manim, action_attr="manim_action")
+    elif args.subcommand == "export-nle":
+        try:
+            export_nle_package(
+                args.project,
+                output_dir=args.output,
+                cuts=args.cuts,
+                split_layers=args.split_layers,
+                alpha_format=args.alpha_format,
+                fps=args.fps,
+                rerender=args.rerender,
+            )
+        except (FileNotFoundError, ValueError, RuntimeError, subprocess.CalledProcessError) as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            sys.exit(1)
     elif args.subcommand == "profiles":
         dispatch_profiles_action(args, action_attr="profile_action")
     elif args.subcommand == "history":

@@ -82,6 +82,7 @@ video-pipeline/
 │   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth GeoJSON CC0, audio CC0 y conector Blender headless + 6 modelos 3D semilla .glb)
 │   ├── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
 │   ├── manim_tools.py    # Integración Manim Community (doctor, new, render 16:9/9:16/alpha, paleta sincronizada y componente manim_clip)
+│   ├── nle_export.py     # Exportador NLE (DaVinci Resolve / Premiere / FCP): clips exactos al frame, --split-layers alfa, stems WAV y FCPXML v1.10
 │   └── workspace.py      # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial append-only (catalog.jsonl)
 ├── profiles/          # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)
 ├── templates/         # Catálogo de 7 plantillas esenciales (9:16 y 16:9)
@@ -129,4 +130,8 @@ Antes de dar por concluida cualquier modificación o creación de proyecto:
 4. **Renderizado de Producción:**
    ```bash
    pnpm exec hyperframes render projects/<nombre_proyecto> -o projects/<nombre_proyecto>/video_<nombre_proyecto>.mp4
+   ```
+5. **Exportación Modular Opcional a Editores NLE (DaVinci Resolve / Premiere / FCP):**
+   ```bash
+   uv run python core/pipeline.py export-nle <nombre_proyecto> [--cuts 0,3.7,7.5,11.4] [--split-layers --alpha-format mov]
    ```

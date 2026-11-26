@@ -178,6 +178,19 @@ Cuando el usuario solicite piezas de alto impacto (intros, lanzamientos, Shorts 
      * Si GSAP anima `scaleX`/`scale`/`x`/`y`, no declarar `transform:` en CSS para ese mismo selector o usar `tl.fromTo(...)` como dueño único del transform.
   5. **Bucle obligatorio de revisión visual:** Tras validar con `pnpm exec hyperframes check` (0 errores) y renderizar, extraer al menos 3 fotogramas clave con FFmpeg (`ffmpeg -ss <t> -i video.mp4 -frames:v 1`) e inspeccionarlos visualmente para corregir encuadres, radios, aire o recortes antes de dar la pieza por terminada.
 
+### 4.6. Exportación Modular a Editores NLE (`export-nle` / FCPXML v1.10)
+Para entregar cualquier proyecto listo para edición fina posterior en DaVinci Resolve, Premiere Pro o Final Cut Pro (`core/nle_export.py`):
+* **Convención de capas compatibles con `--split-layers`:** En composiciones full-bleed a medida, mantener los elementos de fondo/atmósfera/3D bajo selectores estándar (`#webgl-canvas`, `#atmo-warm`, `#atmo-glow`, `#atmo-vignette`, `.atmosphere-bg`, `#atmosphere-rays`, `#atmosphere-grid`, `video`) y la tipografía/HUD dentro de `.act`, `#brand-bar`, `#timeline-bar`, `#progress-bar` o `#scenes-stage`. De este modo `export-nle --split-layers` separa limpiamente la capa `bg` (`.mp4`) de la capa `overlay` con canal alfa (`.mov` ProRes 4444 o `.webm` VP9) sin modificar el `index.html` original.
+* **Comandos de exportación:**
+  ```bash
+  # Segmentación automática por storyboard.json o marcas manuales --cuts
+  uv run python core/pipeline.py export-nle mi-proyecto --cuts 0,3.7,7.5,11.4
+
+  # Separación en capas (fondo/3D limpio + overlay transparente ProRes 4444)
+  uv run python core/pipeline.py export-nle mi-proyecto --split-layers --alpha-format mov
+  ```
+* **Garantías técnicas:** Alineación 1:1 de fotogramas (`-frames:v` sincronizado con FCPXML), soporte nativo `16:9` y `9:16` (`FFVideoFormatRateUndefined`), inserción automática de `<gap>` si existen huecos entre escenas y stems WAV 48 kHz 16-bit (`stem_voz`, `stem_musica`, `stem_sfx` o `stem_master`) anclados en `t=0s`.
+
 ---
 
 ## 5. Flujo de Trabajo y Comandos de Ejecución

@@ -327,6 +327,22 @@ uv run python core/pipeline.py history --limit 20
 uv run python core/pipeline.py history --channel clientes/acme --json
 ```
 
+### 4.4. Exportación Editable para Editores NLE (`export-nle`)
+Para continuar editando un proyecto en **DaVinci Resolve (Free o Studio)**, **Premiere Pro**, **Final Cut Pro** o **CapCut** con todo separado y cortado por escenas:
+
+```bash
+# 1. Exportar clips por escena (desde storyboard.json o --cuts), audio stems WAV, SRT y timeline.fcpxml
+uv run python core/pipeline.py export-nle mi-proyecto
+
+# 2. En composiciones full-bleed sin storyboard, indicar los cortes de cada acto
+uv run python core/pipeline.py export-nle historia-biblioteca-alejandria --cuts 0,3.7,7.5,11.4
+
+# 3. Separar fondo/3D (.mp4) y capa de texto/HUD con fondo transparente ProRes 4444 (.mov) o WebM
+uv run python core/pipeline.py export-nle mi-proyecto --split-layers --alpha-format mov
+```
+
+El paquete generado en `<proyecto>/export_nle/` se importa en DaVinci Resolve o Premiere mediante **`File -> Import -> Timeline -> timeline.fcpxml`**, montando automáticamente los clips cortados con sincronía exacta 1:1 de fotogramas (en `16:9` y `9:16`, insertando `<gap>` si hay huecos entre escenas), la capa alfa superior (`lane=1`, compatible con las 7 plantillas base y composiciones full-bleed), los marcadores de escena y los stems de audio independientes (`stem_voz.wav`, `stem_musica.wav`, `stem_sfx.wav` o `stem_master.wav`) anclados en `00:00:00:00`.
+
 ---
 
 ## 5. Diagnóstico y Resolución de Incidencias

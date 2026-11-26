@@ -233,6 +233,25 @@ El modulo [workspace.py](../../core/workspace.py) centraliza la operacion multi-
 > [!NOTE]
 > El orden de precedencia para resolver la raiz del workspace es: `--output-dir` en CLI > `output_root` del perfil > variable de entorno `VIDEO_PIPELINE_WORKSPACE` > directorio local `projects/`. En `core/scenes.py`, `_sync_local_3d_assets` valida de forma *fail-fast* la presencia del runtime local de Three.js (`node_modules/three/build/`) y de los modelos `.glb`/`.gltf` referenciados.
 
+### 5.4. Integracion Manim Community (`core/manim_tools.py`)
+
+El modulo [manim_tools.py](../../core/manim_tools.py) permite compilar escenas matematicas, geometricas y algoritmicas en Manim Community sincronizadas con los tokens de diseno del proyecto (`VIDEO_PIPELINE_PALETTE` inyectado desde `package.json`):
+
+* **Comandos CLI:** `manim doctor`, `manim new <slug> --preset <equation|graph|algorithm|geometry|blank>` y `manim render <script> [--project] [--aspect 16:9|9:16] [--quality preview|hd|prod] [--transparent]`.
+* **Integracion declarativa:** El componente `manim_clip` en `core/scenes.py` compila bajo demanda el `.py` si el video no existe o si cambiaron el script o `package.json`, y valida de forma *fail-fast* su existencia.
+
+### 5.5. Exportador Modular para Editores NLE (`core/nle_export.py`)
+
+El modulo [nle_export.py](../../core/nle_export.py) empaqueta cualquier proyecto renderizado (las 7 plantillas base y composiciones full-bleed) en un directorio autocontenido `<proyecto>/export_nle/` listo para importar en DaVinci Resolve (Free y Studio), Adobe Premiere Pro y Final Cut Pro:
+
+| Artefacto | Descripcion tecnica |
+| :--- | :--- |
+| `01_video_clips/` | Clips MP4 (H.264 `crf 16`, sin pista de audio) cortados por escenas de `storyboard.json` o marcas `--cuts` usando conteo exacto de fotogramas (`-frames:v` y `-r <fps>`), garantizando sincronia 1:1 con el XML. Con `--split-layers`, separa capa base (`*_bg.mp4`) y overlay con canal alfa (`*_overlay.mov` ProRes 4444 `yuva444p10le` o `*_overlay.webm` VP9 `yuva420p`). |
+| `02_audio_stems/` | Pistas WAV PCM 48 kHz 16-bit independientes (`stem_voz.wav`, `stem_musica.wav`, `stem_sfx.wav`, o `stem_master.wav` en piezas full-bleed sin storyboard). |
+| `03_subtitulos/` | Copia de `subtitles.srt` y `subtitles.vtt` editables si existen en el proyecto. |
+| `timeline.fcpxml` | Proyecto FCPXML v1.10 con marcadores por acto, `FFVideoFormat<H>p<FPS>` para `16:9` estandar y `FFVideoFormatRateUndefined` para vertical `9:16` u otras resoluciones, insercion automatica de `<gap>` en `<spine>` si existen huecos, overlays alfa en `lane="1"` y stems anclados en `t=0s` en `lane="-1"`, `"-2"`, `"-3"`. |
+| `manifest.json` | Inventario estructurado de resolucion, FPS, clips, capas, stems y subtitulos exportados. |
+
 ---
 
 ## 6. Enlaces Relacionados

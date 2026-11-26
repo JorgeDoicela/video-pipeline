@@ -128,6 +128,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | **Gestor de Assets CC0** | `uv run python core/pipeline.py assets <list\|icon\|map\|audio\|model> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON), normaliza audio CC0 o importa/valida modelos 3D glTF/GLB en `assets/`. |
 | **Procesador de Imágenes** | `uv run python core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
 | **Motor Manim (Matemáticas/Algoritmos)** | `uv run python core/pipeline.py manim <doctor\|new\|render\|list> ...` | Crea y renderiza escenas Manim sincronizadas con la paleta del pipeline (`dark_violet`, `paper_warm`, `clean_light`), en `16:9`/`9:16` o fondo transparente, listas para `manim_clip`. |
+| **Exportar a Editor NLE** | `uv run python core/pipeline.py export-nle <slug> [--split-layers] [--cuts ...]` | Genera paquete editable (`export_nle/`) con clips cortados por escena, capas alfa ProRes 4444/WebM, stems WAV (voz/música/SFX), SRT y `timeline.fcpxml` para DaVinci Resolve / Premiere. |
 | **Catálogo de Diseños** | `uv run python core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
 | **Perfiles de Canal** | `uv run python core/pipeline.py profiles <list\|show\|init>` | Gestiona perfiles reutilizables por canal o cliente en `profiles/*.json` (`--profile`, `--channel`, `--dated`, `--output-dir`). |
 | **Historial de Videos** | `uv run python core/pipeline.py history [--channel <canal>]` | Consulta el registro cronológico `catalog.jsonl` de proyectos creados, producidos y renderizados. |
@@ -177,6 +178,7 @@ video-pipeline/
 │   ├── fetch_assets.py    # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth y audio CC0)
 │   ├── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
 │   ├── manim_tools.py     # Integración Manim Community (doctor, new, render 16:9/9:16/alpha, paleta sincronizada y componente manim_clip)
+│   ├── nle_export.py      # Exportador editable NLE (clips por escena, capas alfa ProRes 4444/WebM, audio stems WAV y timeline.fcpxml)
 │   └── workspace.py       # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial (catalog.jsonl)
 ├── profiles/               # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)
 ├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)
