@@ -166,6 +166,18 @@ Para incorporar nuevos iconos vectoriales, mapas geográficos reales, muestras d
 * **Inventario de assets locales:**
   `uv run python core/pipeline.py assets list`
 
+### 4.5. Modo Cinematográfico Full-Bleed (Nivel Estudio: 3D WebGL + Máscaras + Bucle Visual)
+Cuando el usuario solicite piezas de alto impacto (intros, lanzamientos, Shorts protagonistas, estilo Apple Keynote / Vox / documental) en lugar de un storyboard de diapositivas estándar, construir una composición HTML/GSAP/Three.js **full-bleed** sin encabezado fijo repetido:
+* **Arquitectura de actos continuos:** Coreografiar 3+ actos fluidos sin cortes bruscos sobre un mismo lienzo (`1920x1080` o `1080x1920`) combinando:
+  1. **Capa WebGL 3D determinista (`Three.js` + `.glb` de Blender):** `THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true })` conducido por proxy numérico en el `onUpdate` de `window.__timelines["main"]` (cero `requestAnimationFrame`), iluminación de 3 puntos, niebla adaptada al tema, partículas 3D con PRNG determinista y cámara en movimiento continuo (`dolly-in` → desplazamiento asimétrico lateral → `pull-back`).
+  2. **Dependencias ESM offline obligatorias para `GLTFLoader` (`Three.js >= 0.187`):** Copiar en `<proyecto>/assets/vendor/`: `three.module.js`, `three.core.js`, `addons/loaders/GLTFLoader.js`, `addons/utils/BufferGeometryUtils.js` y `addons/utils/SkeletonUtils.js` con `<script type="importmap">`.
+  3. **Tipografía monumental y composiciones asimétricas:** Titulares grandes (`96px–132px`) revelados por máscara `overflow: hidden` (con `padding` vertical suficiente para acentos/tildes sin `text_box_overflow`), split asimétrico (3D a un lado + telemetría/trazos SVG al otro), adaptable a los 3 estilos (`cinematic`/`dark_violet`, `editorial`/`paper_warm` con niebla marfil y latón/terracota, `clean`/`clean_light` con fondo claro y cobalto).
+  4. **Reglas estrictas de StaticGuard en composiciones a medida:**
+     * Todo `<audio>` y `<video>` con `data-start` debe declarar un atributo `id` único (si falta `id`, HyperFrames lo omite y el render queda mudo).
+     * Prohibido animar propiedades de reflow como `letterSpacing` en GSAP (usar solo `x`, `y`, `scale`, `opacity`).
+     * Si GSAP anima `scaleX`/`scale`/`x`/`y`, no declarar `transform:` en CSS para ese mismo selector o usar `tl.fromTo(...)` como dueño único del transform.
+  5. **Bucle obligatorio de revisión visual:** Tras validar con `pnpm exec hyperframes check` (0 errores) y renderizar, extraer al menos 3 fotogramas clave con FFmpeg (`ffmpeg -ss <t> -i video.mp4 -frames:v 1`) e inspeccionarlos visualmente para corregir encuadres, radios, aire o recortes antes de dar la pieza por terminada.
+
 ---
 
 ## 5. Flujo de Trabajo y Comandos de Ejecución
@@ -230,6 +242,7 @@ Antes de dar por concluida cualquier composición de video, verifica:
 - [ ] ¿Los iconos SVG vectoriales están limpios y sin píldoras o fondos redondeados envolventes?
 - [ ] ¿Los títulos y subtítulos están libres de líneas horizontales decorativas (border-top, border-bottom, subrayados o filetes)?
 - [ ] ¿Las tarjetas, paneles y ventanas tienen bordes simétricos y uniformes en los cuatro lados (sin `border-left` grueso asimétrico)?
-- [ ] ¿Se eliminó cualquier uso de `transition:` en CSS?
+- [ ] ¿Se eliminó cualquier uso de `transition:` en CSS y se evitó animar propiedades de reflow (`letterSpacing`) en GSAP?
+- [ ] ¿Todos los `<audio>` y `<video>` con `data-start` tienen un atributo `id` único y `data-duration`?
 - [ ] ¿La línea de tiempo de GSAP está pausada y registrada en `window.__timelines["main"]`?
-- [ ] ¿`hyperframes check` reporta 0 errores y 0 advertencias?
+- [ ] ¿`hyperframes check` reporta 0 errores y se inspeccionaron visualmente fotogramas clave reales del render?

@@ -265,6 +265,12 @@ Cuando una frase del guion requiere una metáfora visual única (por ejemplo, un
 }
 ```
 
+### 3.6. Modo Cinematográfico Full-Bleed (Nivel Estudio Multicapa)
+Cuando un video requiere acabado cinematográfico sin el molde de diapositiva (intros, lanzamientos de producto, Shorts de alto impacto o piezas clave de un documental), se construye una composición full-bleed directa en `index.html` combinando:
+* **Capa 3D WebGL determinista (`Three.js` + modelos `.glb` de Blender):** `WebGLRenderer` con `preserveDrawingBuffer: true` conducido por proxy numérico en `window.__timelines["main"]`, copiando el runtime ESM offline (`three.module.js`, `three.core.js`, `GLTFLoader.js`, `BufferGeometryUtils.js` y `SkeletonUtils.js`) a `<proyecto>/assets/vendor/`.
+* **Actos continuos adaptables a los 3 estilos:** Tipografía monumental revelada por máscara (`overflow: hidden` con padding vertical para tildes), split asimétrico (objeto 3D a un lado + HUD SVG/métricas al otro) y paleta sincronizada tanto en `cinematic` (`dark_violet`), `editorial` (`paper_warm`) como `clean` (`clean_light`).
+* **Bucle de revisión visual:** Validar con `pnpm exec hyperframes check` (0 errores, `id` explícito en `<audio>`/`<video>`, sin `letterSpacing` animado), renderizar y extraer fotogramas clave con FFmpeg para inspeccionar visualmente encuadre, contraste y aire antes de la entrega final.
+
 ---
 
 ## 4. Operación Multi-Canal, Clientes e Historial (Perfiles y Workspace Externo)
