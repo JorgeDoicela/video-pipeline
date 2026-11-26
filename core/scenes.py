@@ -15,7 +15,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from core._runtime import normalize_token
+from core._runtime import REPO_ROOT, normalize_token
 from core._styles_renderer import upsert_marked_css_block
 from core.audio_mix import SfxEvent
 
@@ -4143,7 +4143,7 @@ def _sync_local_3d_assets(project_dir: Path, storyboard: StoryboardSpec) -> bool
     if not scenes_3d:
         return False
 
-    repo_root = Path(__file__).resolve().parent.parent
+    repo_root = REPO_ROOT
     three_build = repo_root / "node_modules" / "three" / "build"
     vendor_dir = project_dir / "assets" / "vendor"
     vendor_dir.mkdir(parents=True, exist_ok=True)

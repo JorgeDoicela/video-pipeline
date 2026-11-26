@@ -519,7 +519,16 @@ def test_new_production_components_and_deterministic_canvas_fx(tmp_path: Path):
     assert ".ng-canvas-el" in injected
 
 
-def test_infinite_canvas_svg_draw_and_scene_3d_deterministic(tmp_path: Path):
+def test_infinite_canvas_svg_draw_and_scene_3d_deterministic(tmp_path: Path, monkeypatch):
+    import core.scenes as scenes_mod
+
+    fake_repo = tmp_path / "fake_repo"
+    three_build = fake_repo / "node_modules" / "three" / "build"
+    three_build.mkdir(parents=True)
+    (three_build / "three.module.js").write_text("// stub three.module.js\n", encoding="utf-8")
+    (three_build / "three.core.js").write_text("// stub three.core.js\n", encoding="utf-8")
+    monkeypatch.setattr(scenes_mod, "REPO_ROOT", fake_repo)
+
     sb = StoryboardSpec(
         title="Advanced Motion & 3D",
         duration=15.0,
