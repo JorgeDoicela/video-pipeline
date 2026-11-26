@@ -21,7 +21,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Caché y artefactos internos de HyperFrames
+# Caché y artefactos internos de HyperFrames y Manim
 .hyperframes/
 **/.hyperframes/
 .cache/
@@ -29,6 +29,8 @@ frames/
 **/frames/
 renders/
 **/renders/
+media/
+**/media/
 
 # Archivos pesados de medios (Audio y Video crudo o renderizado)
 *.mp4

@@ -184,7 +184,7 @@ Para recompilar únicamente el storyboard y mezclar SFX + cama con *ducking* y l
 uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio projects/mi-explainer/cut.wav --ambient-bed --voice-polish
 ```
 
-### 3.3. Catálogo de los 29 Componentes Narrativos (`COMPONENT_REGISTRY`)
+### 3.3. Catálogo de los 30 Componentes Narrativos (`COMPONENT_REGISTRY`)
 
 | Componente | Uso Principal | Propiedades Clave (`props`) |
 | :--- | :--- | :--- |
@@ -216,6 +216,7 @@ uv run python core/pipeline.py storyboard mi-explainer --mix-sfx --audio project
 | `svg_draw` | Trazos SVG progresivos sincronizados con timestamps (`stroke-dashoffset` + `MotionPathPlugin`) | `view_box`, `title`, `subtitle`, `writing_head`, `paths: [{d, color, stroke_width, dashed, at, duration, label}]`, `labels`, `strike_through` |
 | `scene_3d` | Motor WebGL 3D determinista sobre Three.js (`onUpdate`, sin `requestAnimationFrame`) con primitivos procedurales y `.glb`/`.gltf` | `preset` (`cross` \| `altar` \| `scales` \| `gavel` \| `bars` \| `columns` \| `cube` \| `torus` \| `sphere`), `model` (`assets/models/*.glb`: `shield_3d.glb`, `gear_3d.glb`, `crown_3d.glb`, `open_book_3d.glb`, `lock_3d.glb`, `globe_3d.glb`, etc.), `render_style` (`edges` \| `wireframe` \| `solid`), `dot_grid`, `camera_orbit`, `camera_distance`, `rotation_turns`, `color`, `title` |
 | `video_clip` | Clip de video real (presentador a cámara `cut.mp4`, screencast o B-roll en `assets/videos/`) dentro de un storyboard híbrido | `src` (`cut.mp4` o `assets/videos/*.mp4`), `layout_mode` (`card` \| `full` \| `pip`), `tag`, `title`, `subtitle`, `items`, `muted` |
+| `manim_clip` | Escena matemática, geométrica o algorítmica renderizada con Manim Community (`core/manim_tools.py`) sincronizada con el tema y overrides del proyecto | `src` (clip ya compilado) o `script` (relativo al proyecto, repo o `assets/manim/`), `scene_class`, `slug`, `aspect`, `quality` (`preview` \| `hd` \| `prod`), `transparent`, `force_render`, `layout_mode` (`card` \| `full` \| `pip`), `title`, `subtitle` |
 | `custom_scene` | Escena abierta para inyectar cualquier composición SVG/HTML y coreografía GSAP a medida | `html` (con marcador `{scene_id}`), `gsap` (con `{scene_id}` y `{start}`) |
 
 ### 3.4. Ejemplo de Escena 3D Determinista con Modelo de Blender (`scene_3d`)

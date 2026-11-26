@@ -69,7 +69,7 @@ video-pipeline/
 │       └── diseno-video/ # Estándares visuales limpios, tipografía y HyperFrames
 ├── core/              # Scripts CLI de procesamiento y orquestación
 │   ├── pipeline.py       # Orquestador maestro end-to-end (--voice-polish, --no-cut-silence, --no-sfx, --words-per-group, assets, image)
-│   ├── scenes.py         # Motor multi-escena (29 componentes SVG/HTML/Canvas/3D/Video: infinite_canvas, svg_draw, scene_3d, video_clip, image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
+│   ├── scenes.py         # Motor multi-escena (30 componentes SVG/HTML/Canvas/3D/Video/Manim: infinite_canvas, svg_draw, scene_3d, video_clip, manim_clip, image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
 │   ├── audio_mix.py      # Mezclador determinista de voz (--voice-polish), música/cama con ducking y 15 SFX (FFmpeg)
 │   ├── styles.py         # Fachada del motor de diseño en 3 niveles y estilos de subtítulos
 │   ├── _styles_catalog.py# Catálogo declarativo de diseños, temas, layouts y tokens
@@ -81,6 +81,7 @@ video-pipeline/
 │   ├── generate_sfx.py   # Síntesis matemática de 15 efectos de sonido WAV y 3 pistas musicales loopables
 │   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth GeoJSON CC0, audio CC0 y conector Blender headless + 6 modelos 3D semilla .glb)
 │   ├── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
+│   ├── manim_tools.py    # Integración Manim Community (doctor, new, render 16:9/9:16/alpha, paleta sincronizada y componente manim_clip)
 │   └── workspace.py      # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial append-only (catalog.jsonl)
 ├── profiles/          # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)
 ├── templates/         # Catálogo de 7 plantillas esenciales (9:16 y 16:9)
@@ -92,7 +93,7 @@ video-pipeline/
 │   ├── editorial_16_9/   # Narrativa histórica, bíblica y ensayos en 16:9
 │   └── talking_head_16_9/# Presentador widescreen 16:9 con lower-third y subtítulos
 ├── projects/          # Proyectos de video concretos generados a partir de templates
-├── assets/            # Recursos estáticos globales (audio/ SFX, music/ camas, maps/ SVG, images/ cutouts, models/ glTF-GLB, icons/ SVG, fonts/)
+├── assets/            # Recursos estáticos globales (audio/ SFX, music/ camas, maps/ SVG, images/ cutouts, models/ glTF-GLB, manim/ escenas .py, icons/ SVG, fonts/)
 ├── tests/             # Suite automatizada de pruebas unitarias (pytest)
 ├── docs/              # Documentación modular Docs-as-Code (00- y subcarpetas 01- a 05-)
 ├── .github/workflows/ # Pipeline de integración continua (CI) en GitHub Actions

@@ -2251,6 +2251,40 @@ def _render_video_clip(
     return markup, "\n".join(gsap_lines)
 
 
+def _resolve_manim_clip_filename(props: dict[str, Any]) -> str:
+    """Resuelve el nombre de archivo de video (.mp4/.webm) para una escena manim_clip."""
+    src_raw = str(props.get("src", "")).strip()
+    if src_raw:
+        return src_raw
+    script_raw = str(props.get("script", "")).strip()
+    scene_cls = str(props.get("scene_class", "")).strip()
+    slug_raw = str(props.get("slug", "")).strip()
+    ext = "webm" if bool(props.get("transparent", False)) else "mp4"
+    if slug_raw:
+        base = re.sub(r"[^a-zA-Z0-9_\-]+", "_", slug_raw.lower()).strip("_") or "manim_clip"
+        return f"{base}.{ext}"
+    if script_raw:
+        stem = Path(script_raw).stem
+        raw_name = f"{stem}_{scene_cls}" if scene_cls else stem
+        base = re.sub(r"[^a-zA-Z0-9_\-]+", "_", raw_name.lower()).strip("_") or "manim_clip"
+        return f"{base}.{ext}"
+    return "cut.mp4"
+
+
+def _render_manim_clip(
+    scene_id: str, props: dict[str, Any], start: float, dur: float
+) -> tuple[str, str]:
+    """
+    Componente de primera clase para animaciones matemáticas/algorítmicas de Manim.
+    Acepta un clip pre-renderizado ('src') o un script ('script' + 'scene_class') compilado
+    automáticamente por core/manim_tools.py, reutilizando el contrato determinista de video_clip.
+    """
+    effective_props = dict(props)
+    effective_props["src"] = _resolve_manim_clip_filename(props)
+    effective_props.setdefault("muted", True)
+    return _render_video_clip(scene_id, effective_props, start, dur)
+
+
 ComponentRenderer = Callable[[str, dict[str, Any], float, float], tuple[str, str]]
 
 COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
@@ -2282,6 +2316,7 @@ COMPONENT_REGISTRY: dict[str, ComponentRenderer] = {
     "svg_draw": _render_svg_draw,
     "scene_3d": _render_scene_3d,
     "video_clip": _render_video_clip,
+    "manim_clip": _render_manim_clip,
     "custom_scene": _render_custom_scene,
 }
 
@@ -3776,6 +3811,7 @@ _COMPONENT_CSS_BLOCKS: dict[str, str] = {
         line-height: 1.35;
       }""",
 }
+_COMPONENT_CSS_BLOCKS["manim_clip"] = _COMPONENT_CSS_BLOCKS["video_clip"]
 
 
 def build_scenes_css(used_components: set[str] | None = None) -> str:
@@ -4248,9 +4284,9 @@ def _ensure_runtime_scripts(content: str, used_components: set[str]) -> str:
 
 def _sync_local_video_assets(project_dir: Path, storyboard: StoryboardSpec) -> None:
     """
-    Asegura que los archivos de video referenciados por escenas 'video_clip' existan dentro de
-    <project_dir>, copiándolos desde assets/videos/ (o utilizando el fixture base cut.mp4 si
-    no se ha grabado un clip aún) para cumplir el StaticGuard y media check de HyperFrames.
+    Asegura que los archivos de video referenciados por escenas 'video_clip' y 'manim_clip'
+    existan dentro de <project_dir>, compilando scripts Manim bajo demanda cuando corresponda
+    o copiando clips desde assets/videos/ para cumplir el StaticGuard y media check de HyperFrames.
     """
     import shutil
 
@@ -4258,10 +4294,78 @@ def _sync_local_video_assets(project_dir: Path, storyboard: StoryboardSpec) -> N
     repo_videos_dir = repo_root / "assets" / "videos"
     fallback_cut = repo_root / "templates" / "talking_head_9_16" / "cut.mp4"
 
+    # Detectar tema y overrides activos del proyecto para sincronizar compilaciones Manim bajo demanda
+    project_theme = "dark_violet"
+    project_overrides: dict[str, str] | None = None
+    pkg_file = project_dir / "package.json"
+    if pkg_file.exists():
+        try:
+            pkg_meta = json.loads(pkg_file.read_text(encoding="utf-8"))
+            v_design = pkg_meta.get("videoDesign", {})
+            project_theme = v_design.get("style") or pkg_meta.get("videoStyle") or project_theme
+            raw_ov = v_design.get("overrides")
+            if isinstance(raw_ov, dict) and raw_ov:
+                project_overrides = {str(k): str(v) for k, v in raw_ov.items()}
+        except (OSError, json.JSONDecodeError):
+            pass
+
     for scene in storyboard.scenes:
-        if scene.component != "video_clip":
+        if scene.component not in {"video_clip", "manim_clip"}:
             continue
-        src_raw = str(scene.props.get("src", "cut.mp4")).strip() or "cut.mp4"
+
+        if scene.component == "manim_clip" and scene.props.get("script"):
+            src_raw = _resolve_manim_clip_filename(scene.props)
+            filename = Path(src_raw).name
+            dest_dir = project_dir / "assets" / "videos"
+            dest_file = dest_dir / filename
+            script_ref = Path(str(scene.props["script"]))
+            script_path = script_ref
+            if not script_ref.is_absolute():
+                for candidate in (
+                    project_dir / script_ref,
+                    repo_root / script_ref,
+                    repo_root / "assets" / "manim" / script_ref.name,
+                ):
+                    if candidate.is_file():
+                        script_path = candidate
+                        break
+
+            if not script_path.is_file():
+                raise FileNotFoundError(
+                    f"No se encontró el script Manim '{scene.props['script']}' para la escena '{scene.id}'."
+                )
+
+            dest_mtime = dest_file.stat().st_mtime if dest_file.exists() else -1.0
+            pkg_changed = pkg_file.exists() and pkg_file.stat().st_mtime > dest_mtime
+            script_changed = script_path.stat().st_mtime > dest_mtime
+            needs_render = (
+                bool(scene.props.get("force_render", False))
+                or not dest_file.exists()
+                or script_changed
+                or pkg_changed
+            )
+            if needs_render:
+                from core.manim_tools import render_manim_scene
+
+                render_manim_scene(
+                    script_path=script_path,
+                    scene_class=scene.props.get("scene_class"),
+                    slug=Path(filename).stem,
+                    aspect=str(scene.props.get("aspect") or storyboard.aspect_ratio or "16:9"),
+                    quality=str(scene.props.get("quality") or "prod"),
+                    fps=scene.props.get("fps"),
+                    theme_slug=str(scene.props.get("style") or project_theme),
+                    overrides=project_overrides,
+                    transparent=bool(scene.props.get("transparent", False)),
+                    output_dir=dest_dir,
+                )
+                continue
+
+        src_raw = (
+            _resolve_manim_clip_filename(scene.props)
+            if scene.component == "manim_clip"
+            else (str(scene.props.get("src", "cut.mp4")).strip() or "cut.mp4")
+        )
         if src_raw == "cut.mp4":
             dest_cut = project_dir / "cut.mp4"
             if not dest_cut.exists() and fallback_cut.exists():

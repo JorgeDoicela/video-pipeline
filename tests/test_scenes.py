@@ -190,6 +190,7 @@ def test_component_registry_includes_universal_primitives():
         "svg_draw",
         "scene_3d",
         "video_clip",
+        "manim_clip",
         "custom_scene",
     }
     assert expected == set(COMPONENT_REGISTRY.keys())

@@ -99,12 +99,12 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 
 ### 3.1. Catálogo de Plantillas (`templates/`)
 * **Vertical 9:16 (TikTok / Reels / Shorts — `1080x1920`):**
-  * `explainer_scenes_9_16`: Explainer *faceless* o híbrido multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 29 componentes vectoriales/Canvas/3D/Video/Cutouts animados (incluidos `infinite_canvas`, `svg_draw`, `scene_3d` con Three.js/WebGL y modelos `.glb` de Blender, `video_clip` para presentador/B-roll híbrido, `canvas_fx`, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz (`--voice-polish`) + música/cama con *ducking* + 15 SFX.
+  * `explainer_scenes_9_16`: Explainer *faceless* o híbrido multi-escena sincronizado desde `storyboard.json` con atmósfera 2D adaptativa, cámara virtual (`camera_motion`), viñeta/grano (`film_grain`), 30 componentes vectoriales/Canvas/3D/Video/Manim/Cutouts animados (incluidos `infinite_canvas`, `svg_draw`, `scene_3d` con Three.js/WebGL y modelos `.glb` de Blender, `video_clip`, `manim_clip`, `canvas_fx`, `image_cutout` y `custom_scene`), subtítulos `hero_top` o inferiores con `emphasis_words`, y mezcla de voz (`--voice-polish`) + música/cama con *ducking* + 15 SFX.
   * `short_quote_9_16`: Citas, versículos bíblicos, reflexiones y narrativa breve sin código con zonas seguras.
   * `short_tech_9_16`: Tarjeta de código y consola vertical con subtítulos cinéticos.
   * `talking_head_9_16`: Presentador vertical a cámara con zonas seguras calibradas.
 * **Horizontal 16:9 (YouTube / Escritorio — `1920x1080`):**
-  * `explainer_scenes_16_9`: Explainer widescreen *faceless* o híbrido multi-escena con las mismas 29 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
+  * `explainer_scenes_16_9`: Explainer widescreen *faceless* o híbrido multi-escena con las mismas 30 primitivas para ensayos, tutoriales, historia, comparativas y métricas.
   * `editorial_16_9`: Narrativa widescreen para ensayos, historia, teología o divulgación con puntos clave.
   * `talking_head_16_9`: Presentador o screencast widescreen con tarjeta *lower-third* y subtítulos cinéticos.
 
@@ -127,6 +127,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | **Compilar Storyboard** | `uv run python core/pipeline.py storyboard <slug> --mix-sfx` | Compila `storyboard.json` en `index.html` y mezcla SFX + voz opcional (`--audio`) en `audio_mix.wav`. |
 | **Gestor de Assets CC0** | `uv run python core/pipeline.py assets <list\|icon\|map\|audio\|model> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON), normaliza audio CC0 o importa/valida modelos 3D glTF/GLB en `assets/`. |
 | **Procesador de Imágenes** | `uv run python core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
+| **Motor Manim (Matemáticas/Algoritmos)** | `uv run python core/pipeline.py manim <doctor\|new\|render\|list> ...` | Crea y renderiza escenas Manim sincronizadas con la paleta del pipeline (`dark_violet`, `paper_warm`, `clean_light`), en `16:9`/`9:16` o fondo transparente, listas para `manim_clip`. |
 | **Catálogo de Diseños** | `uv run python core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
 | **Perfiles de Canal** | `uv run python core/pipeline.py profiles <list\|show\|init>` | Gestiona perfiles reutilizables por canal o cliente en `profiles/*.json` (`--profile`, `--channel`, `--dated`, `--output-dir`). |
 | **Historial de Videos** | `uv run python core/pipeline.py history [--channel <canal>]` | Consulta el registro cronológico `catalog.jsonl` de proyectos creados, producidos y renderizados. |
@@ -156,13 +157,14 @@ video-pipeline/
 │   ├── maps/              # 5 mapas geográficos vectoriales SVG (korea, world, europe, americas, asia)
 │   ├── images/            # Imágenes procesadas y recortes transparentes (cutouts PNG/WEBP, .gitkeep)
 │   ├── models/            # Modelos 3D abiertos glTF/GLB (.glb, .gltf) para el componente scene_3d (.gitkeep)
+│   ├── manim/             # Escenas Python de Manim sincronizadas con la paleta del pipeline (demo_sine_wave.py)
 │   ├── fonts/             # Tipografías locales del sistema (.gitkeep)
 │   └── icons/             # 18 iconos técnicos vectoriales SVG (Docker, K8s, Kafka, Redis, Shield, Lock, Radar, etc.)
 ├── core/                   # Herramientas del motor compartido
 │   ├── __init__.py        # Módulo Python del núcleo
 │   ├── _runtime.py        # Inicialización de rutas y entorno virtual local
 │   ├── pipeline.py        # Orquestador maestro de producción end-to-end (--no-cut-silence, --no-sfx, --words-per-group)
-│   ├── scenes.py          # Motor multi-escena (29 primitivas SVG/HTML/Canvas/3D/Video + image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
+│   ├── scenes.py          # Motor multi-escena (30 primitivas SVG/HTML/Canvas/3D/Video/Manim + image_cutout, custom_scene, cue_word, hero_top, tree-shaking CSS)
 │   ├── audio_mix.py       # Mezclador determinista de voz, música/cama con ducking y 15 SFX (adelay + sidechaincompress + alimiter)
 │   ├── styles.py          # Fachada CLI y API del motor de diseño en 3 niveles
 │   ├── _styles_catalog.py # Catálogo declarativo de diseños, temas, layouts y tokens
@@ -174,6 +176,7 @@ video-pipeline/
 │   ├── generate_sfx.py    # Síntesis matemática de 15 SFX WAV y 3 pistas musicales loopables
 │   ├── fetch_assets.py    # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth y audio CC0)
 │   ├── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
+│   ├── manim_tools.py     # Integración Manim Community (doctor, new, render 16:9/9:16/alpha, paleta sincronizada y componente manim_clip)
 │   └── workspace.py       # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial (catalog.jsonl)
 ├── profiles/               # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)
 ├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)

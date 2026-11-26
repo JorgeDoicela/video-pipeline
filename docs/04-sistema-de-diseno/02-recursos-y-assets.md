@@ -200,6 +200,34 @@ El módulo [`core/image_tools.py`](../../core/image_tools.py) (integrado como su
 
 ---
 
+## 3.7. Motor Manim Integrado (`core/manim_tools.py` / `pipeline.py manim` / `manim_clip`)
+
+El módulo [`core/manim_tools.py`](../../core/manim_tools.py) integra **Manim Community** como extra opcional (`uv pip install -e ".[dev,manim]"`) sincronizado de forma nativa con los temas WCAG AA de `core/styles.py` y el motor multi-escena `core/scenes.py`:
+
+1. **Diagnóstico del entorno (`manim doctor`):**
+   ```bash
+   uv run python core/pipeline.py manim doctor
+   ```
+   Verifica `manim`, `ffmpeg` y opcionalmente `latex` + `dvisvgm` (solo necesarios para `MathTex`).
+2. **Crear escenas sincronizadas con el tema activo (`manim new`):**
+   ```bash
+   # Presets disponibles: math_proof | algorithm_flow | vector_field
+   uv run python core/pipeline.py manim new fourier_demo --preset math_proof -s dark_violet
+   ```
+   Cada escena importa `from core.manim_tools import get_pipeline_palette` para heredar exactamente `bg`, `surface`, `text_primary`, `accent_primary` y `accent_secondary` del tema elegido (`dark_violet`, `paper_warm`, `clean_light`).
+3. **Renderizar en `16:9` / `9:16` o con fondo transparente (`manim render`):**
+   ```bash
+   # Exportar a assets/videos/demo_sine.mp4 en 1080p60 (sin ensuciar el repo con media/)
+   uv run python core/pipeline.py manim render assets/manim/demo_sine_wave.py --slug demo_sine --aspect 16:9 --quality prod -s dark_violet
+
+   # Exportar directo a un proyecto concreto o con fondo transparente (.webm)
+   uv run python core/pipeline.py manim render assets/manim/demo_sine_wave.py --slug demo_alpha --aspect 9:16 --transparent -p mi-proyecto
+   ```
+4. **Uso directo en `storyboard.json` mediante el componente `manim_clip`:**
+   `manim_clip` acepta un clip pre-renderizado (`"src": "demo_sine.mp4"`) o un script (`"script": "assets/manim/demo_sine_wave.py"`) que se compila automáticamente bajo demanda respetando el tema activo del proyecto (`package.json`) y el `aspect_ratio` del storyboard.
+
+---
+
 ## 4. Enlaces Relacionados
 
 * Volver al índice general de la documentación en [00-indice-general.md](../00-indice-general.md).

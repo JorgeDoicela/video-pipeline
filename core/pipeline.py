@@ -47,6 +47,10 @@ from core.image_tools import (  # noqa: E402
     dispatch_image_action,
     register_image_subparsers,
 )
+from core.manim_tools import (  # noqa: E402
+    dispatch_manim_action,
+    register_manim_subparsers,
+)
 from core.scenes import (  # noqa: E402
     align_storyboard_to_transcript,
     attach_audio_track_to_html,
@@ -695,6 +699,13 @@ def main():
     )
     register_image_subparsers(p_image, dest="image_action")
 
+    # Subcomando: manim
+    p_manim = subparsers.add_parser(
+        "manim",
+        help="Crear, diagnosticar y renderizar escenas Manim sincronizadas con los temas del pipeline",
+    )
+    register_manim_subparsers(p_manim, dest="manim_action")
+
     # Subcomando: profiles
     p_profiles = subparsers.add_parser(
         "profiles",
@@ -886,6 +897,8 @@ def main():
         dispatch_assets_action(args, action_attr="asset_action")
     elif args.subcommand == "image":
         dispatch_image_action(args, parser=p_image, action_attr="image_action")
+    elif args.subcommand == "manim":
+        dispatch_manim_action(args, parser=p_manim, action_attr="manim_action")
     elif args.subcommand == "profiles":
         dispatch_profiles_action(args, action_attr="profile_action")
     elif args.subcommand == "history":

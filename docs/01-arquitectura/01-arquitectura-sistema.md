@@ -22,7 +22,7 @@ flowchart TD
     end
 
     subgraph Generacion ["3. Orquestacion Multi-Escena y Diseño"]
-        C --> F["scenes.py (29 Primitivas + 2D/3D/Video + cue_word) / styles.py / fetch_assets.py / image_tools.py"]
+        C --> F["scenes.py (30 Primitivas + 2D/3D/Video/Manim + cue_word) / styles.py / fetch_assets.py / image_tools.py / manim_tools.py"]
         F --> G["index.html (Composicion GSAP / SVG / Canvas 2D)"]
     end
 

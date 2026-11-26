@@ -22,6 +22,7 @@ def test_pipeline_cli_help():
     assert "captions" in res.stdout
     assert "scaffold" in res.stdout
     assert "style" in res.stdout
+    assert "manim" in res.stdout
     assert "profiles" in res.stdout
     assert "history" in res.stdout
 

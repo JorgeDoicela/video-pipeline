@@ -95,7 +95,7 @@ Para videos explicativos donde solo habla la voz del narrador (`explainer_scenes
 * `voice_polish`: `true` aplica limpieza vocal de estudio en FFmpeg (`highpass=f=80`, `afftdn=nf=-25`, `acompressor` y `loudnorm=-14 LUFS`) antes del *ducking* (también activable por CLI con `--voice-polish`).
 * `words_per_group` y `emphasis_words`: configuran el número máximo de palabras por bloque de subtítulo (`6` por defecto para formar 1 a 2 líneas balanceadas con `text-wrap: balance`, respetando además cortes en puntuación fuerte y comas sin solapamiento temporal entre bloques consecutivos) y las palabras clave que se iluminan con `.word-emphasis` (color secundario `var(--accent-secondary)` + `var(--caption-shadow)`, cero cajas o pastillas).
 
-### 4.2. Catálogo de 29 Componentes Narrativos (`COMPONENT_REGISTRY`)
+### 4.2. Catálogo de 30 Componentes Narrativos (`COMPONENT_REGISTRY`)
 1. `phone_mockup`: soporta `mode: "list"` (carpetas con retícula de enfoque y cursor animado opcional `show_cursor: true`) y `mode: "app_grid"` (pantalla móvil con reloj gigante, cuadrícula `4x4` de apps, etiqueta superior, arco HUD radial y flash de obturador opcional `capture_flash: true`, `capture_count: 5`).
 2. `radar_map`: mapa vectorial y radar táctico con barrido cónico 360° (`svgOrigin: "440 340"`), presets geográficos reales en `assets/maps/` (`map_preset: "korea" | "world" | "europe" | "americas" | "asia"`), ruta animada opcional (`route: true`) y objetivos geolocalizados (`targets`).
 3. `xray_scanner`: marco HUD con 4 esquinas, láser horizontal en vivo y tarjetas laterales (`callouts`).
@@ -124,7 +124,20 @@ Para videos explicativos donde solo habla la voz del narrador (`explainer_scenes
 26. `svg_draw`: trazos SVG vectoriales progresivos sincronizados con timestamps relativos (`at`, `duration`, `dashed`, `label`), etiquetas cronometradas (`labels`), tachado animado (`strike_through`) y punta luminosa (`writing_head: true`) conducida por `MotionPathPlugin`.
 27. `scene_3d`: motor WebGL 3D 100% determinista sobre Three.js (`onUpdate` de GSAP, cero `requestAnimationFrame`, `preserveDrawingBuffer: true`) con 9 primitivos procedurales (`cross`, `altar`, `scales`, `gavel`, `bars`, `columns`, `cube`, `torus`, `sphere`), carga de modelos `.glb`/`.gltf` compilados con **Blender** (`assets/models/`, incluidos 6 modelos semilla: `shield_3d.glb`, `gear_3d.glb`, `crown_3d.glb`, `open_book_3d.glb`, `lock_3d.glb`, `globe_3d.glb`), modos `edges` | `wireframe` | `solid`, grilla de puntos 3D (`dot_grid`) y órbita de cámara (`camera_orbit`).
 28. `video_clip`: componente híbrido para alternar o incrustar clips de video reales (presentador a cámara `cut.mp4`, screencast o B-roll en `assets/videos/`) dentro de un storyboard multi-escena con `layout_mode: "card" | "full" | "pip"`, cumpliendo el contrato `data-start` y `data-duration` de HyperFrames.
-29. `custom_scene`: **primitiva abierta de máxima flexibilidad** que recibe `html` (con marcador `{scene_id}`) y `gsap` (con `{scene_id}` y `{start}`) para construir metáforas visuales SVG/GSAP hechas a la medida exacta de cualquier frase del guion sin modificar `core/`.
+29. `manim_clip`: componente de primera clase para animaciones matemáticas, algorítmicas y geométricas renderizadas con **Manim Community** (`core/manim_tools.py`). Acepta un clip pre-renderizado (`src`) o un script (`script` relativo al proyecto, repo o `assets/manim/` + `scene_class` opcional) compilado automáticamente bajo demanda con el tema y overrides del proyecto (`package.json`), caché inteligente (invalida si cambia el `.py` o `package.json`), modos `card | full | pip` y soporte `transparent: true` (`.webm` con canal alfa).
+30. `custom_scene`: **primitiva abierta de máxima flexibilidad** que recibe `html` (con marcador `{scene_id}`) y `gsap` (con `{scene_id}` y `{start}`) para construir metáforas visuales SVG/GSAP hechas a la medida exacta de cualquier frase del guion sin modificar `core/`.
+
+### 4.2.1. Estándar Obligatorio para Escenas Manim (`core/manim_tools.py`)
+Toda escena Manim creada para el pipeline debe seguir estas 3 reglas:
+* **Paleta sincronizada:** Importar siempre `get_pipeline_palette`, `apply_pipeline_background` e `is_vertical_aspect` desde `core.manim_tools` para heredar exactamente `bg`, `surface`, `text_primary`, `accent_primary` y `accent_secondary` del tema activo (`dark_violet`, `paper_warm`, `clean_light`) y sus overrides `--set`.
+* **Fondo seguro para transparencia:** Nunca asignar `self.camera.background_color = ...` directamente; usar siempre `apply_pipeline_background(self, p)` para no anular el canal alfa cuando se renderiza con `--transparent`.
+* **Encuadre adaptativo `9:16`:** Consultar `is_vertical_aspect()` (`frame_width` útil `4.5` en `9:16` vs `14.22` en `16:9`) para reencuadrar ejes, escalas de texto y apilar bloques verticalmente (`arrange(DOWN)`) en Shorts/Reels.
+* **Comandos CLI oficiales:**
+  ```bash
+  uv run python core/pipeline.py manim doctor
+  uv run python core/pipeline.py manim new <slug> --preset math_proof|algorithm_flow|vector_field -s dark_violet
+  uv run python core/pipeline.py manim render assets/manim/<slug>.py --aspect 16:9|9:16 --quality prod -s dark_violet [--transparent] [-p <proyecto>]
+  ```
 
 ### 4.3. Sincronización por Voz (`cue_word`) y Cambio de Mood por Escena
 * Cada escena puede declarar `"cue_word": "<palabra>"` para que `align_storyboard_to_transcript` ajuste su `start` al instante exacto en que Whisper detectó esa palabra.
