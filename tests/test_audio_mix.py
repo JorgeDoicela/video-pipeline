@@ -40,6 +40,13 @@ def test_ensure_sfx_assets_generates_all_wavs(tmp_path: Path):
         assert wav_path.exists(), f"Falta archivo WAV para {name}"
         assert wav_path.stat().st_size > 1000
 
+    # Autodescubrimiento de SFX personalizados sin sobrescribir archivos existentes
+    custom_wav = tmp_path / "cine_hit.wav"
+    custom_wav.write_bytes(b"RIFF_CUSTOM_SFX")
+    assets_with_custom = ensure_sfx_assets(tmp_path)
+    assert assets_with_custom["cine_hit"] == custom_wav
+    assert custom_wav.read_bytes() == b"RIFF_CUSTOM_SFX"
+
 
 def test_ensure_music_assets_and_resolve_music_source(tmp_path: Path):
     music = ensure_music_assets(tmp_path)
@@ -53,6 +60,12 @@ def test_ensure_music_assets_and_resolve_music_source(tmp_path: Path):
     resolved = resolve_music_source("tension_pulse", music_dir=tmp_path)
     assert resolved == tmp_path / "tension_pulse.wav"
     assert resolve_music_source("none", music_dir=tmp_path) is None
+
+    # Resolución por slug sin extensión de pistas musicales personalizadas
+    custom_music = tmp_path / "mi_cama.wav"
+    custom_music.write_bytes(b"RIFF_CUSTOM_MUSIC")
+    assert resolve_music_source("mi_cama", music_dir=tmp_path) == custom_music
+    assert ensure_music_assets(tmp_path)["mi_cama"] == custom_music
 
 
 def test_build_sfx_mix_command_without_voice(tmp_path: Path):

@@ -149,7 +149,8 @@ Para incorporar nuevos iconos vectoriales, mapas geográficos reales, muestras d
   `uv run python core/pipeline.py assets icon simple-icons:wireshark`
 * **Mapas geopolíticos reales (Natural Earth GeoJSON CC0 -> `assets/maps/<name>.svg`):**
   `uv run python core/pipeline.py assets map PRK -c KOR,JPN -n korea_real`
-* **SFX y música CC0 normalizados a WAV 48kHz 16-bit (URL directa o Freesound API v2 CC0):**
+* **SFX y música CC0 normalizados a WAV 48kHz 16-bit (archivo local `--file`, URL directa o Freesound API v2 CC0; cualquier `.wav` en `assets/audio/` se autodescubre por su nombre en `storyboard.json`):**
+  `uv run python core/pipeline.py assets audio cine_hit --file ./mi_impacto.mp3 --type sfx`
   `uv run python core/pipeline.py assets audio shutter_org --freesound "camera shutter" --type sfx`
 * **Eliminación de fondo (IA local ONNX IS-Net 1024x1024 de estudio o color), recorte y conversión de imágenes (`assets/images/`):**
   ```bash

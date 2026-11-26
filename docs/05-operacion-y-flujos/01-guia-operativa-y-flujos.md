@@ -343,6 +343,17 @@ uv run python core/pipeline.py export-nle mi-proyecto --split-layers --alpha-for
 
 El paquete generado en `<proyecto>/export_nle/` se importa en DaVinci Resolve o Premiere mediante **`File -> Import -> Timeline -> timeline.fcpxml`**, montando automáticamente los clips cortados con sincronía exacta 1:1 de fotogramas (en `16:9` y `9:16`, insertando `<gap>` si hay huecos entre escenas), la capa alfa superior (`lane=1`, compatible con las 7 plantillas base y composiciones full-bleed), los marcadores de escena y los stems de audio independientes (`stem_voz.wav`, `stem_musica.wav`, `stem_sfx.wav` o `stem_master.wav`) anclados en `00:00:00:00`.
 
+### 4.5. Importar SFX y Música Propia CC0 (`assets audio`)
+Para reemplazar o ampliar los SFX/música base con grabaciones reales CC0 normalizadas a WAV 48 kHz 16-bit estéreo (sin sobrescribir archivos existentes):
+
+```bash
+# Importar un SFX real descargado en tu PC (queda autodescubierto por slug en storyboard.json)
+uv run python core/pipeline.py assets audio cine_hit --file ./mi_impacto.mp3 --type sfx
+
+# Importar una pista musical propia (queda usable por slug con --music mi_cama)
+uv run python core/pipeline.py assets audio mi_cama --file ./track.wav --type music
+```
+
 ---
 
 ## 5. Diagnóstico y Resolución de Incidencias

@@ -164,6 +164,21 @@ def test_build_audio_normalize_command_and_fetch_audio_cc0(tmp_path: Path, monke
     assert out_wav.exists()
     assert out_wav.read_bytes() == b"RIFF_NORMALIZED_WAV"
 
+    # Importación desde archivo local (--file) sin red
+    local_mp3 = tmp_path / "cine_impact.mp3"
+    local_mp3.write_bytes(b"FAKE_MP3")
+    out_local = fetch_audio_cc0(
+        name="cine_impact",
+        source_path=local_mp3,
+        kind="sfx",
+        target_dir=tmp_path / "out_local",
+    )
+    assert out_local == tmp_path / "out_local" / "cine_impact.wav"
+    assert out_local.exists()
+
+    with pytest.raises(FileNotFoundError, match="archivo de audio local"):
+        fetch_audio_cc0(name="missing", source_path=tmp_path / "no_existe.mp3", target_dir=tmp_path)
+
 
 def test_list_local_assets_inventory(tmp_path: Path):
     inv = list_local_assets()

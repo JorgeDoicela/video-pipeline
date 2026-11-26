@@ -380,7 +380,10 @@ MUSIC_GENERATORS = {
 
 
 def ensure_sfx_assets(audio_dir: Path | None = None) -> dict[str, Path]:
-    """Garantiza que todos los efectos WAV del catálogo existan en disco y devuelve su mapa de rutas."""
+    """
+    Garantiza que los 15 efectos WAV base existan en disco y autodescubre además
+    cualquier archivo .wav personalizado ubicado en assets/audio/ sin sobrescribirlo.
+    """
     target_dir = audio_dir or (Path(__file__).resolve().parent.parent / "assets" / "audio")
     target_dir.mkdir(parents=True, exist_ok=True)
     paths: dict[str, Path] = {}
@@ -389,11 +392,16 @@ def ensure_sfx_assets(audio_dir: Path | None = None) -> dict[str, Path]:
         if not wav_path.exists():
             generator(wav_path)
         paths[slug] = wav_path
+    for custom_wav in sorted(target_dir.glob("*.wav")):
+        paths.setdefault(custom_wav.stem.lower(), custom_wav)
     return paths
 
 
 def ensure_music_assets(music_dir: Path | None = None) -> dict[str, Path]:
-    """Garantiza que las bases musicales procedurales del catálogo existan en assets/music/."""
+    """
+    Garantiza que las bases musicales procedurales existan en assets/music/ y
+    autodescubre además cualquier pista .wav personalizada sin sobrescribirla.
+    """
     target_dir = music_dir or (Path(__file__).resolve().parent.parent / "assets" / "music")
     target_dir.mkdir(parents=True, exist_ok=True)
     paths: dict[str, Path] = {}
@@ -402,13 +410,15 @@ def ensure_music_assets(music_dir: Path | None = None) -> dict[str, Path]:
         if not wav_path.exists():
             generator(wav_path)
         paths[slug] = wav_path
+    for custom_wav in sorted(target_dir.glob("*.wav")):
+        paths.setdefault(custom_wav.stem.lower(), custom_wav)
     return paths
 
 
 def resolve_music_source(
     music_spec: str | Path | None, music_dir: Path | None = None
 ) -> Path | None:
-    """Resuelve un preset musical (ej. 'tension_pulse') o una ruta local de archivo de audio."""
+    """Resuelve un preset musical, un slug personalizado en assets/music/ o una ruta local."""
     if not music_spec:
         return None
     raw = str(music_spec).strip()
@@ -420,11 +430,11 @@ def resolve_music_source(
     candidate = Path(raw)
     if candidate.exists():
         return candidate
-    assets_candidate = (
-        music_dir or (Path(__file__).resolve().parent.parent / "assets" / "music")
-    ) / raw
-    if assets_candidate.exists():
-        return assets_candidate
+    base_dir = music_dir or (Path(__file__).resolve().parent.parent / "assets" / "music")
+    for name in (raw, f"{key}.wav"):
+        assets_candidate = base_dir / name
+        if assets_candidate.exists():
+            return assets_candidate
     raise FileNotFoundError(
         f"No se encontró la pista musical '{music_spec}'. Presets disponibles: {', '.join(MUSIC_GENERATORS)}"
     )

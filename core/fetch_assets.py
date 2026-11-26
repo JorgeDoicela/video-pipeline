@@ -508,6 +508,7 @@ def fetch_audio_cc0(
     name: str,
     url: str | None = None,
     freesound_query: str | None = None,
+    source_path: str | Path | None = None,
     kind: str = "sfx",
     target_dir: Path | None = None,
     max_duration: float | None = None,
@@ -515,8 +516,9 @@ def fetch_audio_cc0(
     force: bool = False,
 ) -> Path:
     """
-    Descarga un efecto de sonido o pista musical CC0 (desde URL directa o Freesound API v2 CC0)
-    y lo normaliza con FFmpeg a WAV PCM 48kHz 16-bit estéreo en assets/audio/ o assets/music/.
+    Importa o descarga un efecto de sonido o pista musical (archivo local --file, URL directa
+    o Freesound API v2 CC0) y lo normaliza con FFmpeg a WAV PCM 48kHz 16-bit estéreo en
+    assets/audio/ o assets/music/.
     """
     if kind not in {"sfx", "music"}:
         raise ValueError("El parámetro 'kind' debe ser 'sfx' o 'music'.")
@@ -530,17 +532,26 @@ def fetch_audio_cc0(
     if out_path.exists() and not force:
         return out_path
 
+    if source_path is not None:
+        local_src = Path(source_path)
+        if not local_src.is_file():
+            raise FileNotFoundError(f"No se encontró el archivo de audio local: '{source_path}'.")
+        cmd = build_audio_normalize_command(local_src, out_path, max_duration=max_duration)
+        subprocess.run(cmd, check=True)
+        print(f"[Assets:Audio] Importado y normalizado WAV 48kHz 16-bit ({kind}): {out_path.name}")
+        return out_path
+
     effective_url = url
     if not effective_url:
         if not freesound_query:
             raise ValueError(
-                "Debes proporcionar --url <url_directa_cc0> o --freesound <busqueda_cc0>."
+                "Debes proporcionar --file <ruta_local>, --url <url_directa_cc0> o --freesound <busqueda_cc0>."
             )
         resolved_key = api_key or os.environ.get("FREESOUND_API_KEY", "").strip()
         if not resolved_key:
             raise RuntimeError(
                 "Para buscar en Freesound API v2 define la variable de entorno FREESOUND_API_KEY "
-                "o utiliza --url con un enlace directo a un archivo de audio CC0."
+                "o utiliza --file / --url con un archivo de audio."
             )
         effective_url = _resolve_freesound_preview_url(freesound_query, resolved_key)
 
@@ -1009,6 +1020,11 @@ def register_assets_subparsers(
     )
     p_audio.add_argument("--url", help="URL directa al archivo de audio CC0 (.wav, .ogg, .mp3)")
     p_audio.add_argument(
+        "--file",
+        dest="source_path",
+        help="Ruta a un archivo de audio local (.wav, .mp3, .ogg, .flac, .m4a) para importar y normalizar",
+    )
+    p_audio.add_argument(
         "--freesound", help="Consulta de texto en Freesound API v2 (filtra solo CC0)"
     )
     p_audio.add_argument(
@@ -1088,6 +1104,7 @@ def dispatch_assets_action(args: argparse.Namespace, action_attr: str = "asset_a
             name=args.name,
             url=args.url,
             freesound_query=args.freesound,
+            source_path=getattr(args, "source_path", None),
             kind=args.type,
             max_duration=args.max_duration,
             force=args.force,
