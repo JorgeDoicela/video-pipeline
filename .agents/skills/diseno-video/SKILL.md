@@ -159,8 +159,9 @@ Para incorporar nuevos iconos vectoriales, mapas geográficos reales, muestras d
 
 Para producir, estilizar, validar y renderizar proyectos:
 
-1. **Producir Video Multi-Escena Completo desde Voz:**
+1. **Producir Video Multi-Escena Completo desde Voz (o usando Perfil de Canal):**
    ```bash
+   # Explícito por flags
    uv run python core/pipeline.py produce \
      -i mi_voz.wav \
      -p mi-video \
@@ -171,6 +172,11 @@ Para producir, estilizar, validar y renderizar proyectos:
      --replace lidis=Redis \
      --ambient-bed \
      --auto-render
+
+   # Con perfil de canal/cliente (profiles/*.json), prefijo de fecha e historial en catalog.jsonl
+   uv run python core/pipeline.py profiles list
+   uv run python core/pipeline.py produce -i mi_voz.wav -p mi-video --profile tech_short --dated --auto-render
+   uv run python core/pipeline.py history
    ```
 
 2. **Aplicar o Cambiar Estilo (Sin Perder Escenas ni Subtítulos):**

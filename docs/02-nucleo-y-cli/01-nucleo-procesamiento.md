@@ -91,15 +91,19 @@ El script [create_project.py](../../core/create_project.py) genera de manera lim
 
 ### 3.1. Funcionalidades Principales
 * **Clonacion Segura:** Copia recursivamente la plantilla excluyendo caches temporales (`.hyperframes`, `frames`, `node_modules`).
-* **Sincronizacion de Metadatos:** Actualiza el nombre del paquete y la configuración `videoDesign` en `package.json` (`project-<slug>`).
+* **Sincronizacion de Metadatos:** Actualiza el nombre del paquete, `videoProject` (`slug`, `channel`, `profile`, `template`, `title`, `createdAt`) y la configuracion `videoDesign` en `package.json`, y propaga `brand`/`category` del perfil a `storyboard.json` cuando existe.
 * **Inyeccion de Parametros:** Permite fijar el titulo principal (`<h1>`) y la duracion total del video (`data-duration`) directamente por linea de comandos.
 
 ### 3.2. Argumentos de Linea de Comandos
 
 | Parametro | Tipo | Defecto | Descripcion |
 | :--- | :--- | :--- | :--- |
-| `name` | `string` | *(Requerido)* | Nombre o slug del nuevo proyecto a crear en `projects/`. |
-| `-t, --template` | `string` | `short_quote_9_16` | Plantilla base (`explainer_scenes_9_16`, `explainer_scenes_16_9`, `short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`). |
+| `name` | `string` | *(Requerido)* | Nombre o slug del nuevo proyecto a crear en el workspace. |
+| `-t, --template` | `string` | `None` *(del perfil o `short_quote_9_16`)* | Plantilla base (`explainer_scenes_9_16`, `explainer_scenes_16_9`, `short_quote_9_16`, `short_tech_9_16`, `talking_head_9_16`, `editorial_16_9`, `talking_head_16_9`). |
+| `--profile` | `string` | `None` | Slug de perfil en `profiles/<slug>.json` o ruta directa a un JSON de perfil. |
+| `--channel` | `string` | `None` *(del perfil)* | Subcarpeta relativa de canal o cliente (`tech`, `editorial`, `clientes/acme`). Bloquea rutas absolutas y `..`. |
+| `--output-dir` | `string` | `None` | Directorio raiz del workspace (precedencia: `--output-dir` > `profile.output_root` > `VIDEO_PIPELINE_WORKSPACE` > `projects/`). |
+| `--dated` | `flag` | `False` | Antepone el prefijo `YYYY-MM-DD_` al slug del directorio si no lo incluye ya. |
 | `-d, --design` | `string` | `cinematic` | Diseño Macro de Nivel 1 (`cinematic`, `editorial`, `clean`). |
 | `-s, --style` | `string` | `None` *(hereda del diseño)* | Tema cromático de Nivel 2 (`dark_violet`, `paper_warm`, `clean_light`). |
 | `--layout` | `string` | `None` *(hereda del diseño)* | Variante de distribución (`standard`, `asymmetric_focus`, `stacked`). |
@@ -160,7 +164,7 @@ El script [sync_captions.py](../../core/sync_captions.py) convierte el archivo `
 
 ### 4.1. Funcionalidades Principales
 * **Agrupación Inteligente y Sin Solapamiento Temporal:** Divide el habla en bloques balanceados de 1 a 2 líneas (hasta 6 palabras por defecto, con `text-wrap: balance` y `max-width: 780px` en 9:16 o `1180px` en 16:9), cortando de forma reactiva ante pausas superiores a 0.4 segundos o signos de puntuación, y garantizando cero solapamiento temporal entre bloques consecutivos (`hide_time = min(g_end + 0.15, next_start)`) para evitar saltos verticales al cambiar de frase.
-* **Inyección en HTML/GSAP:** Localiza el contenedor de subtítulos dentro de `index.html` y escribe tanto los elementos `<span>` como las líneas de tiempo pausadas `tl.to(...)`.
+* **Inyección en HTML/GSAP y Limpieza sin Habla:** Localiza el contenedor de subtítulos dentro de `index.html` y escribe tanto los elementos `<span>` como las líneas de tiempo pausadas `tl.to(...)`. Cuando Whisper no detecta habla (`0` palabras), `clear_captions_in_html` limpia los subtítulos placeholder y tweens residuales de la plantilla.
 * **Exportación Estándar:** Genera archivos `.srt` y `.vtt` para distribución multiplataforma con marcas temporales exactas.
 
 ### 4.2. Argumentos de Línea de Comandos
@@ -191,9 +195,9 @@ Ejecuta de forma secuencial:
 
 ```bash
 uv run python core/pipeline.py produce \
-  -i /ruta/grabacion.mp4 \
+  -i grabacion.mp4 \
   -p mi-proyecto \
-  -t talking_head \
+  -t talking_head_16_9 \
   --title "Arquitectura Cloud" \
   --auto-render
 ```
@@ -214,6 +218,20 @@ El subcomando `storyboard` compila un guion declarativo `storyboard.json` en esc
 ```bash
 uv run python core/pipeline.py storyboard mi-explainer --mix-sfx
 ```
+
+### 5.3. Capa de Workspace, Perfiles de Canal e Historial (`core/workspace.py`)
+
+El modulo [workspace.py](../../core/workspace.py) centraliza la operacion multi-canal y de clientes mediante perfiles JSON validados en `profiles/`, resolucion segura de rutas y registro append-only en `catalog.jsonl`:
+
+| Subcomando | Accion | Descripcion |
+| :--- | :--- | :--- |
+| `profiles list [--json]` | Listar | Muestra los perfiles registrados en `profiles/` (`tech_short`, `editorial_essay`, `client_clean` y personalizados). |
+| `profiles show <slug\|ruta>` | Inspeccionar | Imprime el esquema JSON completo validado del perfil indicado. |
+| `profiles init <slug> [opts]` | Crear | Genera y valida un nuevo perfil en `profiles/<slug>.json` (`--channel`, `-t`, `-d`, `-s`, `--layout`, `--motion`, `--set`, `--music`, `--voice-polish`, `--output-root`). |
+| `history [--channel] [--profile] [--limit] [--output-dir] [--json]` | Consultar | Lee `<workspace>/catalog.jsonl` ordenado del evento mas reciente al mas antiguo (`scaffold`, `produce`, `render`). |
+
+> [!NOTE]
+> El orden de precedencia para resolver la raiz del workspace es: `--output-dir` en CLI > `output_root` del perfil > variable de entorno `VIDEO_PIPELINE_WORKSPACE` > directorio local `projects/`. En `core/scenes.py`, `_sync_local_3d_assets` valida de forma *fail-fast* la presencia del runtime local de Three.js (`node_modules/three/build/`) y de los modelos `.glb`/`.gltf` referenciados.
 
 ---
 

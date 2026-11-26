@@ -44,7 +44,15 @@ Para garantizar la estabilidad grafica y la reproducibilidad en ambas estaciones
 | :--- | :--- | :--- | :--- |
 | **Capa 1: Sistema Base** | `apt` (`/usr/bin/ffmpeg 7.1.5`), Mesa (`radeonsi_dri.so`), VA-API y DRM. | `winget` (`Gyan.FFmpeg`), drivers GPU nativos (Direct3D11/AMF/NVENC) o CPU. | **Acceso nativo a GPU sin desajuste de ABI:** La codificacion y el renderizado WebGL/Three.js enlazan directamente con los controladores graficos del sistema anfitrion. |
 | **Capa 2: Entorno Declarativo** | Nix Flakes + Home Manager (`nodejs_22`, `pnpm`, `uv`, `blender` opcional en `modules/apps.nix` o `/opt/blender*`). | `winget` (`astral-sh.uv`, `OpenJS.NodeJS.LTS`, `BlenderFoundation.Blender`) y `pnpm`. | **Hermetismo y Reproducibilidad Multiplataforma:** Runtimes CLI estandarizados y autodeteccion multiplataforma (`resolve_blender`, `resolve_pnpm`, `resolve_ffmpeg`) para que Linux y Windows ejecuten exactamente el mismo codigo. |
-| **Capa 3: Espacio de Proyecto** | `.venv/` + `node_modules/` + `projects/` + `assets/`. | `.venv\` + `node_modules\` + `projects\` + `assets\`. | **Cero Contaminacion:** Las librerias de IA y dependencias web quedan aisladas dentro del repositorio sin requerir privilegios de administrador. |
+| **Capa 3: Espacio de Proyecto** | `.venv/` + `node_modules/` + `profiles/` + `projects/` (o `VIDEO_PIPELINE_WORKSPACE`) + `assets/`. | `.venv\` + `node_modules\` + `profiles\` + `projects\` (o `VIDEO_PIPELINE_WORKSPACE`) + `assets\`. | **Cero Contaminacion y Desacoplamiento:** Las librerias de IA y dependencias web quedan aisladas dentro del repositorio sin privilegios de administrador, y las producciones pueden almacenarse en un workspace externo versionado por separado con trazabilidad en `catalog.jsonl`. |
+
+### 2.1. Desacoplamiento de Motor y Producciones Multi-Canal
+
+El modulo [workspace.py](../../core/workspace.py) separa el repositorio del motor (`video-pipeline`) de los entregables concretos de cada canal o cliente:
+
+* **Perfiles declarativos (`profiles/*.json`):** Encapsulan plantilla, diseño en 3 niveles, overrides, musica, limpieza vocal y glosario tecnico de Whisper (`tech_short`, `editorial_essay`, `client_clean` como semillas).
+* **Workspaces externos (`VIDEO_PIPELINE_WORKSPACE` / `--output-dir`):** Permiten organizar proyectos bajo `<workspace>/<canal>/<YYYY-MM-DD>_<slug>/` bloqueando *path traversal* y manteniendo limpio `projects/` dentro del motor.
+* **Historial append-only (`catalog.jsonl`):** Registra cada evento `scaffold`, `produce` y `render` en la raiz del workspace sin conflictos de merge.
 
 ---
 

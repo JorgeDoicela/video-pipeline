@@ -13,7 +13,8 @@
   * Directrices de agente y memoria persistente en `.agents/` (`AGENTS.md`, `memory.md`).
   * Integración continua activa en `.github/workflows/ci.yml` (sin directorio `ci/` duplicado).
   * `projects/` se mantiene limpio en Git (`projects/.gitkeep`) como espacio de trabajo local.
-  * `pyproject.toml` es la fuente única de verdad para dependencias Python (`[project.optional-dependencies] dev`).
+  * `pyproject.toml` es la fuente única de verdad para dependencias Python (`[project.optional-dependencies] dev`), con `[build-system]` (`setuptools`) y `[tool.setuptools.packages.find] include = ["core*"]` para soporte de instalación editable (`uv pip install -e ".[dev]"`) en layout plano.
+  * `core/workspace.py` y `profiles/` (`tech_short.json`, `editorial_essay.json`, `client_clean.json`) desacoplan el motor de las producciones multi-canal (`--profile`, `--channel`, `--dated`, `--output-dir`, `VIDEO_PIPELINE_WORKSPACE`, `catalog.jsonl`).
   * `core/styles.py` actúa como fachada sobre `core/_styles_catalog.py` (declarativo, sin flags `use_*`) y `core/_styles_renderer.py`.
 
 ## 2. Convenciones del Repositorio

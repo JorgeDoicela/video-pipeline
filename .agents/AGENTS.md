@@ -80,7 +80,9 @@ video-pipeline/
 │   ├── create_project.py # Scaffolding automatizado de proyectos
 │   ├── generate_sfx.py   # Síntesis matemática de 15 efectos de sonido WAV y 3 pistas musicales loopables
 │   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth GeoJSON CC0, audio CC0 y conector Blender headless + 6 modelos 3D semilla .glb)
-│   └── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
+│   ├── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
+│   └── workspace.py      # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial append-only (catalog.jsonl)
+├── profiles/          # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)
 ├── templates/         # Catálogo de 7 plantillas esenciales (9:16 y 16:9)
 │   ├── explainer_scenes_9_16/ # Explainer faceless multi-escena vertical 9:16 (1080x1920)
 │   ├── explainer_scenes_16_9/ # Explainer faceless multi-escena horizontal 16:9 (1920x1080)
