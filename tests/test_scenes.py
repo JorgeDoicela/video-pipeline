@@ -618,6 +618,17 @@ def test_infinite_canvas_svg_draw_and_scene_3d_deterministic(tmp_path: Path, mon
     assert (proj_dir / "assets" / "vendor" / "three.module.js").exists()
     assert (proj_dir / "assets" / "vendor" / "three.core.js").exists()
 
+    # Fail-fast si falta node_modules/three en lugar de omitir silenciosamente
+    empty_repo = tmp_path / "empty_repo"
+    empty_repo.mkdir()
+    monkeypatch.setattr(scenes_mod, "REPO_ROOT", empty_repo)
+    proj_missing = tmp_path / "proj_3d_missing"
+    proj_missing.mkdir()
+    html_missing = proj_missing / "index.html"
+    html_missing.write_text(src_html.read_text(encoding="utf-8"), encoding="utf-8")
+    with pytest.raises(FileNotFoundError, match="pnpm install"):
+        inject_storyboard_into_html(html_missing, sb)
+
 
 def test_video_clip_hybrid_component_modes_and_asset_sync(tmp_path: Path):
     sb = StoryboardSpec(

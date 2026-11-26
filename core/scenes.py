@@ -4148,12 +4148,22 @@ def _sync_local_3d_assets(project_dir: Path, storyboard: StoryboardSpec) -> bool
     vendor_dir = project_dir / "assets" / "vendor"
     vendor_dir.mkdir(parents=True, exist_ok=True)
 
+    missing_core: list[str] = []
     for fname in ("three.module.js", "three.core.js"):
         src = three_build / fname
+        dst = vendor_dir / fname
         if src.exists():
-            dst = vendor_dir / fname
             if not dst.exists() or src.resolve() != dst.resolve():
                 shutil.copy2(src, dst)
+        elif not dst.exists():
+            missing_core.append(fname)
+
+    if missing_core:
+        raise FileNotFoundError(
+            f"No se encontró el runtime local de Three.js ({', '.join(missing_core)}) en "
+            f"'{three_build}'. Ejecuta 'pnpm install' en la raíz del repositorio antes de "
+            "compilar escenas 'scene_3d'."
+        )
 
     uses_model = False
     repo_models_dir = repo_root / "assets" / "models"
@@ -4164,12 +4174,17 @@ def _sync_local_3d_assets(project_dir: Path, storyboard: StoryboardSpec) -> bool
         uses_model = True
         filename = Path(model_raw).name
         src_model = repo_models_dir / filename
+        dst_models_dir = project_dir / "assets" / "models"
+        dst_model = dst_models_dir / filename
         if src_model.exists():
-            dst_models_dir = project_dir / "assets" / "models"
             dst_models_dir.mkdir(parents=True, exist_ok=True)
-            dst_model = dst_models_dir / filename
             if not dst_model.exists() or src_model.resolve() != dst_model.resolve():
                 shutil.copy2(src_model, dst_model)
+        elif not dst_model.exists():
+            raise FileNotFoundError(
+                f"No se encontró el modelo 3D '{filename}' en '{repo_models_dir}' ni en "
+                f"'{dst_models_dir}'. Regístralo con 'uv run python core/pipeline.py assets model'."
+            )
 
     if uses_model:
         three_jsm = repo_root / "node_modules" / "three" / "examples" / "jsm"
@@ -4178,13 +4193,21 @@ def _sync_local_3d_assets(project_dir: Path, storyboard: StoryboardSpec) -> bool
             ("utils/BufferGeometryUtils.js", "utils/BufferGeometryUtils.js"),
             ("utils/SkeletonUtils.js", "utils/SkeletonUtils.js"),
         ]
+        missing_addons: list[str] = []
         for rel_src, rel_dst in addon_files:
             src = three_jsm / rel_src
+            dst = vendor_dir / "addons" / rel_dst
             if src.exists():
-                dst = vendor_dir / "addons" / rel_dst
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 if not dst.exists() or src.resolve() != dst.resolve():
                     shutil.copy2(src, dst)
+            elif not dst.exists():
+                missing_addons.append(rel_src)
+        if missing_addons:
+            raise FileNotFoundError(
+                f"Faltan addons de Three.js ({', '.join(missing_addons)}) en '{three_jsm}'. "
+                "Ejecuta 'pnpm install' en la raíz del repositorio."
+            )
 
     return True
 
