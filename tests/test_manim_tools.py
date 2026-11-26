@@ -10,6 +10,7 @@ import pytest
 
 from core.manim_tools import (
     MANIM_PRESETS,
+    SEED_MANIM_SCENES,
     build_manim_env,
     build_manim_render_command,
     detect_scene_classes,
@@ -19,6 +20,7 @@ from core.manim_tools import (
     render_manim_scene,
     resolve_resolution_and_fps,
     scaffold_manim_scene,
+    seed_manim_library,
 )
 from core.scenes import (
     COMPONENT_REGISTRY,
@@ -87,6 +89,7 @@ def test_resolution_and_build_render_command():
 
 
 def test_scaffold_and_detect_scene_classes_for_all_presets(tmp_path):
+    assert len(MANIM_PRESETS) == 7
     for preset in MANIM_PRESETS:
         out = tmp_path / f"{preset}.py"
         created = scaffold_manim_scene(
@@ -99,6 +102,12 @@ def test_scaffold_and_detect_scene_classes_for_all_presets(tmp_path):
         content = created.read_text(encoding="utf-8")
         assert "get_pipeline_palette" in content
         assert '"paper_warm"' in content
+        compile(content, str(created), "exec")
+
+    seed_dir = tmp_path / "seeded"
+    seeded = seed_manim_library(scripts_dir=seed_dir)
+    assert len(seeded) == len(SEED_MANIM_SCENES)
+    assert all(p.is_file() for p in seeded)
 
     with pytest.raises(FileExistsError):
         scaffold_manim_scene("mi_math_proof", output_path=tmp_path / "math_proof.py", force=False)

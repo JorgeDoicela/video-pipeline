@@ -4321,10 +4321,13 @@ def _sync_local_video_assets(project_dir: Path, storyboard: StoryboardSpec) -> N
             script_ref = Path(str(scene.props["script"]))
             script_path = script_ref
             if not script_ref.is_absolute():
+                script_name = (
+                    script_ref.name if script_ref.suffix == ".py" else f"{script_ref.name}.py"
+                )
                 for candidate in (
                     project_dir / script_ref,
                     repo_root / script_ref,
-                    repo_root / "assets" / "manim" / script_ref.name,
+                    repo_root / "assets" / "manim" / script_name,
                 ):
                     if candidate.is_file():
                         script_path = candidate
@@ -4359,7 +4362,7 @@ def _sync_local_video_assets(project_dir: Path, storyboard: StoryboardSpec) -> N
                     transparent=bool(scene.props.get("transparent", False)),
                     output_dir=dest_dir,
                 )
-                continue
+            continue
 
         src_raw = (
             _resolve_manim_clip_filename(scene.props)

@@ -191,6 +191,12 @@ Para entregar cualquier proyecto listo para edición fina posterior en DaVinci R
   ```
 * **Garantías técnicas:** Alineación 1:1 de fotogramas (`-frames:v` sincronizado con FCPXML), soporte nativo `16:9` y `9:16` (`FFVideoFormatRateUndefined`), inserción automática de `<gap>` si existen huecos entre escenas y stems WAV 48 kHz 16-bit (`stem_voz`, `stem_musica`, `stem_sfx` o `stem_master`) anclados en `t=0s`.
 
+### 4.7. Escenas Matemáticas y Algorítmicas con Manim (`core/manim_tools.py`)
+Para visualizaciones matemáticas, geométricas o algorítmicas bajo demanda (sin LaTeX obligatorio y respetando la estética limpia con `build_scene_header()`):
+* **Catálogo de 7 presets:** `math_proof`, `algorithm_flow`, `vector_field`, `fourier_epicycles`, `neural_network`, `matrix_transform` y `sorting_algorithm`.
+* **Comandos:** `manim presets`, `manim seed` (genera las 5 escenas semilla en `assets/manim/`), `manim new <slug> --preset <preset> -s <tema>` y `manim render <script> --aspect 16:9|9:16 --quality preview|hd|prod [--transparent]`.
+* **Uso declarativo en `storyboard.json`:** `"component": "manim_clip"` con `"script": "fourier_series"` (acepta slug o ruta), sincronizado automáticamente con el tema y overrides de `package.json`.
+
 ---
 
 ## 5. Flujo de Trabajo y Comandos de Ejecución

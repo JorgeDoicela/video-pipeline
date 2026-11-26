@@ -61,9 +61,21 @@ ASPECT_RESOLUTIONS: dict[str, dict[str, tuple[int, int, int]]] = {
 }
 
 MANIM_PRESETS: dict[str, str] = {
-    "math_proof": "Ejes coordinados, curva funcional y transformación geométrica limpia (sin LaTeX obligatorio).",
-    "algorithm_flow": "Grafo de nodos, aristas animadas y recorrido de estado paso a paso.",
-    "vector_field": "Plano cartesiano con vectores, suma geométrica y trazado suave.",
+    "math_proof": "Ejes coordinados, curva funcional, recta tangente dinámica y área bajo la curva.",
+    "algorithm_flow": "Grafo de nodos con paquete de datos animado recorriendo el flujo paso a paso.",
+    "vector_field": "Plano cartesiano con suma vectorial, paralelogramo y descomposición geométrica.",
+    "fourier_epicycles": "Síntesis de Fourier con epiciclos rotatorios y trazado de onda en tiempo real.",
+    "neural_network": "Red neuronal multicapa con propagación hacia adelante (forward pass) y pulsos de activación.",
+    "matrix_transform": "Transformación lineal 2D de grilla, vectores base (i, j) y área del determinante.",
+    "sorting_algorithm": "Algoritmo de ordenamiento visualizado con comparaciones e intercambios animados.",
+}
+
+SEED_MANIM_SCENES: dict[str, tuple[str, str]] = {
+    "demo_sine_wave": ("math_proof", "dark_violet"),
+    "fourier_series": ("fourier_epicycles", "dark_violet"),
+    "neural_forward": ("neural_network", "dark_violet"),
+    "matrix_transform": ("matrix_transform", "paper_warm"),
+    "sorting_bars": ("sorting_algorithm", "clean_light"),
 }
 
 
@@ -173,6 +185,35 @@ def apply_pipeline_background(scene: Any, palette: dict[str, str]) -> None:
     """Aplica el color de fondo del tema solo cuando no se solicitó canal alfa transparente."""
     if not is_transparent_render():
         scene.camera.background_color = palette["bg"]
+
+
+def build_scene_header(
+    title: str,
+    subtitle: str,
+    palette: dict[str, str],
+    vertical: bool = False,
+) -> Any:
+    """
+    Construye un encabezado tipográfico limpio (sin cajas, cápsulas ni líneas horizontales)
+    sincronizado con los tokens del pipeline para cualquier escena Manim.
+    """
+    from manim import DOWN, UP, Text, VGroup  # import diferido para no exigir manim en CI
+
+    eyebrow = Text(
+        subtitle.upper(),
+        font=palette["font_mono"],
+        color=palette["accent_primary"],
+        weight="BOLD",
+    ).scale(0.24 if vertical else 0.34)
+    heading = Text(
+        title,
+        font=palette["font_sans"],
+        color=palette["text_primary"],
+        weight="BOLD",
+    ).scale(0.42 if vertical else 0.66)
+    group = VGroup(eyebrow, heading).arrange(DOWN, buff=0.14 if vertical else 0.18)
+    group.to_edge(UP, buff=0.42 if vertical else 0.45)
+    return group
 
 
 def get_pipeline_palette(default_theme: str = DEFAULT_THEME) -> dict[str, str]:
@@ -394,6 +435,434 @@ def render_manim_scene(
 
 
 def _preset_source(preset: str, class_name: str, default_theme: str) -> str:
+    if preset == "fourier_epicycles":
+        return f'''"""Escena Manim generada por video-pipeline (preset: fourier_epicycles)."""
+
+import math
+
+from manim import *
+
+from core.manim_tools import (
+    apply_pipeline_background,
+    build_scene_header,
+    get_pipeline_palette,
+    is_vertical_aspect,
+)
+
+
+class {class_name}(Scene):
+    def construct(self):
+        p = get_pipeline_palette("{default_theme}")
+        vertical = is_vertical_aspect()
+        apply_pipeline_background(self, p)
+
+        header = build_scene_header(
+            "Síntesis de Fourier", "Epiciclos · 4 Armónicos", p, vertical=vertical
+        )
+        harmonics = [1, 3, 5, 7]
+        base_r = 0.85 if vertical else 1.45
+        origin = np.array([0.0, 1.35, 0.0]) if vertical else np.array([-3.3, -0.35, 0.0])
+        wave_start_x = -1.65 if vertical else -0.45
+        wave_len = 3.3 if vertical else 6.0
+        wave_y_base = -1.65 if vertical else -0.35
+
+        phase = ValueTracker(0.0)
+        colors = [
+            p["accent_primary"],
+            p["accent_secondary"],
+            p["accent_tertiary"],
+            p["accent_warning"],
+        ]
+
+        def epicycle_points(t: float) -> list[np.ndarray]:
+            pts = [origin.copy()]
+            cur = origin.copy()
+            for n in harmonics:
+                r = base_r * (4.0 / (n * math.pi)) * 0.55
+                angle = n * t
+                cur = cur + np.array([r * math.cos(angle), r * math.sin(angle), 0.0])
+                pts.append(cur.copy())
+            return pts
+
+        epicycles = always_redraw(
+            lambda: VGroup(
+                *[
+                    VGroup(
+                        Circle(
+                            radius=base_r * (4.0 / (n * math.pi)) * 0.55,
+                            color=colors[i % len(colors)],
+                            stroke_width=2.0 if i == 0 else 1.5,
+                            stroke_opacity=0.65,
+                        ).move_to(epicycle_points(phase.get_value())[i]),
+                        Line(
+                            epicycle_points(phase.get_value())[i],
+                            epicycle_points(phase.get_value())[i + 1],
+                            color=colors[i % len(colors)],
+                            stroke_width=3.0 if i == 0 else 2.2,
+                        ),
+                    )
+                    for i, n in enumerate(harmonics)
+                ]
+            )
+        )
+
+        tip_dot = always_redraw(
+            lambda: Dot(
+                epicycle_points(phase.get_value())[-1],
+                radius=0.07,
+                color=p["accent_secondary"],
+            )
+        )
+
+        def build_wave() -> VMobject:
+            t_now = phase.get_value()
+            samples = 140
+            pts = []
+            for k in range(samples):
+                u = k / (samples - 1)
+                tau = t_now - u * 2.0 * math.pi
+                y_sum = sum(
+                    base_r * (4.0 / (n * math.pi)) * 0.55 * math.sin(n * tau) for n in harmonics
+                )
+                x_pos = wave_start_x + u * wave_len
+                pts.append(np.array([x_pos, wave_y_base + y_sum, 0.0]))
+            mob = VMobject(color=p["accent_primary"], stroke_width=4.0)
+            mob.set_points_smoothly(pts)
+            return mob
+
+        wave = always_redraw(build_wave)
+
+        connector = always_redraw(
+            lambda: DashedLine(
+                epicycle_points(phase.get_value())[-1],
+                np.array(
+                    [
+                        wave_start_x,
+                        wave_y_base
+                        + sum(
+                            base_r
+                            * (4.0 / (n * math.pi))
+                            * 0.55
+                            * math.sin(n * phase.get_value())
+                            for n in harmonics
+                        ),
+                        0.0,
+                    ]
+                ),
+                color=p["text_muted"],
+                stroke_width=1.8,
+                dash_length=0.1,
+            )
+        )
+
+        baseline = Line(
+            np.array([wave_start_x, wave_y_base, 0.0]),
+            np.array([wave_start_x + wave_len, wave_y_base, 0.0]),
+            color=p["cable_idle"],
+            stroke_width=1.5,
+        )
+
+        caption = Text(
+            "f(t) = (4/pi) * [sin(t) + sin(3t)/3 + sin(5t)/5 + sin(7t)/7]",
+            font=p["font_mono"],
+            color=p["text_secondary"],
+        ).scale(0.22 if vertical else 0.36)
+        caption.to_edge(DOWN, buff=0.45)
+
+        self.play(FadeIn(header, shift=DOWN * 0.2), Create(baseline), run_time=0.6)
+        self.add(epicycles, wave, connector, tip_dot)
+        self.play(FadeIn(caption), run_time=0.4)
+        self.play(phase.animate.set_value(4.0 * math.pi), run_time=5.5, rate_func=linear)
+        self.wait(0.5)
+'''
+
+    if preset == "neural_network":
+        return f'''"""Escena Manim generada por video-pipeline (preset: neural_network)."""
+
+from manim import *
+
+from core.manim_tools import (
+    apply_pipeline_background,
+    build_scene_header,
+    get_pipeline_palette,
+    is_vertical_aspect,
+)
+
+
+class {class_name}(Scene):
+    def construct(self):
+        p = get_pipeline_palette("{default_theme}")
+        vertical = is_vertical_aspect()
+        apply_pipeline_background(self, p)
+
+        header = build_scene_header(
+            "Propagación en Red Neuronal", "Forward Pass · Activación", p, vertical=vertical
+        )
+        layer_sizes = [3, 5, 4, 2]
+        layer_names = ["Entrada", "Oculta 1", "Oculta 2", "Salida"]
+        layer_colors = [
+            p["accent_primary"],
+            p["accent_secondary"],
+            p["accent_tertiary"],
+            p["accent_warning"],
+        ]
+
+        x_spacing = 1.05 if vertical else 2.75
+        y_spacing = 0.62 if vertical else 0.92
+        radius = 0.16 if vertical else 0.26
+
+        layers: list[VGroup] = []
+        labels = VGroup()
+        for li, (count, name, col) in enumerate(
+            zip(layer_sizes, layer_names, layer_colors, strict=True)
+        ):
+            x_pos = (li - (len(layer_sizes) - 1) / 2.0) * x_spacing
+            neurons = VGroup()
+            for ni in range(count):
+                y_pos = ((count - 1) / 2.0 - ni) * y_spacing - 0.25
+                dot = Circle(
+                    radius=radius,
+                    stroke_color=col,
+                    stroke_width=3.0,
+                    fill_color=p["surface"],
+                    fill_opacity=1.0,
+                ).move_to(np.array([x_pos, y_pos, 0.0]))
+                dot.set_z_index(3)
+                neurons.add(dot)
+            layers.append(neurons)
+            lbl = Text(name, font=p["font_mono"], color=p["text_secondary"]).scale(
+                0.20 if vertical else 0.30
+            )
+            lbl.move_to(np.array([x_pos, -2.65 if not vertical else -2.15, 0.0]))
+            labels.add(lbl)
+
+        edges_by_stage: list[VGroup] = []
+        for li in range(len(layers) - 1):
+            stage_edges = VGroup()
+            for n_src in layers[li]:
+                for n_dst in layers[li + 1]:
+                    line = Line(
+                        n_src.get_center(),
+                        n_dst.get_center(),
+                        stroke_color=p["cable_idle"],
+                        stroke_width=1.4 if vertical else 1.8,
+                        stroke_opacity=0.55,
+                    )
+                    stage_edges.add(line)
+            edges_by_stage.append(stage_edges)
+
+        self.play(FadeIn(header, shift=DOWN * 0.2), run_time=0.5)
+        self.play(
+            LaggedStart(*[Create(st) for st in edges_by_stage], lag_ratio=0.15),
+            LaggedStart(*[FadeIn(ly, scale=0.8) for ly in layers], lag_ratio=0.15),
+            FadeIn(labels),
+            run_time=1.3,
+        )
+
+        # Forward pass con pulsos luminosos viajando entre capas
+        for li, stage_edges in enumerate(edges_by_stage):
+            col = layer_colors[li]
+            pulses = [
+                ShowPassingFlash(
+                    edge.copy().set_stroke(color=col, width=3.5, opacity=1.0),
+                    time_width=0.45,
+                )
+                for edge in stage_edges
+            ]
+            target_glow = [
+                neuron.animate.set_fill(layer_colors[li + 1], opacity=0.85)
+                for neuron in layers[li + 1]
+            ]
+            self.play(*pulses, run_time=0.85)
+            self.play(*target_glow, run_time=0.35)
+
+        self.play(Indicate(layers[-1][0], color=p["accent_warning"], scale_factor=1.35), run_time=0.7)
+        self.wait(0.8)
+'''
+
+    if preset == "matrix_transform":
+        return f'''"""Escena Manim generada por video-pipeline (preset: matrix_transform)."""
+
+from manim import *
+
+from core.manim_tools import (
+    apply_pipeline_background,
+    build_scene_header,
+    get_pipeline_palette,
+    is_vertical_aspect,
+)
+
+
+class {class_name}(Scene):
+    def construct(self):
+        p = get_pipeline_palette("{default_theme}")
+        vertical = is_vertical_aspect()
+        apply_pipeline_background(self, p)
+
+        header = build_scene_header(
+            "Transformación Lineal 2D", "Matriz A = [[1.5, 0.8], [0.3, 1.3]]", p, vertical=vertical
+        )
+        header.set_z_index(10)
+        header_mask = BackgroundRectangle(header, color=p["bg"], fill_opacity=0.92, buff=0.18)
+        header_mask.set_z_index(9)
+
+        bg_grid = NumberPlane(
+            x_range=[-5, 5, 1] if vertical else [-7, 7, 1],
+            y_range=[-5, 5, 1] if vertical else [-4, 4, 1],
+            background_line_style={{"stroke_color": p["cable_idle"], "stroke_opacity": 0.25}},
+            axis_config={{"stroke_color": p["text_muted"], "stroke_opacity": 0.4}},
+        )
+        grid = NumberPlane(
+            x_range=[-4, 4, 1] if vertical else [-6, 6, 1],
+            y_range=[-4, 4, 1] if vertical else [-4, 4, 1],
+            background_line_style={{"stroke_color": p["accent_primary"], "stroke_opacity": 0.48}},
+            axis_config={{"stroke_color": p["text_primary"], "stroke_width": 2.2}},
+        )
+
+        unit_sq = Polygon(
+            ORIGIN,
+            RIGHT,
+            RIGHT + UP,
+            UP,
+            stroke_color=p["accent_warning"],
+            stroke_width=2.5,
+            fill_color=p["accent_warning"],
+            fill_opacity=0.22,
+        )
+        i_hat = Arrow(ORIGIN, RIGHT, buff=0, color=p["accent_secondary"], stroke_width=6)
+        j_hat = Arrow(ORIGIN, UP, buff=0, color=p["accent_tertiary"], stroke_width=6)
+        v_vec = Arrow(ORIGIN, RIGHT * 1.0 + UP * 1.5, buff=0, color=p["accent_primary"], stroke_width=6)
+
+        transform_group = VGroup(grid, unit_sq, i_hat, j_hat, v_vec)
+        if vertical:
+            bg_grid.scale(0.60).shift(DOWN * 0.25)
+            transform_group.scale(0.60).shift(DOWN * 0.25)
+        else:
+            bg_grid.scale(0.84).shift(DOWN * 0.22)
+            transform_group.scale(0.84).shift(DOWN * 0.22)
+
+        det_label = Text(
+            "det(A) = 1.5 * 1.3 - 0.8 * 0.3 = 1.71x área",
+            font=p["font_mono"],
+            color=p["text_primary"],
+        ).scale(0.24 if vertical else 0.38)
+        det_label.to_edge(DOWN, buff=0.42)
+        det_label.set_z_index(10)
+        det_mask = BackgroundRectangle(det_label, color=p["bg"], fill_opacity=0.92, buff=0.15)
+        det_mask.set_z_index(9)
+
+        matrix = [[1.5, 0.8], [0.3, 1.3]]
+
+        self.play(
+            FadeIn(bg_grid),
+            Create(grid),
+            FadeIn(header_mask),
+            FadeIn(header, shift=DOWN * 0.2),
+            run_time=0.9,
+        )
+        self.play(FadeIn(unit_sq), GrowArrow(i_hat), GrowArrow(j_hat), GrowArrow(v_vec), run_time=0.9)
+        self.wait(0.4)
+        self.play(ApplyMatrix(matrix, transform_group), run_time=2.2, rate_func=smooth)
+        self.play(FadeIn(det_mask), FadeIn(det_label, shift=UP * 0.15), run_time=0.5)
+        self.wait(1.0)
+'''
+
+    if preset == "sorting_algorithm":
+        return f'''"""Escena Manim generada por video-pipeline (preset: sorting_algorithm)."""
+
+from manim import *
+
+from core.manim_tools import (
+    apply_pipeline_background,
+    build_scene_header,
+    get_pipeline_palette,
+    is_vertical_aspect,
+)
+
+
+class {class_name}(Scene):
+    def construct(self):
+        p = get_pipeline_palette("{default_theme}")
+        vertical = is_vertical_aspect()
+        apply_pipeline_background(self, p)
+
+        header = build_scene_header(
+            "Ordenamiento Paso a Paso", "Algoritmo · Comparación e Intercambio", p, vertical=vertical
+        )
+
+        values = [6, 2, 8, 4, 7, 3]
+        bar_w = 0.42 if vertical else 0.92
+        gap = 0.16 if vertical else 0.35
+        scale_h = 0.32 if vertical else 0.46
+        base_y = -2.15 if vertical else -2.25
+
+        bars: list[VGroup] = []
+        n = len(values)
+        total_w = n * bar_w + (n - 1) * gap
+        start_x = -total_w / 2.0 + bar_w / 2.0
+
+        for idx, val in enumerate(values):
+            h = val * scale_h
+            rect = RoundedRectangle(
+                corner_radius=0.08,
+                width=bar_w,
+                height=h,
+                stroke_color=p["accent_primary"],
+                stroke_width=2.5,
+                fill_color=p["surface"],
+                fill_opacity=0.95,
+            )
+            x = start_x + idx * (bar_w + gap)
+            rect.move_to(np.array([x, base_y + h / 2.0, 0.0]))
+            num = Text(str(val), font=p["font_mono"], color=p["text_primary"]).scale(
+                0.28 if vertical else 0.44
+            )
+            num.next_to(rect, UP, buff=0.14)
+            bars.append(VGroup(rect, num))
+
+        self.play(FadeIn(header, shift=DOWN * 0.2), run_time=0.5)
+        self.play(LaggedStart(*[FadeIn(b, shift=UP * 0.25) for b in bars], lag_ratio=0.1), run_time=0.8)
+
+        # Bubble Sort real animado (ordenando los elementos en vivo)
+        arr = list(values)
+        for end in range(n - 1, 0, -1):
+            for j in range(end):
+                b1, b2 = bars[j], bars[j + 1]
+                self.play(
+                    b1[0].animate.set_stroke(p["accent_warning"], width=4),
+                    b2[0].animate.set_stroke(p["accent_warning"], width=4),
+                    run_time=0.18,
+                )
+                if arr[j] > arr[j + 1]:
+                    dx = b2[0].get_center()[0] - b1[0].get_center()[0]
+                    self.play(
+                        b1.animate.shift(RIGHT * dx),
+                        b2.animate.shift(LEFT * dx),
+                        run_time=0.28,
+                    )
+                    arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                    bars[j], bars[j + 1] = bars[j + 1], bars[j]
+                self.play(
+                    bars[j][0].animate.set_stroke(p["accent_primary"], width=2.5),
+                    bars[j + 1][0].animate.set_stroke(p["accent_primary"], width=2.5),
+                    run_time=0.12,
+                )
+            self.play(
+                bars[end][0].animate.set_stroke(p["accent_secondary"], width=3.5).set_fill(
+                    p["accent_secondary"], opacity=0.22
+                ),
+                run_time=0.18,
+            )
+
+        self.play(
+            bars[0][0].animate.set_stroke(p["accent_secondary"], width=3.5).set_fill(
+                p["accent_secondary"], opacity=0.22
+            ),
+            run_time=0.25,
+        )
+        self.wait(0.8)
+'''
+
     if preset == "algorithm_flow":
         return f'''"""Escena Manim generada por video-pipeline (preset: algorithm_flow)."""
 
@@ -558,6 +1027,32 @@ def scaffold_manim_scene(
     return target
 
 
+def seed_manim_library(
+    *,
+    scripts_dir: Path | None = None,
+    force: bool = False,
+) -> list[Path]:
+    """Genera el catálogo completo de escenas semilla profesionales en assets/manim/."""
+    target_dir = scripts_dir or MANIM_SCRIPTS_DIR
+    target_dir.mkdir(parents=True, exist_ok=True)
+    created: list[Path] = []
+    for slug, (preset, theme_slug) in SEED_MANIM_SCENES.items():
+        dest = target_dir / f"{slug}.py"
+        if dest.exists() and not force:
+            created.append(dest)
+            continue
+        created.append(
+            scaffold_manim_scene(
+                slug,
+                preset=preset,
+                theme_slug=theme_slug,
+                output_path=dest,
+                force=force,
+            )
+        )
+    return created
+
+
 def list_manim_assets(
     scripts_dir: Path | None = None, videos_dir: Path | None = None
 ) -> dict[str, list[str]]:
@@ -586,6 +1081,18 @@ def register_manim_subparsers(parser: argparse.ArgumentParser, dest: str = "mani
         "list", help="Listar scripts en assets/manim/ y clips en assets/videos/"
     )
     p_list.add_argument("--json", action="store_true", help="Exportar inventario en JSON")
+
+    p_presets = sub.add_parser(
+        "presets", help="Listar los presets profesionales disponibles para 'manim new'"
+    )
+    p_presets.add_argument("--json", action="store_true", help="Exportar presets en JSON")
+
+    p_seed = sub.add_parser(
+        "seed", help="Generar la biblioteca de escenas semilla profesionales en assets/manim/"
+    )
+    p_seed.add_argument(
+        "-f", "--force", action="store_true", help="Sobrescribir scripts semilla existentes"
+    )
 
     p_new = sub.add_parser("new", help="Crear una escena Manim lista y sincronizada con los temas")
     p_new.add_argument("slug", help="Nombre/slug del archivo (ej. fourier_transform)")
@@ -663,6 +1170,23 @@ def dispatch_manim_action(
             print(f"  Scripts (assets/manim/) : {', '.join(inv['scripts']) or '(ninguno)'}")
             print(f"  Clips   (assets/videos/): {', '.join(inv['videos']) or '(ninguno)'}")
             print()
+            return
+
+        if action == "presets":
+            if getattr(args, "json", False):
+                print(json.dumps(MANIM_PRESETS, indent=2, ensure_ascii=False))
+                return
+            print("\n=== PRESETS PROFESIONALES DE MANIM ===")
+            for name, desc in MANIM_PRESETS.items():
+                print(f"  - {name:<18} : {desc}")
+            print()
+            return
+
+        if action == "seed":
+            seeded = seed_manim_library(force=args.force)
+            print(
+                f"[Manim] Catálogo semilla listo ({len(seeded)} escena(s)) en {MANIM_SCRIPTS_DIR}"
+            )
             return
 
         if action == "new":

@@ -235,9 +235,10 @@ El modulo [workspace.py](../../core/workspace.py) centraliza la operacion multi-
 
 ### 5.4. Integracion Manim Community (`core/manim_tools.py`)
 
-El modulo [manim_tools.py](../../core/manim_tools.py) permite compilar escenas matematicas, geometricas y algoritmicas en Manim Community sincronizadas con los tokens de diseno del proyecto (`VIDEO_PIPELINE_PALETTE` inyectado desde `package.json`):
+El modulo [manim_tools.py](../../core/manim_tools.py) permite compilar escenas matematicas, geometricas y algoritmicas en Manim Community sincronizadas con los tokens de diseno del proyecto (`VP_MANIM_PALETTE_JSON` inyectado desde `package.json`) y sin requerir LaTeX para operar:
 
-* **Comandos CLI:** `manim doctor`, `manim new <slug> --preset <equation|graph|algorithm|geometry|blank>` y `manim render <script> [--project] [--aspect 16:9|9:16] [--quality preview|hd|prod] [--transparent]`.
+* **Comandos CLI:** `manim doctor`, `manim presets [--json]`, `manim seed [--force]`, `manim list [--json]`, `manim new <slug> --preset <math_proof|algorithm_flow|vector_field|fourier_epicycles|neural_network|matrix_transform|sorting_algorithm>` y `manim render <script> [--project] [--aspect 16:9|9:16] [--quality preview|hd|prod] [--transparent]`.
+* **Biblioteca semilla (`assets/manim/`):** 5 escenas listas para usar y adaptar (`demo_sine_wave.py`, `fourier_series.py`, `neural_forward.py`, `matrix_transform.py`, `sorting_bars.py`) usando el helper limpio `build_scene_header()` y los 3 temas del pipeline.
 * **Integracion declarativa:** El componente `manim_clip` en `core/scenes.py` compila bajo demanda el `.py` si el video no existe o si cambiaron el script o `package.json`, y valida de forma *fail-fast* su existencia.
 
 ### 5.5. Exportador Modular para Editores NLE (`core/nle_export.py`)
