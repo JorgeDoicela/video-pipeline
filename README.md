@@ -160,6 +160,7 @@ video-pipeline/
 │   ├── images/            # Imágenes procesadas y recortes transparentes (cutouts PNG/WEBP, .gitkeep)
 │   ├── models/            # Modelos 3D abiertos glTF/GLB (.glb, .gltf) para el componente scene_3d (.gitkeep)
 │   ├── manim/             # Escenas Python de Manim sincronizadas con la paleta del pipeline (5 escenas semilla)
+│   ├── videos/            # Clips de video locales, renders Manim y salidas de Gemini Omni (.gitkeep; MP4/WebM ignorados en Git)
 │   ├── fonts/             # Tipografías locales del sistema (.gitkeep)
 │   └── icons/             # 18 iconos técnicos vectoriales SVG (Docker, K8s, Kafka, Redis, Shield, Lock, Radar, etc.)
 ├── core/                   # Herramientas del motor compartido
