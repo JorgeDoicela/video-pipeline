@@ -458,7 +458,7 @@ def generate_genai_image(
     model: str = DEFAULT_IMAGE_MODEL,
     aspect_ratio: str | None = None,
     image_size: str | None = None,
-    mime_type: str = "image/png",
+    mime_type: str | None = None,
     previous_interaction_id: str | None = None,
     project: str | Path | None = None,
     output_path: str | Path | None = None,
@@ -475,11 +475,13 @@ def generate_genai_image(
         raise ValueError(f"Aspect ratio '{aspect_ratio}' inválido para imagen.")
     if image_size and image_size not in IMAGE_SIZES:
         raise ValueError(f"Tamaño '{image_size}' inválido. Usa: {', '.join(sorted(IMAGE_SIZES))}.")
-    if mime_type not in {"image/png", "image/jpeg", "image/webp"}:
-        raise ValueError(f"MIME de salida '{mime_type}' inválido para imagen.")
+    if mime_type is not None and mime_type not in {"image/jpeg"}:
+        raise ValueError(
+            "Para response_format.mime_type solo se soporta 'image/jpeg' (omite --mime para PNG nativo)."
+        )
 
     require_gemini_api_key()
-    genai, _, errors = load_genai_sdk()
+    genai, _, _ = load_genai_sdk()
 
     input_payload: str | list[dict[str, str]]
     if refs:
@@ -489,7 +491,9 @@ def generate_genai_image(
     else:
         input_payload = prompt
 
-    resp_format: dict[str, Any] = {"type": "image", "mime_type": mime_type}
+    resp_format: dict[str, Any] = {"type": "image"}
+    if mime_type:
+        resp_format["mime_type"] = mime_type
     if aspect_ratio:
         resp_format["aspect_ratio"] = aspect_ratio
     if image_size:
@@ -506,14 +510,14 @@ def generate_genai_image(
     client = genai.Client()
     try:
         interaction = client.interactions.create(**create_kwargs)
-    except errors.APIError as exc:
+    except Exception as exc:
         raise RuntimeError(f"Error de Gemini API generando imagen: {sanitize_error(exc)}") from exc
 
     out_img = getattr(interaction, "output_image", None)
     if not out_img or not getattr(out_img, "data", None):
         raise RuntimeError("La respuesta de Gemini API no devolvió bytes de imagen.")
 
-    out_mime = getattr(out_img, "mime_type", None) or mime_type
+    out_mime = getattr(out_img, "mime_type", None) or mime_type or "image/png"
     ext = ".jpg" if "jpeg" in out_mime else (".webp" if "webp" in out_mime else ".png")
     dest = _resolve_asset_output_path(
         kind_subdir="images",
@@ -627,8 +631,10 @@ def generate_genai_video(
     )
 
     require_gemini_api_key()
-    genai, types, errors = load_genai_sdk()
-    client = genai.Client(http_options=types.HttpOptions(timeout=int(timeout) * 1000))
+    genai, types, _ = load_genai_sdk()
+    client = genai.Client(
+        http_options=types.HttpOptions(api_version="v1beta", timeout=int(timeout) * 1000)
+    )
 
     input_parts: list[dict[str, str]] = []
     f1_uri: str | None = None
@@ -735,7 +741,7 @@ def generate_genai_video(
     )
     try:
         interaction = client.interactions.create(**create_kwargs)
-    except errors.APIError as exc:
+    except Exception as exc:
         raise RuntimeError(f"Error de Gemini API generando video: {sanitize_error(exc)}") from exc
 
     out_vid = getattr(interaction, "output_video", None)
@@ -906,7 +912,7 @@ def generate_genai_tts(
             response_format={"type": "audio"},
             generation_config={"speech_config": speech_config},
         )
-    except errors.APIError as exc:
+    except Exception as exc:
         raise RuntimeError(f"Error de Gemini API generando TTS: {sanitize_error(exc)}") from exc
 
     out_audio = getattr(interaction, "output_audio", None)
@@ -968,7 +974,7 @@ def generate_genai_music(
             model=clean_model,
             input=input_payload,
         )
-    except errors.APIError as exc:
+    except Exception as exc:
         raise RuntimeError(f"Error de Gemini API generando música: {sanitize_error(exc)}") from exc
 
     out_audio = getattr(interaction, "output_audio", None)
@@ -1026,7 +1032,7 @@ def register_genai_subparsers(parser: argparse.ArgumentParser, dest: str = "gena
         "--size", default=None, choices=sorted(IMAGE_SIZES), help="Resolución (512, 1K, 2K, 4K)"
     )
     p_img.add_argument(
-        "--mime", default="image/png", choices=["image/png", "image/jpeg", "image/webp"]
+        "--mime", default=None, choices=["image/jpeg"], help="Forzar JPEG (omitir para PNG nativo)"
     )
     p_img.add_argument("--previous-interaction-id", help="Continuar edición desde un turno previo")
     p_img.add_argument("-p", "--project", help="Proyecto destino (<proyecto>/assets/images/)")
