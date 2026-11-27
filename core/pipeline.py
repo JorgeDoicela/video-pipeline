@@ -43,6 +43,10 @@ from core.fetch_assets import (  # noqa: E402
     dispatch_assets_action,
     register_assets_subparsers,
 )
+from core.genai_media import (  # noqa: E402
+    dispatch_genai_action,
+    register_genai_subparsers,
+)
 from core.image_tools import (  # noqa: E402
     dispatch_image_action,
     register_image_subparsers,
@@ -710,6 +714,13 @@ def main():
     )
     register_manim_subparsers(p_manim, dest="manim_action")
 
+    # Subcomando: genai (opcional bajo demanda)
+    p_genai = subparsers.add_parser(
+        "genai",
+        help="Conector opcional bajo demanda para Google Gemini API (Nano Banana, Omni Flash, TTS, Lyria)",
+    )
+    register_genai_subparsers(p_genai, dest="genai_action")
+
     # Subcomando: export-nle
     p_nle = subparsers.add_parser(
         "export-nle",
@@ -910,6 +921,8 @@ def main():
         dispatch_image_action(args, parser=p_image, action_attr="image_action")
     elif args.subcommand == "manim":
         dispatch_manim_action(args, parser=p_manim, action_attr="manim_action")
+    elif args.subcommand == "genai":
+        dispatch_genai_action(args, parser=p_genai, action_attr="genai_action")
     elif args.subcommand == "export-nle":
         try:
             export_nle_package(

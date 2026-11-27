@@ -253,6 +253,19 @@ El modulo [nle_export.py](../../core/nle_export.py) empaqueta cualquier proyecto
 | `timeline.fcpxml` | Proyecto FCPXML v1.10 con marcadores por acto, `FFVideoFormat<H>p<FPS>` para `16:9` estandar y `FFVideoFormatRateUndefined` para vertical `9:16` u otras resoluciones, insercion automatica de `<gap>` en `<spine>` si existen huecos, overlays alfa en `lane="1"` y stems anclados en `t=0s` en `lane="-1"`, `"-2"`, `"-3"`. |
 | `manifest.json` | Inventario estructurado de resolucion, FPS, clips, capas, stems y subtitulos exportados. |
 
+### 5.6. Conector Opcional Google Gemini API (`core/genai_media.py`)
+
+El modulo [genai_media.py](../../core/genai_media.py) es un adaptador estrictamente **opcional y bajo demanda** sobre el SDK oficial `google-genai>=3.5.0` (extra `.[genai]`, importacion diferida) usando la variable de entorno `GEMINI_API_KEY` del operador. No interviene en ningun flujo local salvo invocacion explicita de `pipeline.py genai`:
+
+| Subcomando | Modelo por defecto | Capacidades clave y salida |
+| :--- | :--- | :--- |
+| `genai doctor [--json]` | — | Verifica disponibilidad del SDK `google-genai`, `ffmpeg`/`ffprobe` y estado booleano de `GEMINI_API_KEY` sin exponer credenciales. |
+| `genai models [--json]` | — | Lista modelos actuales por modalidad rechazando identificadores obsoletos (`gemini-2.5-*`, `omni-1.1`, `3.1-flash-image`). |
+| `genai image <prompt>` | `gemini-nano-banana-2.1` | Genera o edita imagenes con hasta 14 referencias (`-i`), relacion de aspecto (`--aspect-ratio`), tamaño (`--size 1K\|2K\|4K`) y edicion por turnos (`--previous-interaction-id`). Guarda en `assets/images/`. |
+| `genai video <prompt>` | `gemini-omni-1.2-flash` | Sube referencias via `Files API` (polling `ACTIVE`), valida duracion (`3..15s`, `3..10s` en transicion dos frames o extension) y descarga MP4 (`360p` a `4k`) hacia `assets/videos/`. Soporta `--first-frame`, `--last-frame`, `--image`, `--video`, `--extend` y `--strip-audio`. |
+| `genai tts [texto]` | `gemini-3.8-flash-tts` | Locucion `v1beta` con `speech_metadata` para 1 locutor (`--voice`, `--style`) o dialogo multi-personaje (`--speakers "A=Puck,B=Kore"` o `--turns-json`), normalizado a WAV PCM 48 kHz 16-bit en `assets/audio/`. |
+| `genai music <prompt>` | `lyria-3.5` | Compone pistas desde descripcion o imagen de referencia (`-i`) hacia `assets/music/` normalizadas opcionalmente a WAV 48 kHz listas para `--music`. |
+
 ---
 
 ## 6. Enlaces Relacionados

@@ -11,7 +11,7 @@ Este archivo define las reglas obligatorias de comportamiento, estándares de ca
   * **Transcripción:** `faster-whisper` (CTranslate2, modelo int8, marcas de tiempo palabra por palabra).
   * **Procesamiento de Audio/Video:** FFmpeg con aceleración nativa VA-API (Mesa/Radeon ACO).
   * **Renderizado y Motion Graphics:** HyperFrames (Chrome Headless Shell con `BeginFrame` determinista), GSAP 3.15.0 (+ `MotionPathPlugin`) y Three.js (WebGL determinista + `GLTFLoader` para modelos `.glb` de Blender).
-* **Política de Cero Costes en la Nube:** Queda prohibida la dependencia de APIs externas de pago (ElevenLabs, fal.ai, HeyGen SaaS, OpenAI Audio). Todo cómputo debe ejecutarse localmente.
+* **Política de Cero Costes en la Nube (Núcleo Local por Defecto):** El pipeline base funciona 100% localmente y a coste marginal cero, sin depender de APIs SaaS cerradas (ElevenLabs, fal.ai, HeyGen SaaS, OpenAI Audio). El conector opcional [genai_media.py](../core/genai_media.py) (`pipeline.py genai`) opera estrictamente bajo demanda del usuario mediante su propia variable de entorno `GEMINI_API_KEY`.
 
 ---
 
@@ -82,6 +82,7 @@ video-pipeline/
 │   ├── fetch_assets.py   # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth GeoJSON CC0, audio CC0 y conector Blender headless + 6 modelos 3D semilla .glb)
 │   ├── image_tools.py    # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
 │   ├── manim_tools.py    # Integración Manim Community (doctor, new, render 16:9/9:16/alpha, paleta sincronizada y componente manim_clip)
+│   ├── genai_media.py    # Conector opcional bajo demanda para Google Gemini API (Nano Banana 2.1, Omni Flash, TTS, Lyria)
 │   ├── nle_export.py     # Exportador NLE (DaVinci Resolve / Premiere / FCP): clips exactos al frame, --split-layers alfa, stems WAV y FCPXML v1.10
 │   └── workspace.py      # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial append-only (catalog.jsonl)
 ├── profiles/          # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)

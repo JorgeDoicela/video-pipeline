@@ -354,6 +354,25 @@ uv run python core/pipeline.py assets audio cine_hit --file ./mi_impacto.mp3 --t
 uv run python core/pipeline.py assets audio mi_cama --file ./track.wav --type music
 ```
 
+### 4.6. Generación Multimedia Opcional con Google Gemini API (`genai`)
+Cuando un proyecto requiera sintetizar planos animados en video, locuciones multi-personaje, música original o variaciones de personaje que superen la librería local (sin perder la gratuidad del núcleo por defecto), el módulo opcional `core/genai_media.py` requiere instalar `uv pip install -e ".[dev,genai]"` y definir `GEMINI_API_KEY`:
+
+```bash
+# 1. Verificar SDK y presencia de credenciales (sin imprimir secretos)
+uv run python core/pipeline.py genai doctor
+
+# 2. Imagen consistente con Nano Banana 2.1 usando referencia local
+uv run python core/pipeline.py genai image "Plano medio 9:16 dentro de la heladería" -i coco.jpg --aspect-ratio 9:16 --size 2K -p mi-proyecto --slug escena_2
+
+# 3. Animar imagen inicial a clip MP4 real 9:16 con Gemini Omni 1.2 Flash
+uv run python core/pipeline.py genai video "Coco sonríe mirando a cámara" --first-frame projects/mi-proyecto/assets/images/escena_2.png --aspect-ratio 9:16 --resolution 1080p --duration 5 -p mi-proyecto --slug clip_coco
+
+# 4. Diálogo multi-personaje normalizado a WAV 48 kHz (Gemini 3.8 TTS)
+uv run python core/pipeline.py genai tts "Coco: Bienvenida. Fresa: Quiero la receta secreta." --speakers "Coco=Puck,Fresa=Kore" --style "dramatic" -p mi-proyecto --slug dialogo
+```
+
+Los artefactos resultantes se guardan directamente en `<proyecto>/assets/` y se consumen de forma nativa mediante `video_clip`, `image_cutout`, `produce -i` o `--music`.
+
 ---
 
 ## 5. Diagnóstico y Resolución de Incidencias

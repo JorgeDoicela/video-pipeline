@@ -582,7 +582,16 @@ def _export_audio_stems(
     # 2. Stem de música / cama ambiental
     if sb is not None:
         sfx_map = ensure_sfx_assets()
-        music_src = resolve_music_source(sb.music)
+        project_music_dir = project_dir / "assets" / "music"
+        music_src: Path | None = None
+        if sb.music:
+            if project_music_dir.is_dir():
+                try:
+                    music_src = resolve_music_source(sb.music, music_dir=project_music_dir)
+                except FileNotFoundError:
+                    music_src = None
+            if music_src is None:
+                music_src = resolve_music_source(sb.music)
         if music_src is None and sb.ambient_bed and "drone" in sfx_map:
             music_src = sfx_map["drone"]
         if music_src is not None:

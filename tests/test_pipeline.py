@@ -23,6 +23,7 @@ def test_pipeline_cli_help():
     assert "scaffold" in res.stdout
     assert "style" in res.stdout
     assert "manim" in res.stdout
+    assert "genai" in res.stdout
     assert "export-nle" in res.stdout
     assert "profiles" in res.stdout
     assert "history" in res.stdout
@@ -91,6 +92,18 @@ def test_pipeline_subcommands_delegate_full_arguments():
     assert "map" in res_assets.stdout
     assert "audio" in res_assets.stdout
     assert "model" in res_assets.stdout
+
+    res_genai = subprocess.run(
+        [sys.executable, "core/pipeline.py", "genai", "--help"],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "doctor" in res_genai.stdout
+    assert "image" in res_genai.stdout
+    assert "video" in res_genai.stdout
+    assert "tts" in res_genai.stdout
+    assert "music" in res_genai.stdout
 
 
 def test_pipeline_subcommand_style_list():

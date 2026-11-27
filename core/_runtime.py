@@ -14,11 +14,45 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
+def load_dotenv_if_present(dotenv_path: Path | None = None) -> bool:
+    """
+    Carga variables desde .env en la raíz del repositorio usando os.environ.setdefault(),
+    de modo que las variables ya definidas en el entorno del SO o CI siempre tienen prioridad.
+    No requiere dependencias externas.
+    """
+    target = dotenv_path or (REPO_ROOT / ".env")
+    if not target.is_file():
+        return False
+    try:
+        lines = target.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return False
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].strip()
+        if "=" not in line:
+            continue
+        key, val = line.split("=", 1)
+        key = key.strip()
+        val = val.strip()
+        if not key:
+            continue
+        if len(val) >= 2 and val[0] == val[-1] and val[0] in {"'", '"'}:
+            val = val[1:-1]
+        if val:
+            os.environ.setdefault(key, val)
+    return True
+
+
 def ensure_repo_root_on_path() -> None:
     """Garantiza que la raíz del repositorio esté en sys.path al ejecutar scripts directos."""
     root_str = str(REPO_ROOT)
     if root_str not in sys.path:
         sys.path.insert(0, root_str)
+    load_dotenv_if_present()
 
 
 def ensure_local_venv() -> None:

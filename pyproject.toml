@@ -28,6 +28,9 @@ dev = [
 manim = [
     "manim>=0.19.0",
 ]
+genai = [
+    "google-genai>=3.5.0",
+]
 
 [tool.setuptools.packages.find]
 include = ["core*"]

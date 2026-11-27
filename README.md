@@ -128,6 +128,7 @@ El sistema cuenta con **7 plantillas esenciales** (`-t`) y una **arquitectura de
 | **Gestor de Assets CC0** | `uv run python core/pipeline.py assets <list\|icon\|map\|audio\|model> ...` | Descarga iconos SVG (Iconify), compila mapas reales (Natural Earth GeoJSON), normaliza audio CC0 o importa/valida modelos 3D glTF/GLB en `assets/`. |
 | **Procesador de Imágenes** | `uv run python core/pipeline.py image <rembg\|crop\|convert> ...` | Elimina el fondo (IA local ONNX `isnet` 1024x1024 de estudio o color), genera cutouts con borde/sombra, recorta (`9:16`, `16:9`, `--trim`) y convierte formatos (`PNG`, `WEBP`, `JPG`). |
 | **Motor Manim (Matemáticas/Algoritmos)** | `uv run python core/pipeline.py manim <doctor\|new\|render\|list> ...` | Crea y renderiza escenas Manim sincronizadas con la paleta del pipeline (`dark_violet`, `paper_warm`, `clean_light`), en `16:9`/`9:16` o fondo transparente, listas para `manim_clip`. |
+| **Generación Google Gemini (Opcional)** | `uv run python core/pipeline.py genai <doctor\|image\|video\|tts\|music> ...` | Conector opcional bajo demanda (requiere `GEMINI_API_KEY` y extra `.[genai]`) para generar imágenes (`gemini-nano-banana-2.1`), video MP4 (`gemini-omni-1.2-flash`), voz mono/multi-locutor (`gemini-3.8-flash-tts`) y música (`lyria-3.5`) directos a `assets/`. |
 | **Exportar a Editor NLE** | `uv run python core/pipeline.py export-nle <slug> [--split-layers] [--cuts ...]` | Genera paquete editable (`export_nle/`) con clips cortados por escena, capas alfa ProRes 4444/WebM, stems WAV (voz/música/SFX), SRT y `timeline.fcpxml` para DaVinci Resolve / Premiere. |
 | **Catálogo de Diseños** | `uv run python core/pipeline.py style --list` | Lista los 3 niveles: Diseños Macro (`-d`), Opciones Internas (`-s`, `--layout`, `--motion`) y Overrides (`--set`). |
 | **Perfiles de Canal** | `uv run python core/pipeline.py profiles <list\|show\|init>` | Gestiona perfiles reutilizables por canal o cliente en `profiles/*.json` (`--profile`, `--channel`, `--dated`, `--output-dir`). |
@@ -158,7 +159,7 @@ video-pipeline/
 │   ├── maps/              # 5 mapas geográficos vectoriales SVG (korea, world, europe, americas, asia)
 │   ├── images/            # Imágenes procesadas y recortes transparentes (cutouts PNG/WEBP, .gitkeep)
 │   ├── models/            # Modelos 3D abiertos glTF/GLB (.glb, .gltf) para el componente scene_3d (.gitkeep)
-│   ├── manim/             # Escenas Python de Manim sincronizadas con la paleta del pipeline (demo_sine_wave.py)
+│   ├── manim/             # Escenas Python de Manim sincronizadas con la paleta del pipeline (5 escenas semilla)
 │   ├── fonts/             # Tipografías locales del sistema (.gitkeep)
 │   └── icons/             # 18 iconos técnicos vectoriales SVG (Docker, K8s, Kafka, Redis, Shield, Lock, Radar, etc.)
 ├── core/                   # Herramientas del motor compartido
@@ -178,19 +179,24 @@ video-pipeline/
 │   ├── fetch_assets.py    # Gestor de assets abiertos (Iconify SVG + 18 iconos semilla, mapas Natural Earth y audio CC0)
 │   ├── image_tools.py     # Procesador de imágenes: rembg (IA local ONNX IS-Net 1024x1024 y color), crop, auto-trim, cutout sticker y conversión
 │   ├── manim_tools.py     # Integración Manim Community (doctor, new, render 16:9/9:16/alpha, paleta sincronizada y componente manim_clip)
+│   ├── genai_media.py     # Conector opcional bajo demanda para Google Gemini API (Nano Banana, Omni Flash, TTS, Lyria)
 │   ├── nle_export.py      # Exportador editable NLE (clips por escena, capas alfa ProRes 4444/WebM, audio stems WAV y timeline.fcpxml)
 │   └── workspace.py       # Perfiles de canal/cliente (profiles/*.json), workspaces externos (VIDEO_PIPELINE_WORKSPACE) e historial (catalog.jsonl)
 ├── profiles/               # Perfiles declarativos reutilizables por canal o cliente (tech_short, editorial_essay, client_clean)
 ├── tests/                  # Suite de pruebas unitarias automatizadas (pytest)
 │   ├── test_audio_mix.py  # Pruebas de síntesis SFX/música y construcción de filter_complex
 │   ├── test_fetch_assets.py # Pruebas de Iconify SVG, Natural Earth GeoJSON y audio CC0
+│   ├── test_genai_media.py # Pruebas del conector opcional Google Gemini API (offline/sin red)
 │   ├── test_image_tools.py # Pruebas de rembg ONNX/color, cutout sticker, crop y conversión
+│   ├── test_manim_tools.py # Pruebas de presets Manim, paleta sincronizada y componente manim_clip
+│   ├── test_nle_export.py  # Pruebas del exportador FCPXML v1.10, capas alfa y stems WAV
 │   ├── test_pipeline.py   # Verificación de interfaces CLI del pipeline
 │   ├── test_scaffold.py   # Pruebas de sanitización y scaffolding
 │   ├── test_scenes.py     # Pruebas de storyboard, cue_word, componentes y conmutación de diseños
 │   ├── test_silence.py    # Pruebas de cálculo de intervalos de silencios
 │   ├── test_styles.py     # Pruebas de temas visuales y conmutación no destructiva
-│   └── test_sync_captions.py # Pruebas de segmentación de palabras y GSAP
+│   ├── test_sync_captions.py # Pruebas de segmentación de palabras y GSAP
+│   └── test_workspace.py  # Pruebas de perfiles de canal, workspaces externos e historial
 ├── docs/                   # Biblioteca documental técnica Docs-as-Code
 │   ├── 00-indice-general.md
 │   ├── 01-arquitectura/

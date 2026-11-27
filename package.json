@@ -20,6 +20,7 @@
     "assets": "uv run python core/pipeline.py assets",
     "image": "uv run python core/pipeline.py image",
     "manim": "uv run python core/pipeline.py manim",
+    "genai": "uv run python core/pipeline.py genai",
     "export-nle": "uv run python core/pipeline.py export-nle",
     "sfx": "uv run python core/generate_sfx.py",
     "icons": "uv run python core/pipeline.py assets seed-icons",

@@ -198,6 +198,14 @@ Para visualizaciones matemáticas, geométricas o algorítmicas bajo demanda (si
 * **Comandos:** `manim presets`, `manim seed` (genera las 5 escenas semilla en `assets/manim/`), `manim new <slug> --preset <preset> -s <tema>` y `manim render <script> --aspect 16:9|9:16 --quality preview|hd|prod [--transparent]`.
 * **Uso declarativo en `storyboard.json`:** `"component": "manim_clip"` con `"script": "fourier_series"` (acepta slug o ruta), sincronizado automáticamente con el tema y overrides de `package.json`.
 
+### 4.8. Conector Opcional Google Gemini API (`core/genai_media.py`)
+Para piezas narrativas o personajes que requieran video generativo real, diálogo multi-personaje o música bajo demanda (solo cuando el operador decida usarlo con su propia `GEMINI_API_KEY` y extra `.[genai]`):
+* **Reglas de seguridad y flujo:** Leer `GEMINI_API_KEY` únicamente desde entorno (jamás en código, `package.json` ni commits). Validar restricciones antes de invocar red y usar siempre modelos vigentes:
+  * Imagen (`gemini-nano-banana-2.1`, hasta 14 refs `-i`) -> `assets/images/`
+  * Video (`gemini-omni-1.2-flash`, `3..15s`, `360p..4k`, `--first-frame`, `--last-frame`, `--extend`, `--strip-audio`) -> `assets/videos/` (integrado con `video_clip`)
+  * Voz mono/multi-personaje (`gemini-3.8-flash-tts` en `v1beta`, `--speakers` / `--turns-json`, normalizado WAV 48 kHz) -> `assets/audio/`
+  * Música (`lyria-3.5`) -> `assets/music/`
+
 ---
 
 ## 5. Flujo de Trabajo y Comandos de Ejecución
