@@ -30,6 +30,7 @@ if __package__ is None or __package__ == "":
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from core._runtime import (  # noqa: E402
+    REPO_ROOT,
     ensure_local_venv,
     ensure_repo_root_on_path,
     resolve_project_dir,
@@ -706,15 +707,16 @@ def export_nle_package(
                     "exec",
                     "hyperframes",
                     "render",
-                    str(project_dir),
+                    str(project_dir.resolve()),
                     "-c",
                     tmp_bg_html.name,
                     "-f",
                     str(fps),
                     "-o",
-                    str(master_bg_video),
+                    str(master_bg_video.resolve()),
                 ],
                 check=True,
+                cwd=str(REPO_ROOT),
             )
             print(
                 f"[NLE] Renderizando capa 2/2: Overlay tipografía/HUD con canal alfa ({alpha_format})..."
@@ -725,7 +727,7 @@ def export_nle_package(
                     "exec",
                     "hyperframes",
                     "render",
-                    str(project_dir),
+                    str(project_dir.resolve()),
                     "-c",
                     tmp_ov_html.name,
                     "--format",
@@ -733,9 +735,10 @@ def export_nle_package(
                     "-f",
                     str(fps),
                     "-o",
-                    str(master_overlay_video),
+                    str(master_overlay_video.resolve()),
                 ],
                 check=True,
+                cwd=str(REPO_ROOT),
             )
         finally:
             for tmp_file in (tmp_bg_html, tmp_ov_html):
@@ -752,13 +755,14 @@ def export_nle_package(
                     "exec",
                     "hyperframes",
                     "render",
-                    str(project_dir),
+                    str(project_dir.resolve()),
                     "-f",
                     str(fps),
                     "-o",
-                    str(default_mp4),
+                    str(default_mp4.resolve()),
                 ],
                 check=True,
+                cwd=str(REPO_ROOT),
             )
         master_bg_video = default_mp4
 

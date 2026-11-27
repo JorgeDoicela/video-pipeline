@@ -240,3 +240,35 @@ def test_export_nle_package_creates_clips_stems_subtitles_and_fcpxml(tmp_path, m
     manifest = json.loads(res.manifest_path.read_text(encoding="utf-8"))
     assert manifest["resolution"] == "1920x1080"
     assert len(manifest["clips"]) == 2
+
+
+def test_nle_export_invokes_hyperframes_from_repo_root(tmp_path, monkeypatch):
+    """Garantiza que hyperframes render se ejecuta con cwd=REPO_ROOT aunque el proyecto sea externo."""
+    from core._runtime import REPO_ROOT
+
+    proj = tmp_path / "ext-proj"
+    proj.mkdir()
+    (proj / "index.html").write_text(
+        '<div id="root" data-composition-id="main" data-width="1920" data-height="1080" data-duration="4.00"></div>',
+        encoding="utf-8",
+    )
+
+    recorded_calls: list[tuple[list[str], str | None]] = []
+
+    def fake_run(cmd, check=True, stdout=None, stderr=None, cwd=None):
+        recorded_calls.append((list(cmd), cwd))
+        Path(cmd[-1]).write_bytes(b"RENDERED")
+
+    monkeypatch.setattr("core.nle_export.resolve_ffmpeg", lambda: "ffmpeg")
+    monkeypatch.setattr("core.nle_export._resolve_pnpm_bin", lambda: "pnpm")
+    monkeypatch.setattr("core.nle_export.subprocess.run", fake_run)
+    # Simular ejecución desde un directorio ajeno al repositorio
+    monkeypatch.chdir(tmp_path)
+
+    res = export_nle_package(proj, cuts="0,2.0", fps=30)
+    assert len(res.clips) == 2
+
+    hf_calls = [(cmd, cwd) for cmd, cwd in recorded_calls if "hyperframes" in cmd]
+    assert len(hf_calls) == 1
+    assert hf_calls[0][1] == str(REPO_ROOT)
+    assert Path(hf_calls[0][0][hf_calls[0][0].index("render") + 1]).is_absolute()

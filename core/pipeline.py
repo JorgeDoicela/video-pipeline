@@ -18,6 +18,7 @@ if __package__ is None or __package__ == "":
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from core._runtime import (  # noqa: E402
+    REPO_ROOT,
     ensure_local_venv,
     ensure_repo_root_on_path,
     resolve_project_dir,
@@ -115,10 +116,12 @@ def resolve_pnpm() -> str:
     return pnpm_bin
 
 
-def run_command(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
+def run_command(
+    cmd: list[str], check: bool = True, cwd: Path | None = None
+) -> subprocess.CompletedProcess:
     """Ejecuta un comando del sistema informando el binario invocado."""
     print(f"[Exec] {' '.join(cmd)}")
-    return subprocess.run(cmd, check=check)
+    return subprocess.run(cmd, check=check, cwd=str(cwd) if cwd is not None else None)
 
 
 AUDIO_EXTENSIONS = {".wav", ".mp3", ".m4a", ".aac", ".ogg", ".flac"}
@@ -416,12 +419,15 @@ def produce_pipeline(
     print("\n--> [Paso 5/5] Auditando estándares con hyperframes check...")
     pnpm_bin = resolve_pnpm()
     try:
-        run_command([pnpm_bin, "exec", "hyperframes", "check", str(project_dir)])
+        run_command(
+            [pnpm_bin, "exec", "hyperframes", "check", str(project_dir.resolve())],
+            cwd=REPO_ROOT,
+        )
     except subprocess.CalledProcessError:
         print("\nAdvertencia: El linter de HyperFrames reportó observaciones en el proyecto.")
 
     # 6. Renderizado de Producción (Opcional)
-    final_output = project_dir / f"video_{project_dir.name}.mp4"
+    final_output = (project_dir / f"video_{project_dir.name}.mp4").resolve()
     if auto_render:
         print("\n--> Compilando MP4 final con aceleración GPU...")
         run_command(
@@ -430,10 +436,11 @@ def produce_pipeline(
                 "exec",
                 "hyperframes",
                 "render",
-                str(project_dir),
+                str(project_dir.resolve()),
                 "-o",
                 str(final_output),
-            ]
+            ],
+            cwd=REPO_ROOT,
         )
         print(f"\n[Éxito] Video final exportado a: {final_output.resolve()}")
 
@@ -863,12 +870,19 @@ def main():
                 reset_overrides=args.reset_overrides,
             )
     elif args.subcommand == "check":
-        p_dir = resolve_project_dir(args.project)
-        run_command([resolve_pnpm(), "exec", "hyperframes", "check", str(p_dir)])
+        p_dir = resolve_project_dir(args.project).resolve()
+        run_command([resolve_pnpm(), "exec", "hyperframes", "check", str(p_dir)], cwd=REPO_ROOT)
     elif args.subcommand == "render":
-        p_dir = resolve_project_dir(args.project)
-        out = args.output or str(p_dir / f"video_{p_dir.name}.mp4")
-        run_command([resolve_pnpm(), "exec", "hyperframes", "render", str(p_dir), "-o", out])
+        p_dir = resolve_project_dir(args.project).resolve()
+        out = (
+            str(Path(args.output).resolve())
+            if args.output
+            else str(p_dir / f"video_{p_dir.name}.mp4")
+        )
+        run_command(
+            [resolve_pnpm(), "exec", "hyperframes", "render", str(p_dir), "-o", out],
+            cwd=REPO_ROOT,
+        )
         pkg_meta: dict = {}
         pkg_file = p_dir / "package.json"
         if pkg_file.exists():
